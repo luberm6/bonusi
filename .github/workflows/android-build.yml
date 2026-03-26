@@ -10,6 +10,8 @@ jobs:
   build-android-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
     steps:
       - name: Checkout repository
@@ -87,8 +89,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-          sdkmanager --licenses >/dev/null
+          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Install JavaScript dependencies
         if: ${{ steps.detect.outputs.node_package_dir != '' }}
