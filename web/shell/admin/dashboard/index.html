@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Admin Dashboard</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <header class="glass card nav">
+          <div>
+            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Admin Dashboard</h1>
+            <p id="who" class="subtitle"></p>
+          </div>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">Dashboard</a>
+            <a class="link" href="/home/">Client Home</a>
+            <a class="link" href="/login/">Login</a>
+            <button id="logout-btn" class="btn btn-secondary" type="button">Logout</button>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="grid">
+          <article class="glass kpi">
+            <h3>Visits Today</h3>
+            <p>24</p>
+          </article>
+          <article class="glass kpi">
+            <h3>Active Clients</h3>
+            <p>312</p>
+          </article>
+          <article class="glass kpi">
+            <h3>Open Chats</h3>
+            <p>9</p>
+          </article>
+          <article class="glass kpi">
+            <h3>Branches</h3>
+            <p>3</p>
+          </article>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <h2 style="margin-top: 0;">Admin Quick Actions</h2>
+          <div class="row">
+            <a class="btn btn-primary" href="/admin/visits/create/">Create Visit</a>
+            <a class="btn btn-secondary" href="/admin/services/">Manage Services</a>
+            <a class="btn btn-secondary" href="/admin/chat/">Open Chat Workspace</a>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, bindLogout, startSessionAutoRefresh } from "/assets/app.js";
+      const session = guard(["admin", "super_admin"]);
+      if (session) {
+        document.getElementById("who").textContent = `${session.email} (${session.role})`;
+        startSessionAutoRefresh();
+      }
+      bindLogout("logout-btn");
+    </script>
+  </body>
+</html>

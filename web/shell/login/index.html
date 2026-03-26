@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Login</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
+          <h1 class="title">Internal Autoservice</h1>
+          <p class="subtitle">Real backend login for client/admin/super_admin.</p>
+          <p id="flags" class="subtitle" style="margin-top: 6px; font-size: 13px;"></p>
+          <div class="spacer-24"></div>
+
+          <label class="label" for="api-base">API base</label>
+          <input class="input" id="api-base" type="text" placeholder="http://127.0.0.1:4000/api/v1" />
+          <div class="spacer-16"></div>
+
+          <form id="login-form">
+            <label class="label" for="email">Email</label>
+            <input class="input" id="email" type="email" placeholder="admin@autoservice.local" required />
+
+            <div class="spacer-16"></div>
+            <label class="label" for="password">Password</label>
+            <input class="input" id="password" type="password" placeholder="••••••••" required />
+
+            <div class="spacer-16"></div>
+            <p id="error" class="error"></p>
+            <div class="row">
+              <button class="btn btn-primary" type="submit">Sign in</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { apiLogin, apiMe, featureFlags, getApiBase, setApiBase, writeSession } from "/assets/app.js";
+
+      const form = document.getElementById("login-form");
+      const errorNode = document.getElementById("error");
+      const apiBaseInput = document.getElementById("api-base");
+      const flagsNode = document.getElementById("flags");
+      apiBaseInput.value = getApiBase();
+      flagsNode.textContent = `Stage-1 flags: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        void (async () => {
+          errorNode.textContent = "";
+          const email = document.getElementById("email").value.trim();
+          const password = document.getElementById("password").value.trim();
+          const apiBase = apiBaseInput.value.trim();
+
+          if (!email || !password) {
+            errorNode.textContent = "Enter email and password.";
+            return;
+          }
+          if (!apiBase) {
+            errorNode.textContent = "Enter API base URL.";
+            return;
+          }
+
+          setApiBase(apiBase);
+          try {
+            const login = await apiLogin({ email, password });
+            const me = await apiMe(login.accessToken);
+
+            writeSession({
+              userId: me.id ?? login.user?.id,
+              role: me.role ?? login.user?.role,
+              email: me.email ?? login.user?.email ?? email,
+              accessToken: login.accessToken,
+              refreshToken: login.refreshToken,
+              deviceId: login.deviceId
+            });
+            const role = me.role ?? login.user?.role;
+            window.location.href = role === "client" ? "/home/" : "/admin/dashboard/";
+          } catch (error) {
+            errorNode.textContent = error instanceof Error ? error.message : "Login failed";
+          }
+        })();
+      });
+    </script>
+  </body>
+</html>

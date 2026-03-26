@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Client Home</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <header class="glass card nav">
+          <div>
+            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Client Home</h1>
+            <p id="who" class="subtitle"></p>
+          </div>
+          <div class="nav-links">
+            <a class="link" href="/home/">Home</a>
+            <a class="link" href="/login/">Login</a>
+            <button id="logout-btn" class="btn btn-secondary" type="button">Logout</button>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="grid">
+          <article class="glass kpi">
+            <h3>Bonus Balance</h3>
+            <p>1 250</p>
+          </article>
+          <article class="glass kpi">
+            <h3>Last Visit</h3>
+            <p>2026-03-20</p>
+          </article>
+          <article class="glass kpi">
+            <h3>Status</h3>
+            <p><span class="badge">active</span></p>
+          </article>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <h2 style="margin-top: 0;">Quick Actions</h2>
+          <div class="row">
+            <button class="btn btn-primary" type="button">Open Chat</button>
+            <button class="btn btn-secondary" type="button">View Visits</button>
+            <button class="btn btn-secondary" type="button">Find Branches</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, bindLogout, startSessionAutoRefresh } from "/assets/app.js";
+      const session = guard(["client"]);
+      if (session) {
+        document.getElementById("who").textContent = `${session.email} (${session.role})`;
+        startSessionAutoRefresh();
+      }
+      bindLogout("logout-btn");
+    </script>
+  </body>
+</html>

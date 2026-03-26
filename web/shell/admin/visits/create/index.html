@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Create Visit</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <header class="glass card nav">
+          <h1 class="title" style="font-size: 22px; margin: 0;">Create Visit</h1>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">Back to Dashboard</a>
+          </div>
+        </header>
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <p class="subtitle">Visit creation screen placeholder. Navigation works.</p>
+        </section>
+      </section>
+    </main>
+    <script type="module">
+      import { guard, startSessionAutoRefresh } from "/assets/app.js";
+      const session = guard(["admin", "super_admin"]);
+      if (session) startSessionAutoRefresh();
+    </script>
+  </body>
+</html>
