@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Splash screen logo: blue circle with white "A".
+  Viewport: 80×80dp. Displayed at 96dp in splash_background.xml layer-list.
+  To replace: swap this vector with your actual brand mark.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="80dp"
+    android:height="80dp"
+    android:viewportWidth="80"
+    android:viewportHeight="80">
+    <!-- Brand blue circle -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M40,40 m-40,0 a40,40 0 1,0 80,0 a40,40 0 1,0 -80,0"/>
+    <!-- White "A" — outer shape CW + inner cutout CCW (nonZero fill = hole without fillType) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,18 L61,62 L51,62 L47,50 L33,50 L29,62 L19,62 Z M40,27 L34,42 L46,42 Z"/>
+</vector>

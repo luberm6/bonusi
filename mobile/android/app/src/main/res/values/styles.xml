@@ -6,4 +6,17 @@
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
+
+    <!--
+      Splash screen theme: shown while the activity window is being created.
+      MainActivity calls setTheme(R.style.AppTheme) in onCreate() before super(),
+      which transitions to AppTheme as soon as React Native renders.
+      To update splash: edit @drawable/splash_background.
+    -->
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
 </resources>

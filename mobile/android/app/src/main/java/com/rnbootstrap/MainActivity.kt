@@ -1,5 +1,6 @@
 package com.rnbootstrap
 
+import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -8,10 +9,19 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 class MainActivity : ReactActivity() {
 
   /**
-   * Returns the name of the main component registered from JavaScript. This is used to schedule
-   * rendering of the component.
+   * Dismiss the SplashTheme and switch to AppTheme before React Native renders.
+   * The splash is shown automatically via android:theme="@style/SplashTheme" in AndroidManifest.
    */
-  override fun getMainComponentName(): String = "RnBootstrap"
+  override fun onCreate(savedInstanceState: Bundle?) {
+    setTheme(R.style.AppTheme)
+    super.onCreate(savedInstanceState)
+  }
+
+  /**
+   * Returns the name of the main component registered from JavaScript.
+   * Must match AppRegistry.registerComponent() call in index.js / app.json "name".
+   */
+  override fun getMainComponentName(): String = "AutoService"
 
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]

@@ -82,7 +82,7 @@ android {
 
     namespace "com.rnbootstrap"
     defaultConfig {
-        applicationId "com.rnbootstrap"
+        applicationId "com.bonusi.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode ciRunNumber
