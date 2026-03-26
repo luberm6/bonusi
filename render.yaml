@@ -79,7 +79,7 @@ services:
         fromService:
           type: web
           name: autoservice-backend
-          property: url
+          property: host
 
 databases:
   - name: autoservice-postgres

@@ -10,6 +10,10 @@ mkdir -p "$DIST_DIR"
 cp -R "$SHELL_DIR/." "$DIST_DIR/"
 
 API_BASE="${PUBLIC_API_BASE:-http://127.0.0.1:4000}"
+# Add https:// when Render injects a bare hostname via fromService.property: host
+if [[ "$API_BASE" != http://* && "$API_BASE" != https://* ]]; then
+  API_BASE="https://${API_BASE}"
+fi
 if [[ "$API_BASE" != */api/v1 ]]; then
   API_BASE="${API_BASE%/}/api/v1"
 fi
