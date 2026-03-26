@@ -104,6 +104,21 @@ jobs:
             npm install --no-audit --no-fund
           fi
 
+      - name: Generate debug keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEYSTORE_PATH="${{ steps.detect.outputs.android_dir }}/app/debug.keystore"
+          keytool -genkey -v \
+            -keystore "$KEYSTORE_PATH" \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Build debug APK
         shell: bash
         run: |
