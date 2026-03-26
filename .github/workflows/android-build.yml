@@ -89,7 +89,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0" "ndk;27.1.12297006"
+          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Install JavaScript dependencies
@@ -122,10 +122,19 @@ jobs:
       - name: Build debug APK
         shell: bash
         run: |
-          set -euo pipefail
           cd "${{ steps.detect.outputs.android_dir }}"
           chmod +x ./gradlew
-          ./gradlew --no-daemon clean assembleDebug --stacktrace
+          ./gradlew --no-daemon clean assembleDebug --stacktrace 2>&1 | tee /tmp/gradle-build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "::group::Gradle failure — What went wrong"
+            grep -A 20 "What went wrong" /tmp/gradle-build.log | head -40 || true
+            echo "::endgroup::"
+            echo "::group::Gradle failure — Caused by (first 30)"
+            grep -A 5 "Caused by:" /tmp/gradle-build.log | head -30 || true
+            echo "::endgroup::"
+            exit $BUILD_EXIT
+          fi
 
       - name: Verify APK exists
         shell: bash
