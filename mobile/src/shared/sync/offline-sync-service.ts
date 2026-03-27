@@ -1,5 +1,8 @@
-import { randomUUID } from "crypto";
 import type { OfflineApi } from "../offline/offline-api";
+
+function randomUUID(): string {
+  return globalThis.crypto.randomUUID();
+}
 import type { Connectivity } from "../offline/connectivity";
 import type { ChatSendPayload, OfflineStore } from "../offline/offline-store";
 import type { LocalMessageRecord, PendingActionRecord } from "../types/offline";
