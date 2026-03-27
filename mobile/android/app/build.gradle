@@ -51,6 +51,12 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 
     /* Autolinking */
+    // Bundle JS into the APK when building for CI/distribution (-PbundleInDebug flag).
+    // Without this flag, local dev uses Metro for hot-reload as normal.
+    if (project.hasProperty("bundleInDebug")) {
+        debuggableVariants = []
+    }
+
     autolinkLibrariesWithApp()
 }
 
