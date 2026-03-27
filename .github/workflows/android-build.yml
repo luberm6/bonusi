@@ -124,17 +124,17 @@ jobs:
         run: |
           cd "${{ steps.detect.outputs.android_dir }}"
           chmod +x ./gradlew
-          ./gradlew --no-daemon clean assembleDebug --stacktrace \
+          ./gradlew --no-daemon clean assembleDebug --stacktrace --warning-mode all \
             -PreactNativeArchitectures=arm64-v8a \
             2>&1 | tee /tmp/gradle-build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "::group::Gradle failure — What went wrong"
+            echo "=== Gradle build log (first 150 lines) ==="
+            head -150 /tmp/gradle-build.log || true
+            echo "=== What went wrong ==="
             grep -A 20 "What went wrong" /tmp/gradle-build.log | head -40 || true
-            echo "::endgroup::"
-            echo "::group::Gradle failure — Caused by (first 30)"
+            echo "=== Caused by ==="
             grep -A 5 "Caused by:" /tmp/gradle-build.log | head -30 || true
-            echo "::endgroup::"
             exit $BUILD_EXIT
           fi
 
