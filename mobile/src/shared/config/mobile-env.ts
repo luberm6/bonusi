@@ -1,3 +1,3 @@
 export const mobileEnv = {
-  apiBaseUrl: "http://127.0.0.1:4010/api/v1"
+  apiBaseUrl: "https://autoservice-backend-atyj.onrender.com/api/v1"
 };

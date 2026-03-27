@@ -16,10 +16,6 @@
           <p id="flags" class="subtitle" style="margin-top: 6px; font-size: 13px;"></p>
           <div class="spacer-24"></div>
 
-          <label class="label" for="api-base">API base</label>
-          <input class="input" id="api-base" type="text" placeholder="http://127.0.0.1:4000/api/v1" />
-          <div class="spacer-16"></div>
-
           <form id="login-form">
             <label class="label" for="email">Email</label>
             <input class="input" id="email" type="email" placeholder="admin@autoservice.local" required />
@@ -39,13 +35,11 @@
     </main>
 
     <script type="module">
-      import { apiLogin, apiMe, featureFlags, getApiBase, setApiBase, writeSession } from "/assets/app.js";
+      import { apiLogin, apiMe, featureFlags, writeSession } from "/assets/app.js";
 
       const form = document.getElementById("login-form");
       const errorNode = document.getElementById("error");
-      const apiBaseInput = document.getElementById("api-base");
       const flagsNode = document.getElementById("flags");
-      apiBaseInput.value = getApiBase();
       flagsNode.textContent = `Stage-1 flags: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
 
       form.addEventListener("submit", (e) => {
@@ -54,18 +48,12 @@
           errorNode.textContent = "";
           const email = document.getElementById("email").value.trim();
           const password = document.getElementById("password").value.trim();
-          const apiBase = apiBaseInput.value.trim();
 
           if (!email || !password) {
             errorNode.textContent = "Enter email and password.";
             return;
           }
-          if (!apiBase) {
-            errorNode.textContent = "Enter API base URL.";
-            return;
-          }
 
-          setApiBase(apiBase);
           try {
             const login = await apiLogin({ email, password });
             const me = await apiMe(login.accessToken);
@@ -88,7 +76,7 @@
               msg.includes("NetworkError") ||
               msg.includes("network");
             errorNode.textContent = isNetwork
-              ? "Cannot reach the server. The backend may be waking up — wait 30 seconds and try again."
+              ? "Cannot reach the server. Check your connection and try again."
               : msg || "Login failed";
           }
         })();

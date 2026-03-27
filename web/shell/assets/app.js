@@ -1,5 +1,4 @@
 const SESSION_KEY = "autoservice_web_session";
-const API_BASE_KEY = "autoservice_web_api_base";
 const DEFAULT_API_BASE = globalThis.__AUTOSERVICE_API_BASE__ || "http://127.0.0.1:4000/api/v1";
 const REFRESH_AHEAD_SECONDS = 90;
 let refreshInFlight = null;
@@ -29,12 +28,7 @@ export function clearSession() {
 }
 
 export function getApiBase() {
-  return localStorage.getItem(API_BASE_KEY) || DEFAULT_API_BASE;
-}
-
-export function setApiBase(value) {
-  if (!value) return;
-  localStorage.setItem(API_BASE_KEY, value.replace(/\/+$/, ""));
+  return DEFAULT_API_BASE;
 }
 
 async function parseJson(response) {
