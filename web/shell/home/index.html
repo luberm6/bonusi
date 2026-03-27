@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Client Home</title>
+    <title>Autoservice | Кабинет</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
@@ -12,52 +12,74 @@
       <section class="shell">
         <header class="glass card nav">
           <div>
-            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Client Home</h1>
+            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Кабинет клиента</h1>
             <p id="who" class="subtitle"></p>
           </div>
           <div class="nav-links">
-            <a class="link" href="/home/">Home</a>
-            <a class="link" href="/login/">Login</a>
-            <button id="logout-btn" class="btn btn-secondary" type="button">Logout</button>
+            <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
           </div>
         </header>
 
         <div class="spacer-16"></div>
         <section class="grid">
           <article class="glass kpi">
-            <h3>Bonus Balance</h3>
-            <p>1 250</p>
+            <h3>Бонусный баланс</h3>
+            <p id="kpi-bonus">—</p>
           </article>
           <article class="glass kpi">
-            <h3>Last Visit</h3>
-            <p>2026-03-20</p>
+            <h3>Последний визит</h3>
+            <p id="kpi-last-visit">—</p>
           </article>
           <article class="glass kpi">
-            <h3>Status</h3>
-            <p><span class="badge">active</span></p>
+            <h3>Статус</h3>
+            <p><span class="badge">Активен</span></p>
           </article>
         </section>
 
         <div class="spacer-16"></div>
         <section class="glass card">
-          <h2 style="margin-top: 0;">Quick Actions</h2>
+          <h2 style="margin-top: 0;">Быстрые действия</h2>
           <div class="row">
-            <button class="btn btn-primary" type="button">Open Chat</button>
-            <button class="btn btn-secondary" type="button">View Visits</button>
-            <button class="btn btn-secondary" type="button">Find Branches</button>
+            <button class="btn btn-primary" type="button" id="btn-chat">Открыть чат</button>
+            <button class="btn btn-secondary" type="button" id="btn-visits">Мои визиты</button>
+            <button class="btn btn-secondary" type="button" id="btn-branches">Найти филиал</button>
           </div>
         </section>
       </section>
     </main>
 
     <script type="module">
-      import { guard, bindLogout, startSessionAutoRefresh } from "/assets/app.js";
-      const session = guard(["client"]);
-      if (session) {
-        document.getElementById("who").textContent = `${session.email} (${session.role})`;
-        startSessionAutoRefresh();
-      }
+      import { guard, bindLogout, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+      const session = guard(["client", "admin", "super_admin"]);
+      if (!session) return;
+      document.getElementById("who").textContent = `${session.email} (${session.role})`;
+      startSessionAutoRefresh();
       bindLogout("logout-btn");
+
+      document.getElementById("btn-chat").addEventListener("click", () => alert("Скоро"));
+      document.getElementById("btn-visits").addEventListener("click", () => alert("Скоро"));
+      document.getElementById("btn-branches").addEventListener("click", () => alert("Скоро"));
+
+      const [bonusRes, visitsRes] = await Promise.allSettled([
+        authFetchJson(`/bonuses/balance?clientId=${session.userId}`),
+        authFetchJson(`/visits?clientId=${session.userId}`)
+      ]);
+
+      if (bonusRes.status === "fulfilled") {
+        const b = bonusRes.value;
+        document.getElementById("kpi-bonus").textContent =
+          typeof b.balance === "number" ? `${b.balance} ₽` : "—";
+      }
+
+      if (visitsRes.status === "fulfilled" && Array.isArray(visitsRes.value) && visitsRes.value.length > 0) {
+        const visits = visitsRes.value;
+        visits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
+        const d = new Date(visits[0].visitDate);
+        document.getElementById("kpi-last-visit").textContent =
+          d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+      } else {
+        document.getElementById("kpi-last-visit").textContent = "Нет визитов";
+      }
     </script>
   </body>
 </html>

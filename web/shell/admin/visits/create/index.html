@@ -1,31 +1,220 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Create Visit</title>
+    <title>Autoservice | Создать визит</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+      .field { display: flex; flex-direction: column; gap: 4px; }
+      .field label { font-size: 13px; font-weight: 600; color: #475569; }
+      select.input { appearance: auto; }
+      .services-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+      .services-table th, .services-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+      .services-table th { font-weight: 600; color: #475569; }
+      .services-table tr:last-child td { border-bottom: none; }
+      .add-service-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 12px; }
+      .add-service-row .input { flex: 1; min-width: 120px; }
+      #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
+      #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
+    </style>
   </head>
   <body>
     <main class="page">
       <section class="shell">
         <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Create Visit</h1>
+          <h1 class="title" style="font-size: 22px; margin: 0;">Создать визит</h1>
           <div class="nav-links">
-            <a class="link" href="/admin/dashboard/">Back to Dashboard</a>
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
+
         <div class="spacer-16"></div>
         <section class="glass card">
-          <p class="subtitle">Visit creation screen placeholder. Navigation works.</p>
+          <form id="visit-form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="sel-client">Клиент</label>
+                <select class="input" id="sel-client" required>
+                  <option value="">Загрузка...</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="sel-branch">Филиал</label>
+                <select class="input" id="sel-branch" required>
+                  <option value="">Загрузка...</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="visit-date">Дата визита</label>
+                <input class="input" type="date" id="visit-date" />
+              </div>
+              <div class="field">
+                <label for="visit-comment">Комментарий</label>
+                <input class="input" type="text" id="visit-comment" placeholder="Необязательно" />
+              </div>
+            </div>
+
+            <div class="spacer-16"></div>
+            <h3 style="margin: 0 0 8px;">Услуги</h3>
+            <table class="services-table" id="svc-table" style="display:none">
+              <thead>
+                <tr><th>Услуга</th><th>Количество</th><th></th></tr>
+              </thead>
+              <tbody id="svc-tbody"></tbody>
+            </table>
+            <p id="no-services" style="color:#94a3b8;font-size:14px">Услуги не добавлены</p>
+
+            <div class="add-service-row">
+              <select class="input" id="add-svc-id" style="flex:2">
+                <option value="">Загрузка услуг...</option>
+              </select>
+              <input class="input" type="number" id="add-svc-qty" min="1" value="1" placeholder="Кол-во" style="max-width:100px" />
+              <button type="button" class="btn btn-secondary" id="add-svc-btn">+ Добавить</button>
+            </div>
+
+            <div class="spacer-16"></div>
+            <p id="error-msg"></p>
+            <p id="success-msg"></p>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Создать визит</button>
+          </form>
         </section>
       </section>
     </main>
+
     <script type="module">
-      import { guard, startSessionAutoRefresh } from "/assets/app.js";
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (session) startSessionAutoRefresh();
+      if (!session) return;
+      startSessionAutoRefresh();
+
+      const selectedServices = []; // [{serviceId, name, quantity}]
+
+      async function loadData() {
+        const [users, branches, services] = await Promise.all([
+          authFetchJson("/users"),
+          authFetchJson("/branches"),
+          authFetchJson("/services")
+        ]);
+
+        const selClient = document.getElementById("sel-client");
+        selClient.innerHTML = '<option value="">— Выберите клиента —</option>';
+        for (const u of users.filter(u => u.role === "client")) {
+          const opt = document.createElement("option");
+          opt.value = u.id;
+          opt.textContent = u.name || u.email;
+          selClient.appendChild(opt);
+        }
+
+        const selBranch = document.getElementById("sel-branch");
+        selBranch.innerHTML = '<option value="">— Выберите филиал —</option>';
+        for (const b of branches.filter(b => b.isActive)) {
+          const opt = document.createElement("option");
+          opt.value = b.id;
+          opt.textContent = b.name;
+          selBranch.appendChild(opt);
+        }
+
+        const selSvc = document.getElementById("add-svc-id");
+        selSvc.innerHTML = '<option value="">— Выберите услугу —</option>';
+        for (const s of services.filter(s => s.isActive)) {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.dataset.name = s.name;
+          opt.textContent = `${s.name} — ${Number(s.basePrice).toFixed(2)} ₽`;
+          selSvc.appendChild(opt);
+        }
+      }
+
+      function renderServicesTable() {
+        const tbody = document.getElementById("svc-tbody");
+        const table = document.getElementById("svc-table");
+        const noSvc = document.getElementById("no-services");
+        tbody.innerHTML = "";
+        if (selectedServices.length === 0) {
+          table.style.display = "none";
+          noSvc.style.display = "";
+          return;
+        }
+        table.style.display = "";
+        noSvc.style.display = "none";
+        for (let i = 0; i < selectedServices.length; i++) {
+          const s = selectedServices[i];
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.quantity}</td>
+            <td><button type="button" class="btn btn-secondary" style="font-size:12px;padding:3px 10px" data-idx="${i}">Удалить</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll("button[data-idx]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            selectedServices.splice(Number(btn.dataset.idx), 1);
+            renderServicesTable();
+          });
+        });
+      }
+
+      document.getElementById("add-svc-btn").addEventListener("click", () => {
+        const sel = document.getElementById("add-svc-id");
+        const qty = parseInt(document.getElementById("add-svc-qty").value, 10);
+        if (!sel.value || !qty || qty < 1) return;
+        const existing = selectedServices.find(s => s.serviceId === sel.value);
+        if (existing) {
+          existing.quantity += qty;
+        } else {
+          const opt = sel.options[sel.selectedIndex];
+          selectedServices.push({ serviceId: sel.value, name: opt.dataset.name, quantity: qty });
+        }
+        document.getElementById("add-svc-qty").value = "1";
+        renderServicesTable();
+      });
+
+      document.getElementById("visit-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = document.getElementById("error-msg");
+        const suc = document.getElementById("success-msg");
+        err.textContent = "";
+        suc.textContent = "";
+
+        const clientId = document.getElementById("sel-client").value;
+        const branchId = document.getElementById("sel-branch").value;
+        if (!clientId) { err.textContent = "Выберите клиента"; return; }
+        if (!branchId) { err.textContent = "Выберите филиал"; return; }
+        if (selectedServices.length === 0) { err.textContent = "Добавьте хотя бы одну услугу"; return; }
+
+        const dateVal = document.getElementById("visit-date").value;
+        const comment = document.getElementById("visit-comment").value.trim();
+        const submitBtn = document.getElementById("submit-btn");
+        submitBtn.disabled = true;
+
+        try {
+          const body = {
+            clientId,
+            branchId,
+            services: selectedServices.map(s => ({ serviceId: s.serviceId, quantity: s.quantity }))
+          };
+          if (dateVal) body.visitDate = dateVal;
+          if (comment) body.comment = comment;
+
+          const result = await authFetchJson("/visits", { method: "POST", body });
+          suc.textContent = `Визит создан (ID: ${result.id})`;
+          selectedServices.length = 0;
+          renderServicesTable();
+          e.target.reset();
+        } catch (ex) {
+          err.textContent = ex.message || "Ошибка при создании визита";
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+
+      loadData();
+      renderServicesTable();
     </script>
   </body>
 </html>
