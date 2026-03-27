@@ -76,10 +76,7 @@ services:
     autoDeploy: true
     envVars:
       - key: PUBLIC_API_BASE
-        fromService:
-          type: web
-          name: autoservice-backend
-          property: host
+        value: https://autoservice-backend-atyj.onrender.com
 
 databases:
   - name: autoservice-postgres
