@@ -81,7 +81,15 @@
             const role = me.role ?? login.user?.role;
             window.location.href = role === "client" ? "/home/" : "/admin/dashboard/";
           } catch (error) {
-            errorNode.textContent = error instanceof Error ? error.message : "Login failed";
+            const msg = error instanceof Error ? error.message : "";
+            const isNetwork =
+              msg === "Load failed" ||
+              msg === "Failed to fetch" ||
+              msg.includes("NetworkError") ||
+              msg.includes("network");
+            errorNode.textContent = isNetwork
+              ? "Cannot reach the server. The backend may be waking up — wait 30 seconds and try again."
+              : msg || "Login failed";
           }
         })();
       });

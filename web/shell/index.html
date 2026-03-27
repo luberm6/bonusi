@@ -3,24 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice Web Shell</title>
+    <title>Autoservice</title>
+    <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
   <body>
     <main class="page">
       <section class="shell">
-        <div class="glass card" style="max-width: 720px; margin: 40px auto 0;">
-          <h1 class="title">Autoservice Web Shell</h1>
-          <p class="subtitle">Minimal role-aware shell for demo and manual QA.</p>
+        <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
+          <h1 class="title">Autoservice</h1>
+          <p class="subtitle" id="subtitle">Checking session…</p>
           <div class="spacer-16"></div>
-          <div class="row">
-            <a class="link" href="/login/">Open Login</a>
-            <a class="link" href="/home/">Open Client Home</a>
-            <a class="link" href="/admin/dashboard/">Open Admin Dashboard</a>
-          </div>
+          <div class="row" id="actions"></div>
         </div>
       </section>
     </main>
+
+    <script type="module">
+      import { readSession } from "/assets/app.js";
+      const session = readSession();
+      if (session) {
+        window.location.replace(session.role === "client" ? "/home/" : "/admin/dashboard/");
+      } else {
+        document.getElementById("subtitle").textContent = "Sign in to continue.";
+        const actions = document.getElementById("actions");
+        const a = document.createElement("a");
+        a.className = "btn btn-primary";
+        a.href = "/login/";
+        a.textContent = "Sign in";
+        actions.appendChild(a);
+      }
+    </script>
   </body>
 </html>
-
