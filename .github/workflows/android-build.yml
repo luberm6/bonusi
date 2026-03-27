@@ -124,7 +124,10 @@ jobs:
         run: |
           cd "${{ steps.detect.outputs.android_dir }}"
           chmod +x ./gradlew
-          ./gradlew --no-daemon clean assembleDebug --stacktrace 2>&1 | tee /tmp/gradle-build.log
+          ./gradlew --no-daemon clean assembleDebug --stacktrace \
+            -PnewArchEnabled=false \
+            -PreactNativeArchitectures=arm64-v8a \
+            2>&1 | tee /tmp/gradle-build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
             echo "::group::Gradle failure — What went wrong"
