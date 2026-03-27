@@ -44,15 +44,13 @@ export async function createMobileRuntime(input: {
 
 // Concrete SDK wiring for React Native entrypoint.
 // Call this from app bootstrap after auth session restore.
-export async function createMobileRuntimeWithExpo(input: {
+// NOTE: expo-sqlite and @react-native-community/netinfo are not yet installed.
+// Pass a custom runtimeFactory to bootstrapMobileApp when wiring up native storage.
+export async function createMobileRuntimeWithExpo(_input: {
   currentUserId: string;
   getAccessToken: () => string;
 }): Promise<MobileRuntime> {
-  const [sqliteModule, netInfoModule] = await Promise.all([import("expo-sqlite"), import("@react-native-community/netinfo")]);
-  return createMobileRuntime({
-    currentUserId: input.currentUserId,
-    getAccessToken: input.getAccessToken,
-    sqlite: sqliteModule as unknown as ExpoSqliteModule,
-    netInfo: (netInfoModule.default ?? netInfoModule) as unknown as NetInfoModule
-  });
+  throw new Error(
+    "Native runtime not wired up. Pass a custom runtimeFactory to bootstrapMobileApp."
+  );
 }
