@@ -29,7 +29,7 @@ body {
 
 .page {
   min-height: 100vh;
-  padding: 24px;
+  padding: clamp(18px, 2.5vw, 28px);
 }
 
 .shell {
@@ -46,12 +46,13 @@ body {
 }
 
 .card {
-  padding: 20px;
+  padding: clamp(16px, 2vw, 22px);
 }
 
 .title {
   margin: 0 0 8px;
   font-size: 28px;
+  line-height: 1.05;
 }
 
 .subtitle {
@@ -63,6 +64,7 @@ body {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .spacer-16 {
@@ -82,11 +84,18 @@ body {
   display: inline-block;
   text-decoration: none;
   line-height: 1.2;
+  min-height: 44px;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
 }
 
 .btn-primary {
   background: linear-gradient(120deg, var(--primary), var(--primary-2));
   color: #fff;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.16);
 }
 
 .btn-secondary {
@@ -94,17 +103,40 @@ body {
   color: var(--text);
 }
 
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  opacity: 0.96;
+}
+
+.btn:focus-visible,
+.input:focus-visible,
+a.link:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.32);
+  outline-offset: 2px;
+}
+
 .input {
   width: 100%;
   border: 1px solid rgba(148, 163, 184, 0.45);
   border-radius: 12px;
-  padding: 11px 12px;
+  padding: 12px 12px;
   font-size: 14px;
   background: rgba(255, 255, 255, 0.86);
+  min-height: 44px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .input:focus {
-  outline: 2px solid rgba(37, 99, 235, 0.22);
+  border-color: rgba(37, 99, 235, 0.38);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  outline: none;
 }
 
 .label {
@@ -169,4 +201,30 @@ a.link {
   text-decoration: none;
   color: var(--primary-2);
   font-weight: 600;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+a.link:hover {
+  opacity: 0.85;
+}
+
+a.link:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 720px) {
+  .nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav-links {
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
 }
