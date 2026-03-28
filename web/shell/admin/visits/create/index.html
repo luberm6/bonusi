@@ -34,7 +34,7 @@
 
         <div class="spacer-16"></div>
         <section class="glass card" id="page-state">
-          <p class="subtitle">Подтягиваем справочники...</p>
+          <p class="subtitle">Загружаем справочники...</p>
         </section>
 
         <div class="spacer-16"></div>
@@ -101,7 +101,7 @@
         let servicesLoaded = false;
 
         async function loadData() {
-          pageState.innerHTML = '<p class="subtitle">Подтягиваем справочники...</p>';
+          pageState.innerHTML = '<p class="subtitle">Загружаем справочники...</p>';
           const [usersRes, branchesRes, servicesRes] = await Promise.allSettled([
             authFetchJson("/users"),
             authFetchJson("/branches"),
@@ -111,7 +111,7 @@
           if (usersRes.status === "rejected" || branchesRes.status === "rejected" || servicesRes.status === "rejected") {
             pageState.innerHTML = `<p class="error">Не удалось загрузить часть справочников. Проверьте backend и права доступа.</p>`;
           } else {
-            pageState.innerHTML = '<p class="subtitle">Справочники загружены из backend.</p>';
+            pageState.innerHTML = '<p class="subtitle">Справочники загружены.</p>';
           }
 
           const users = usersRes.status === "fulfilled" ? usersRes.value : [];
@@ -205,8 +205,8 @@
 
           const clientId = document.getElementById("sel-client").value;
           const branchId = document.getElementById("sel-branch").value;
-          if (!clientId) { err.textContent = "Выберите клиента"; return; }
-          if (!branchId) { err.textContent = "Выберите филиал"; return; }
+          if (!clientId) { err.textContent = "Сначала выберите клиента"; return; }
+          if (!branchId) { err.textContent = "Сначала выберите филиал"; return; }
           if (selectedServices.length === 0) { err.textContent = "Добавьте хотя бы одну услугу"; return; }
 
           const dateVal = document.getElementById("visit-date").value;

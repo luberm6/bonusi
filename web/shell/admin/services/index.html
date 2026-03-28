@@ -30,7 +30,7 @@
 
         <div class="spacer-16"></div>
         <section class="glass card" id="page-state">
-          <p class="subtitle">Подтягиваем каталог услуг...</p>
+          <p class="subtitle">Загружаем каталог услуг...</p>
         </section>
 
         <div class="spacer-16"></div>
@@ -85,7 +85,7 @@
         }
 
         async function loadServices() {
-          pageState.innerHTML = '<p class="subtitle">Загрузка услуг...</p>';
+          pageState.innerHTML = '<p class="subtitle">Загружаем каталог услуг...</p>';
           try {
             const list = await authFetchJson("/services");
             document.getElementById("loading").style.display = "none";
@@ -93,11 +93,11 @@
             const tbody = document.getElementById("tbody");
             tbody.innerHTML = "";
             if (!list.length) {
-              tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Пока нет ни одной услуги</td></tr>';
+              tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Каталог пока пуст</td></tr>';
               pageState.innerHTML = '<p class="subtitle">Каталог пока пуст. Добавьте первую услугу, чтобы начать работу.</p>';
               return;
             }
-            pageState.innerHTML = '<p class="subtitle">Каталог загружен из backend.</p>';
+            pageState.innerHTML = '<p class="subtitle">Каталог услуг загружен.</p>';
             for (const s of list) {
               const tr = document.createElement("tr");
               tr.innerHTML = `

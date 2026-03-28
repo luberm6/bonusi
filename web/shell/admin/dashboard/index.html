@@ -16,7 +16,7 @@
             <p id="who" class="subtitle"></p>
           </div>
           <div class="nav-links">
-            <a class="link" href="/admin/dashboard/">Дашборд</a>
+            <a class="link" href="/admin/dashboard/">Сводка</a>
             <a class="link" href="/home/">Личный кабинет</a>
             <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
           </div>
@@ -24,7 +24,7 @@
 
         <div class="spacer-16"></div>
         <section class="glass card" id="dashboard-state">
-          <p class="subtitle">Подтягиваем данные дашборда...</p>
+          <p class="subtitle">Загружаем данные дашборда...</p>
         </section>
 
         <div class="spacer-16"></div>
@@ -49,7 +49,7 @@
 
         <div class="spacer-16"></div>
         <section class="glass card">
-          <h2 style="margin-top: 0;">Быстрый доступ</h2>
+          <h2 style="margin-top: 0;">Быстрые действия</h2>
           <div class="row">
             <a class="btn btn-primary" href="/admin/visits/create/">Создать визит</a>
             <a class="btn btn-secondary" href="/admin/services/">Услуги</a>
@@ -97,7 +97,7 @@
           if (failures.length) {
             dashboardState.innerHTML = `<p class="error">Часть данных дашборда недоступна. Основные действия работают, но некоторые KPI не загрузились.</p>`;
           } else {
-            dashboardState.innerHTML = '<p class="subtitle">Дашборд загружен с реальными данными.</p>';
+            dashboardState.innerHTML = '<p class="subtitle">Данные дашборда загружены.</p>';
           }
         } catch (error) {
           dashboardState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить дашборд"}</p>`;
