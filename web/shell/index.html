@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice</title>
+    <title>Autoservice | Вход</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
@@ -12,7 +12,7 @@
       <section class="shell">
         <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
           <h1 class="title">Autoservice</h1>
-          <p class="subtitle" id="subtitle">Checking session…</p>
+          <p class="subtitle" id="subtitle">Проверяем сессию...</p>
           <div class="spacer-16"></div>
           <div class="row" id="actions"></div>
         </div>
@@ -25,12 +25,12 @@
       if (session) {
         window.location.replace(session.role === "client" ? "/home/" : "/admin/dashboard/");
       } else {
-        document.getElementById("subtitle").textContent = "Sign in to continue.";
+        document.getElementById("subtitle").textContent = "Войдите в систему, чтобы продолжить.";
         const actions = document.getElementById("actions");
         const a = document.createElement("a");
         a.className = "btn btn-primary";
         a.href = "/login/";
-        a.textContent = "Sign in";
+        a.textContent = "Войти";
         actions.appendChild(a);
       }
     </script>

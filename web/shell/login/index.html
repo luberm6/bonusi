@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Login</title>
+    <title>Autoservice | Вход</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
@@ -11,8 +11,8 @@
     <main class="page">
       <section class="shell">
         <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
-          <h1 class="title">Internal Autoservice</h1>
-          <p class="subtitle">Real backend login for client/admin/super_admin.</p>
+          <h1 class="title">Autoservice</h1>
+          <p class="subtitle">Вход в внутреннюю систему для client, admin и super_admin.</p>
           <p id="flags" class="subtitle" style="margin-top: 6px; font-size: 13px;"></p>
           <div class="spacer-24"></div>
 
@@ -27,10 +27,10 @@
             <div class="spacer-16"></div>
             <p id="error" class="error"></p>
             <div class="row">
-              <button class="btn btn-primary" type="submit">Sign in</button>
-            </div>
-          </form>
-        </div>
+            <button class="btn btn-primary" type="submit">Войти</button>
+          </div>
+        </form>
+      </div>
       </section>
     </main>
 
@@ -40,7 +40,7 @@
       const form = document.getElementById("login-form");
       const errorNode = document.getElementById("error");
       const flagsNode = document.getElementById("flags");
-      flagsNode.textContent = `Stage-1 flags: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
+      flagsNode.textContent = `Stage-1 флаги: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -50,7 +50,7 @@
           const password = document.getElementById("password").value.trim();
 
           if (!email || !password) {
-            errorNode.textContent = "Enter email and password.";
+            errorNode.textContent = "Введите email и пароль.";
             return;
           }
 
@@ -76,8 +76,8 @@
               msg.includes("NetworkError") ||
               msg.includes("network");
             errorNode.textContent = isNetwork
-              ? "Cannot reach the server. Check your connection and try again."
-              : msg || "Login failed";
+              ? "Не удается подключиться к серверу. Проверьте соединение и попробуйте снова."
+              : msg || "Не удалось войти";
           }
         })();
       });

@@ -36,30 +36,16 @@
           </article>
         </section>
 
-        <div class="spacer-16"></div>
-        <section class="glass card" id="quick-actions">
-          <h2 style="margin-top: 0;">Быстрые действия</h2>
-          <div class="row">
-            <a class="btn btn-primary" href="/admin/chat/" id="btn-chat">Открыть чат</a>
-            <a class="btn btn-secondary" href="/admin/visits/create/" id="btn-visits">Создать визит</a>
-            <a class="btn btn-secondary" href="/admin/services/" id="btn-branches">Услуги</a>
-          </div>
-        </section>
       </section>
     </main>
 
     <script type="module">
       import { guard, bindLogout, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-      const session = guard(["client", "admin", "super_admin"]);
+      const session = guard(["client"]);
       if (session) {
         document.getElementById("who").textContent = `${session.email} (${session.role})`;
         startSessionAutoRefresh();
         bindLogout("logout-btn");
-
-        const quickActions = document.getElementById("quick-actions");
-        if (session.role === "client") {
-          quickActions.style.display = "none";
-        }
 
         const [bonusRes, visitsRes] = await Promise.allSettled([
           authFetchJson(`/bonuses/balance?clientId=${session.userId}`),
