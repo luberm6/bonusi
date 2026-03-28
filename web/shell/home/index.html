@@ -37,12 +37,12 @@
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
+        <section class="glass card" id="quick-actions">
           <h2 style="margin-top: 0;">Быстрые действия</h2>
           <div class="row">
-            <button class="btn btn-primary" type="button" id="btn-chat">Открыть чат</button>
-            <button class="btn btn-secondary" type="button" id="btn-visits">Мои визиты</button>
-            <button class="btn btn-secondary" type="button" id="btn-branches">Найти филиал</button>
+            <a class="btn btn-primary" href="/admin/chat/" id="btn-chat">Открыть чат</a>
+            <a class="btn btn-secondary" href="/admin/visits/create/" id="btn-visits">Создать визит</a>
+            <a class="btn btn-secondary" href="/admin/services/" id="btn-branches">Услуги</a>
           </div>
         </section>
       </section>
@@ -56,9 +56,10 @@
         startSessionAutoRefresh();
         bindLogout("logout-btn");
 
-        document.getElementById("btn-chat").addEventListener("click", () => alert("Скоро"));
-        document.getElementById("btn-visits").addEventListener("click", () => alert("Скоро"));
-        document.getElementById("btn-branches").addEventListener("click", () => alert("Скоро"));
+        const quickActions = document.getElementById("quick-actions");
+        if (session.role === "client") {
+          quickActions.style.display = "none";
+        }
 
         const [bonusRes, visitsRes] = await Promise.allSettled([
           authFetchJson(`/bonuses/balance?clientId=${session.userId}`),
