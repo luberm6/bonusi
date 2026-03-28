@@ -3,8 +3,10 @@
 **/release.keystore
 **/node_modules
 mobile/android/.gradle
+mobile/android/app/.cxx
 mobile/android/app/build
 mobile/android/build
 mobile/.gradle-home
+.local-jdks
 backend/dist
 web/dist
