@@ -103,6 +103,23 @@ jobs:
           fi
           printf 'sdk.dir=%s\n' "$SDK_DIR" > "${{ steps.detect.outputs.android_dir }}/local.properties"
 
+      - name: Android preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Java ==="
+          java -version
+          echo
+          echo "=== Android SDK ==="
+          echo "ANDROID_HOME=${ANDROID_HOME:-<unset>}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-<unset>}"
+          echo "sdkmanager=$(command -v sdkmanager || true)"
+          sdkmanager --version
+          echo
+          echo "=== Gradle wrapper ==="
+          cd "${{ steps.detect.outputs.android_dir }}"
+          ./gradlew --version
+
       - name: Install JavaScript dependencies
         if: ${{ steps.detect.outputs.node_package_dir != '' }}
         shell: bash
