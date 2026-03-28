@@ -22,6 +22,7 @@
         <header class="glass card nav">
           <h1 class="title" style="font-size: 22px; margin: 0;">Новый филиал</h1>
           <div class="nav-links">
+            <a class="link" href="/admin/branches/">Филиалы</a>
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
@@ -116,7 +117,7 @@
               body: payload
             });
 
-            successMsg.textContent = `Филиал создан. ID: ${created.id}`;
+            successMsg.innerHTML = `Филиал создан. ID: ${created.id}. <a class="link" href="/admin/branches/">Открыть список</a>`;
             form.reset();
           } catch (error) {
             errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать филиал";

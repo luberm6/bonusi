@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Клиенты</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+      th { font-weight: 600; color: #475569; }
+      tr:last-child td { border-bottom: none; }
+      .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <header class="glass card nav">
+          <h1 class="title" style="font-size: 22px; margin: 0;">Клиенты</h1>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
+            <a class="btn btn-primary" href="/admin/clients/create/">Новый клиент</a>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="glass card" id="page-state">
+          <p class="subtitle">Загружаем список клиентов...</p>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <h2 style="margin-top: 0;">Список клиентов</h2>
+          <p id="loading" class="subtitle">Загружаем данные...</p>
+          <table id="table" style="display:none">
+            <thead>
+              <tr><th>Имя</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Последняя активность</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+      const session = guard(["admin", "super_admin"]);
+      if (session) {
+        startSessionAutoRefresh();
+
+        const pageState = document.getElementById("page-state");
+        const loading = document.getElementById("loading");
+        const table = document.getElementById("table");
+        const tbody = document.getElementById("tbody");
+
+        function formatDate(value) {
+          if (!value) return "—";
+          const date = new Date(value);
+          return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("ru-RU");
+        }
+
+        try {
+          const users = await authFetchJson("/users");
+          const clients = Array.isArray(users) ? users.filter((user) => user.role === "client") : [];
+          loading.style.display = "none";
+          table.style.display = "";
+          tbody.innerHTML = "";
+
+          if (!clients.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Клиентов пока нет</td></tr>';
+            pageState.innerHTML = '<p class="subtitle">Список пока пуст. Создайте первого клиента, чтобы начать работу.</p>';
+          } else {
+            pageState.innerHTML = `<p class="subtitle">Найдено клиентов: ${clients.length}</p>`;
+            for (const client of clients) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td><strong>${client.fullName || "Без имени"}</strong></td>
+                <td>${client.email}</td>
+                <td>${client.phone || "—"}</td>
+                <td><span class="${client.isActive ? "badge-on" : "badge-off"}">${client.isActive ? "Активен" : "Отключен"}</span></td>
+                <td>${formatDate(client.lastSeen)}</td>
+              `;
+              tbody.appendChild(tr);
+            }
+          }
+        } catch (error) {
+          loading.textContent = "Не удалось загрузить данные";
+          pageState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить список клиентов"}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>

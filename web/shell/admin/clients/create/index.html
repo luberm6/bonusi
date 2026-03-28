@@ -22,6 +22,7 @@
         <header class="glass card nav">
           <h1 class="title" style="font-size: 22px; margin: 0;">Новый клиент</h1>
           <div class="nav-links">
+            <a class="link" href="/admin/clients/">Клиенты</a>
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
@@ -102,7 +103,7 @@
               body: payload
             });
 
-            successMsg.textContent = `Клиент создан. ID: ${created.id}`;
+            successMsg.innerHTML = `Клиент создан. ID: ${created.id}. <a class="link" href="/admin/clients/">Открыть список</a>`;
             form.reset();
           } catch (error) {
             errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать клиента";

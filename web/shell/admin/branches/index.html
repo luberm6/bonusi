@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Филиалы</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+      th { font-weight: 600; color: #475569; }
+      tr:last-child td { border-bottom: none; }
+      .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <header class="glass card nav">
+          <h1 class="title" style="font-size: 22px; margin: 0;">Филиалы</h1>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
+            <a class="btn btn-primary" href="/admin/branches/create/">Новый филиал</a>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="glass card" id="page-state">
+          <p class="subtitle">Загружаем список филиалов...</p>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <h2 style="margin-top: 0;">Список филиалов</h2>
+          <p id="loading" class="subtitle">Загружаем данные...</p>
+          <table id="table" style="display:none">
+            <thead>
+              <tr><th>Название</th><th>Адрес</th><th>Телефон</th><th>Статус</th><th>Координаты</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+      const session = guard(["admin", "super_admin"]);
+      if (session) {
+        startSessionAutoRefresh();
+
+        const pageState = document.getElementById("page-state");
+        const loading = document.getElementById("loading");
+        const table = document.getElementById("table");
+        const tbody = document.getElementById("tbody");
+
+        try {
+          const branches = await authFetchJson("/branches");
+          loading.style.display = "none";
+          table.style.display = "";
+          tbody.innerHTML = "";
+
+          if (!Array.isArray(branches) || !branches.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Филиалов пока нет</td></tr>';
+            pageState.innerHTML = '<p class="subtitle">Список пока пуст. Создайте первый филиал, чтобы начать работу.</p>';
+          } else {
+            pageState.innerHTML = `<p class="subtitle">Найдено филиалов: ${branches.length}</p>`;
+            for (const branch of branches) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td><strong>${branch.name}</strong></td>
+                <td>${branch.address}</td>
+                <td>${branch.phone || "—"}</td>
+                <td><span class="${branch.isActive ? "badge-on" : "badge-off"}">${branch.isActive ? "Активен" : "Отключен"}</span></td>
+                <td>${Number(branch.lat).toFixed(6)}, ${Number(branch.lng).toFixed(6)}</td>
+              `;
+              tbody.appendChild(tr);
+            }
+          }
+        } catch (error) {
+          loading.textContent = "Не удалось загрузить данные";
+          pageState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить список филиалов"}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>
