@@ -92,6 +92,17 @@ jobs:
           sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.1.12297006" "cmake;3.22.1"
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
+      - name: Write local.properties
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_DIR="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [[ -z "$SDK_DIR" ]]; then
+            echo "::error::ANDROID_SDK_ROOT or ANDROID_HOME is not set"
+            exit 1
+          fi
+          printf 'sdk.dir=%s\n' "$SDK_DIR" > "${{ steps.detect.outputs.android_dir }}/local.properties"
+
       - name: Install JavaScript dependencies
         if: ${{ steps.detect.outputs.node_package_dir != '' }}
         shell: bash
@@ -125,7 +136,6 @@ jobs:
           cd "${{ steps.detect.outputs.android_dir }}"
           chmod +x ./gradlew
           ./gradlew --no-daemon clean assembleDebug --stacktrace --warning-mode all \
-            -PreactNativeArchitectures=arm64-v8a \
             2>&1 | tee /tmp/gradle-build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
