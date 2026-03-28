@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Услуги</title>
+    <title>Autoservice | Каталог услуг</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
@@ -22,7 +22,7 @@
     <main class="page">
       <section class="shell">
         <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Услуги</h1>
+          <h1 class="title" style="font-size: 22px; margin: 0;">Каталог услуг</h1>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
@@ -30,7 +30,7 @@
 
         <div class="spacer-16"></div>
         <section class="glass card" id="page-state">
-          <p class="subtitle">Загрузка услуг...</p>
+          <p class="subtitle">Подтягиваем каталог услуг...</p>
         </section>
 
         <div class="spacer-16"></div>
@@ -52,7 +52,7 @@
         <div class="spacer-16"></div>
         <section class="glass card">
           <h2 style="margin-top: 0;">Список услуг</h2>
-          <p id="loading" class="subtitle">Загрузка...</p>
+          <p id="loading" class="subtitle">Загружаем данные...</p>
           <table id="table" style="display:none">
             <thead>
               <tr><th>Название</th><th>Описание</th><th>Цена</th><th>Статус</th><th></th></tr>
@@ -93,11 +93,11 @@
             const tbody = document.getElementById("tbody");
             tbody.innerHTML = "";
             if (!list.length) {
-              tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Нет услуг</td></tr>';
-              pageState.innerHTML = '<p class="subtitle">Список услуг пуст. Добавьте первую услугу.</p>';
+              tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Пока нет ни одной услуги</td></tr>';
+              pageState.innerHTML = '<p class="subtitle">Каталог пока пуст. Добавьте первую услугу, чтобы начать работу.</p>';
               return;
             }
-            pageState.innerHTML = '<p class="subtitle">Реальные данные из backend загружены.</p>';
+            pageState.innerHTML = '<p class="subtitle">Каталог загружен из backend.</p>';
             for (const s of list) {
               const tr = document.createElement("tr");
               tr.innerHTML = `
@@ -140,8 +140,8 @@
               });
             });
           } catch (ex) {
-            pageState.innerHTML = `<p class="error">${ex.message || "Ошибка загрузки услуг"}</p>`;
-            document.getElementById("loading").textContent = "Не удалось загрузить услуги";
+            pageState.innerHTML = `<p class="error">${ex.message || "Не удалось загрузить каталог услуг"}</p>`;
+            document.getElementById("loading").textContent = "Не удалось загрузить данные";
           }
         }
 
@@ -167,7 +167,7 @@
             resetFormMode();
             await loadServices();
           } catch (ex) {
-            err.textContent = ex.message || "Ошибка при сохранении услуги";
+            err.textContent = ex.message || "Не удалось сохранить услугу";
           }
         });
 

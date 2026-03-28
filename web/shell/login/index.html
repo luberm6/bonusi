@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Вход</title>
+    <title>Autoservice | Вход в систему</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
@@ -17,11 +17,11 @@
           <div class="spacer-24"></div>
 
           <form id="login-form">
-            <label class="label" for="email">Email</label>
+            <label class="label" for="email">Электронная почта</label>
             <input class="input" id="email" type="email" placeholder="admin@autoservice.local" required />
 
             <div class="spacer-16"></div>
-            <label class="label" for="password">Password</label>
+            <label class="label" for="password">Пароль</label>
             <input class="input" id="password" type="password" placeholder="••••••••" required />
 
             <div class="spacer-16"></div>
@@ -40,7 +40,7 @@
       const form = document.getElementById("login-form");
       const errorNode = document.getElementById("error");
       const flagsNode = document.getElementById("flags");
-      flagsNode.textContent = `Stage-1 флаги: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
+      flagsNode.textContent = `Режим первого запуска: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();

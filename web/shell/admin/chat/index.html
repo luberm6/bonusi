@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Чаты</title>
+    <title>Autoservice | Диалоги</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
@@ -30,7 +30,7 @@
     <main class="page">
       <section class="shell">
         <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Чаты</h1>
+          <h1 class="title" style="font-size: 22px; margin: 0;">Диалоги</h1>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
@@ -38,14 +38,14 @@
 
         <div class="spacer-16"></div>
         <section class="glass card" id="chat-state">
-          <p class="subtitle">Загрузка диалогов...</p>
+          <p class="subtitle">Подтягиваем диалоги...</p>
         </section>
 
         <div class="spacer-16"></div>
         <div class="glass card" style="padding: 16px;">
           <div class="chat-layout">
             <div class="conv-list" id="conv-list">
-              <p class="subtitle" style="padding:12px">Загрузка...</p>
+              <p class="subtitle" style="padding:12px">Загружаем список...</p>
             </div>
             <div class="chat-panel" id="chat-panel">
               <div id="no-conv">Выберите чат слева</div>
@@ -72,21 +72,21 @@
         }
 
         function renderConversationPreview(conv) {
-          const lastMessage = conv.lastMessage?.text || "Нет сообщений";
+          const lastMessage = conv.lastMessage?.text || "Сообщений пока нет";
           const lastAt = conv.lastMessage?.createdAt ? ` · ${fmt(conv.lastMessage.createdAt)}` : "";
           return `${lastMessage}${lastAt}`;
         }
 
         async function loadConversations() {
-          chatState.innerHTML = '<p class="subtitle">Загрузка диалогов...</p>';
+          chatState.innerHTML = '<p class="subtitle">Подтягиваем диалоги...</p>';
           const el = document.getElementById("conv-list");
           try {
             const list = await authFetchJson("/chat/conversations");
             el.innerHTML = "";
             if (!list.length) {
-              chatState.innerHTML = '<p class="subtitle">Диалогов пока нет.</p>';
-              el.innerHTML = '<p class="subtitle" style="padding:12px">Нет чатов</p>';
-              document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Диалогов пока нет</div>';
+              chatState.innerHTML = '<p class="subtitle">Пока нет диалогов.</p>';
+              el.innerHTML = '<p class="subtitle" style="padding:12px">Пусто</p>';
+              document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Выберите диалог или дождитесь первого сообщения</div>';
               return;
             }
             chatState.innerHTML = '<p class="subtitle">Диалоги загружены из backend.</p>';
@@ -107,8 +107,8 @@
             }
           } catch (error) {
             chatState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить диалоги"}</p>`;
-            el.innerHTML = '<p class="subtitle" style="padding:12px">Ошибка загрузки</p>';
-            document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Не удалось загрузить чат</div>';
+            el.innerHTML = '<p class="subtitle" style="padding:12px">Не удалось загрузить</p>';
+            document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Не удалось открыть диалог</div>';
           }
         }
 
@@ -121,7 +121,7 @@
           });
 
           const panel = document.getElementById("chat-panel");
-          panel.innerHTML = '<div style="padding:20px;color:#94a3b8">Загрузка...</div>';
+          panel.innerHTML = '<div style="padding:20px;color:#94a3b8">Открываем диалог...</div>';
 
           try {
             const messages = await authFetchJson(`/chat/conversations/${convId}/messages`);
@@ -130,14 +130,14 @@
             panel.innerHTML = `
               <div class="messages" id="msgs"></div>
               <div class="send-row">
-                <textarea id="msg-text" rows="2" placeholder="Написать сообщение..."></textarea>
+                <textarea id="msg-text" rows="2" placeholder="Введите сообщение..."></textarea>
                 <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
               </div>
             `;
 
             const msgsEl = document.getElementById("msgs");
             if (!messages.length) {
-              msgsEl.innerHTML = '<div class="subtitle">Сообщений пока нет. Напишите первым.</div>';
+              msgsEl.innerHTML = '<div class="subtitle">Сообщений пока нет. Начните диалог первым.</div>';
             } else {
               for (const m of messages) {
                 const mine = m.senderId === myId;

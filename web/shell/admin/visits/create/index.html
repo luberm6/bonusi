@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Создать визит</title>
+    <title>Autoservice | Новый визит</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
@@ -26,7 +26,7 @@
     <main class="page">
       <section class="shell">
         <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Создать визит</h1>
+          <h1 class="title" style="font-size: 22px; margin: 0;">Новый визит</h1>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
@@ -34,7 +34,7 @@
 
         <div class="spacer-16"></div>
         <section class="glass card" id="page-state">
-          <p class="subtitle">Загрузка справочников...</p>
+          <p class="subtitle">Подтягиваем справочники...</p>
         </section>
 
         <div class="spacer-16"></div>
@@ -44,13 +44,13 @@
               <div class="field">
                 <label for="sel-client">Клиент</label>
                 <select class="input" id="sel-client" required>
-                  <option value="">Загрузка...</option>
+                  <option value="">Загружаем...</option>
                 </select>
               </div>
               <div class="field">
                 <label for="sel-branch">Филиал</label>
                 <select class="input" id="sel-branch" required>
-                  <option value="">Загрузка...</option>
+                  <option value="">Загружаем...</option>
                 </select>
               </div>
               <div class="field">
@@ -64,18 +64,18 @@
             </div>
 
             <div class="spacer-16"></div>
-            <h3 style="margin: 0 0 8px;">Услуги</h3>
+            <h3 style="margin: 0 0 8px;">Состав визита</h3>
             <table class="services-table" id="svc-table" style="display:none">
               <thead>
                 <tr><th>Услуга</th><th>Количество</th><th></th></tr>
               </thead>
               <tbody id="svc-tbody"></tbody>
             </table>
-            <p id="no-services" style="color:#94a3b8;font-size:14px">Услуги не добавлены</p>
+            <p id="no-services" style="color:#94a3b8;font-size:14px">Пока не добавлено ни одной услуги</p>
 
             <div class="add-service-row">
               <select class="input" id="add-svc-id" style="flex:2">
-                <option value="">Загрузка услуг...</option>
+                <option value="">Загружаем услуги...</option>
               </select>
               <input class="input" type="number" id="add-svc-qty" min="1" value="1" placeholder="Кол-во" style="max-width:100px" />
               <button type="button" class="btn btn-secondary" id="add-svc-btn">+ Добавить</button>
@@ -101,7 +101,7 @@
         let servicesLoaded = false;
 
         async function loadData() {
-          pageState.innerHTML = '<p class="subtitle">Загрузка справочников...</p>';
+          pageState.innerHTML = '<p class="subtitle">Подтягиваем справочники...</p>';
           const [usersRes, branchesRes, servicesRes] = await Promise.allSettled([
             authFetchJson("/users"),
             authFetchJson("/branches"),
@@ -229,7 +229,7 @@
             renderServicesTable();
             e.target.reset();
           } catch (ex) {
-            err.textContent = ex.message || "Ошибка при создании визита";
+            err.textContent = ex.message || "Не удалось создать визит";
           } finally {
             submitBtn.disabled = false;
           }
