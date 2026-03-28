@@ -12,7 +12,7 @@
       <section class="shell">
         <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
           <h1 class="title">Autoservice</h1>
-          <p class="subtitle">Вход в внутреннюю систему для client, admin и super_admin.</p>
+          <p class="subtitle">Вход во внутреннюю систему для client, admin и super_admin.</p>
           <p id="flags" class="subtitle" style="margin-top: 6px; font-size: 13px;"></p>
           <div class="spacer-24"></div>
 
@@ -40,7 +40,7 @@
       const form = document.getElementById("login-form");
       const errorNode = document.getElementById("error");
       const flagsNode = document.getElementById("flags");
-      flagsNode.textContent = `Режим первого запуска: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
+      flagsNode.textContent = `Параметры первого запуска: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();

@@ -112,6 +112,13 @@ body {
   opacity: 0.96;
 }
 
+.btn:disabled {
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.58;
+  box-shadow: none;
+}
+
 .btn:focus-visible,
 .input:focus-visible,
 a.link:focus-visible {
@@ -177,6 +184,11 @@ a.link:focus-visible {
   font-weight: 600;
   background: rgba(22, 163, 74, 0.12);
   color: var(--success);
+}
+
+.badge-neutral {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary-2);
 }
 
 .error {
