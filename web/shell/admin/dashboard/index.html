@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Admin Dashboard</title>
+    <title>Autoservice | Панель управления</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
@@ -12,57 +12,79 @@
       <section class="shell">
         <header class="glass card nav">
           <div>
-            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Admin Dashboard</h1>
+            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Панель управления</h1>
             <p id="who" class="subtitle"></p>
           </div>
           <div class="nav-links">
-            <a class="link" href="/admin/dashboard/">Dashboard</a>
-            <a class="link" href="/home/">Client Home</a>
-            <a class="link" href="/login/">Login</a>
-            <button id="logout-btn" class="btn btn-secondary" type="button">Logout</button>
+            <a class="link" href="/admin/dashboard/">Дашборд</a>
+            <a class="link" href="/home/">Кабинет клиента</a>
+            <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
           </div>
         </header>
 
         <div class="spacer-16"></div>
         <section class="grid">
           <article class="glass kpi">
-            <h3>Visits Today</h3>
-            <p>24</p>
+            <h3>Визиты сегодня</h3>
+            <p id="kpi-visits">—</p>
           </article>
           <article class="glass kpi">
-            <h3>Active Clients</h3>
-            <p>312</p>
+            <h3>Активные клиенты</h3>
+            <p id="kpi-clients">—</p>
           </article>
           <article class="glass kpi">
-            <h3>Open Chats</h3>
-            <p>9</p>
+            <h3>Открытые чаты</h3>
+            <p id="kpi-chats">—</p>
           </article>
           <article class="glass kpi">
-            <h3>Branches</h3>
-            <p>3</p>
+            <h3>Филиалы</h3>
+            <p id="kpi-branches">—</p>
           </article>
         </section>
 
         <div class="spacer-16"></div>
         <section class="glass card">
-          <h2 style="margin-top: 0;">Admin Quick Actions</h2>
+          <h2 style="margin-top: 0;">Быстрые действия</h2>
           <div class="row">
-            <a class="btn btn-primary" href="/admin/visits/create/">Create Visit</a>
-            <a class="btn btn-secondary" href="/admin/services/">Manage Services</a>
-            <a class="btn btn-secondary" href="/admin/chat/">Open Chat Workspace</a>
+            <a class="btn btn-primary" href="/admin/visits/create/">Создать визит</a>
+            <a class="btn btn-secondary" href="/admin/services/">Услуги</a>
+            <a class="btn btn-secondary" href="/admin/chat/">Чаты</a>
           </div>
         </section>
       </section>
     </main>
 
     <script type="module">
-      import { guard, bindLogout, startSessionAutoRefresh } from "/assets/app.js";
+      import { guard, bindLogout, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (session) {
-        document.getElementById("who").textContent = `${session.email} (${session.role})`;
-        startSessionAutoRefresh();
-      }
+      if (!session) return;
+      document.getElementById("who").textContent = `${session.email} (${session.role})`;
+      startSessionAutoRefresh();
       bindLogout("logout-btn");
+
+      const todayIso = new Date().toISOString().slice(0, 10);
+
+      const [visits, users, chats, branches] = await Promise.allSettled([
+        authFetchJson(`/visits?dateFrom=${todayIso}T00:00:00Z`),
+        authFetchJson("/users"),
+        authFetchJson("/chat/conversations"),
+        authFetchJson("/branches")
+      ]);
+
+      const val = (r) => (r.status === "fulfilled" ? r.value : null);
+      const visitsData = val(visits);
+      const usersData = val(users);
+      const chatsData = val(chats);
+      const branchesData = val(branches);
+
+      document.getElementById("kpi-visits").textContent =
+        Array.isArray(visitsData) ? visitsData.length : "—";
+      document.getElementById("kpi-clients").textContent =
+        Array.isArray(usersData) ? usersData.filter(u => u.role === "client" && u.isActive).length : "—";
+      document.getElementById("kpi-chats").textContent =
+        Array.isArray(chatsData) ? chatsData.length : "—";
+      document.getElementById("kpi-branches").textContent =
+        Array.isArray(branchesData) ? branchesData.filter(b => b.isActive).length : "—";
     </script>
   </body>
 </html>

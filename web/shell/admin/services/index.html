@@ -1,31 +1,116 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Services</title>
+    <title>Autoservice | Услуги</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      table { width: 100%; border-collapse: collapse; font-size: 14px; }
+      th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
+      th { font-weight: 600; color: #475569; }
+      tr:last-child td { border-bottom: none; }
+      .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+      .form-row .input { flex: 1; min-width: 140px; }
+      #add-error { color: #dc2626; font-size: 14px; min-height: 20px; }
+    </style>
   </head>
   <body>
     <main class="page">
       <section class="shell">
         <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Manage Services</h1>
+          <h1 class="title" style="font-size: 22px; margin: 0;">Услуги</h1>
           <div class="nav-links">
-            <a class="link" href="/admin/dashboard/">Back to Dashboard</a>
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
+
         <div class="spacer-16"></div>
         <section class="glass card">
-          <p class="subtitle">Services list/edit screen placeholder. Navigation works.</p>
+          <h2 style="margin-top: 0;">Добавить услугу</h2>
+          <form id="add-form">
+            <div class="form-row">
+              <input class="input" id="svc-name" placeholder="Название" required />
+              <input class="input" id="svc-desc" placeholder="Описание (необязательно)" />
+              <input class="input" id="svc-price" type="number" min="0" step="0.01" placeholder="Цена (₽)" required style="max-width:140px" />
+              <button class="btn btn-primary" type="submit">Добавить</button>
+            </div>
+            <p id="add-error"></p>
+          </form>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <h2 style="margin-top: 0;">Список услуг</h2>
+          <p id="loading" class="subtitle">Загрузка...</p>
+          <table id="table" style="display:none">
+            <thead>
+              <tr><th>Название</th><th>Описание</th><th>Цена</th><th>Статус</th><th></th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
         </section>
       </section>
     </main>
+
     <script type="module">
-      import { guard, startSessionAutoRefresh } from "/assets/app.js";
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (session) startSessionAutoRefresh();
+      if (!session) return;
+      startSessionAutoRefresh();
+
+      async function loadServices() {
+        const list = await authFetchJson("/services");
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("table").style.display = "";
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = "";
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Нет услуг</td></tr>';
+          return;
+        }
+        for (const s of list) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><strong>${s.name}</strong></td>
+            <td style="color:#475569">${s.description || "—"}</td>
+            <td>${Number(s.basePrice).toFixed(2)} ₽</td>
+            <td><span class="${s.isActive ? "badge-on" : "badge-off"}">${s.isActive ? "Активна" : "Отключена"}</span></td>
+            <td><button class="btn btn-secondary" style="font-size:13px;padding:4px 12px" data-id="${s.id}" data-active="${s.isActive}">${s.isActive ? "Отключить" : "Включить"}</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll("button[data-id]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const nowActive = btn.dataset.active === "true";
+            btn.disabled = true;
+            await authFetchJson(`/services/${btn.dataset.id}`, { method: "PATCH", body: { isActive: !nowActive } });
+            loadServices();
+          });
+        });
+      }
+
+      loadServices();
+
+      document.getElementById("add-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = document.getElementById("add-error");
+        err.textContent = "";
+        try {
+          await authFetchJson("/services", { method: "POST", body: {
+            name: document.getElementById("svc-name").value.trim(),
+            description: document.getElementById("svc-desc").value.trim() || null,
+            basePrice: parseFloat(document.getElementById("svc-price").value)
+          }});
+          e.target.reset();
+          loadServices();
+        } catch (ex) {
+          err.textContent = ex.message || "Ошибка при добавлении";
+        }
+      });
     </script>
   </body>
 </html>

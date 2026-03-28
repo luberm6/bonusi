@@ -1,31 +1,142 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Chat Workspace</title>
+    <title>Autoservice | Чаты</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      .chat-layout { display: flex; gap: 16px; min-height: 500px; }
+      .conv-list { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
+      .conv-item { padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: rgba(255,255,255,0.5); }
+      .conv-item:hover { background: rgba(255,255,255,0.8); }
+      .conv-item.active { border-color: #3b82f6; background: rgba(255,255,255,0.9); }
+      .conv-name { font-weight: 600; font-size: 14px; }
+      .conv-last { font-size: 12px; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .chat-panel { flex: 1; display: flex; flex-direction: column; }
+      .messages { flex: 1; min-height: 360px; max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: rgba(248,250,252,0.6); border-radius: 10px; margin-bottom: 12px; }
+      .msg { max-width: 70%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+      .msg-mine { align-self: flex-end; background: #3b82f6; color: #fff; border-radius: 12px 12px 2px 12px; }
+      .msg-other { align-self: flex-start; background: #fff; color: #0f172a; border-radius: 12px 12px 12px 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      .msg-meta { font-size: 11px; margin-top: 3px; opacity: 0.65; }
+      .send-row { display: flex; gap: 8px; }
+      .send-row textarea { flex: 1; resize: none; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-family: inherit; }
+      .unread-badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 11px; margin-left: 6px; }
+      #no-conv { color: #94a3b8; padding: 20px; text-align: center; }
+    </style>
   </head>
   <body>
     <main class="page">
       <section class="shell">
         <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Chat Workspace</h1>
+          <h1 class="title" style="font-size: 22px; margin: 0;">Чаты</h1>
           <div class="nav-links">
-            <a class="link" href="/admin/dashboard/">Back to Dashboard</a>
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
+
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <p class="subtitle">Admin chat workspace placeholder. Navigation works.</p>
-        </section>
+        <div class="glass card" style="padding: 16px;">
+          <div class="chat-layout">
+            <div class="conv-list" id="conv-list">
+              <p class="subtitle" style="padding:12px">Загрузка...</p>
+            </div>
+            <div class="chat-panel" id="chat-panel">
+              <div id="no-conv">Выберите чат слева</div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
+
     <script type="module">
-      import { guard, startSessionAutoRefresh } from "/assets/app.js";
+      import { guard, startSessionAutoRefresh, authFetchJson, readSession } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (session) startSessionAutoRefresh();
+      if (!session) return;
+      startSessionAutoRefresh();
+
+      let activeConvId = null;
+
+      function fmt(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      async function loadConversations() {
+        const list = await authFetchJson("/chat/conversations");
+        const el = document.getElementById("conv-list");
+        el.innerHTML = "";
+        if (!list.length) {
+          el.innerHTML = '<p class="subtitle" style="padding:12px">Нет чатов</p>';
+          return;
+        }
+        for (const c of list) {
+          const div = document.createElement("div");
+          div.className = "conv-item" + (c.id === activeConvId ? " active" : "");
+          div.dataset.id = c.id;
+          const badge = c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : "";
+          div.innerHTML = `
+            <div class="conv-name">${c.participantId || "Клиент"}${badge}</div>
+            <div class="conv-last">${c.lastMessage || "Нет сообщений"}</div>
+          `;
+          div.addEventListener("click", () => openConv(c.id));
+          el.appendChild(div);
+        }
+      }
+
+      async function openConv(convId) {
+        activeConvId = convId;
+        document.querySelectorAll(".conv-item").forEach(el => {
+          el.classList.toggle("active", el.dataset.id === convId);
+        });
+
+        const panel = document.getElementById("chat-panel");
+        panel.innerHTML = '<div style="padding:20px;color:#94a3b8">Загрузка...</div>';
+
+        const messages = await authFetchJson(`/chat/conversations/${convId}/messages`);
+        const myId = session.userId;
+
+        panel.innerHTML = `
+          <div class="messages" id="msgs"></div>
+          <div class="send-row">
+            <textarea id="msg-text" rows="2" placeholder="Написать сообщение..."></textarea>
+            <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
+          </div>
+        `;
+
+        const msgsEl = document.getElementById("msgs");
+        for (const m of messages) {
+          const mine = m.senderId === myId;
+          const div = document.createElement("div");
+          div.className = "msg " + (mine ? "msg-mine" : "msg-other");
+          div.innerHTML = `${m.text || ""}<div class="msg-meta">${fmt(m.sentAt)}</div>`;
+          msgsEl.appendChild(div);
+        }
+        msgsEl.scrollTop = msgsEl.scrollHeight;
+
+        document.getElementById("send-btn").addEventListener("click", async () => {
+          const text = document.getElementById("msg-text").value.trim();
+          if (!text) return;
+          document.getElementById("msg-text").value = "";
+          const clientMessageId = crypto.randomUUID();
+          await authFetchJson(`/chat/conversations/${convId}/messages`, {
+            method: "POST",
+            body: { clientMessageId, text }
+          });
+          openConv(convId);
+        });
+
+        document.getElementById("msg-text").addEventListener("keydown", (e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById("send-btn").click();
+          }
+        });
+      }
+
+      loadConversations();
     </script>
   </body>
 </html>
