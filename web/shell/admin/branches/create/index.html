@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Новый филиал</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr; } }
+      .field { display: flex; flex-direction: column; gap: 6px; }
+      .field label { font-size: 13px; font-weight: 600; color: #475569; }
+      textarea.input { min-height: 120px; resize: vertical; }
+      #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
+      #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell">
+        <header class="glass card nav">
+          <h1 class="title" style="font-size: 22px; margin: 0;">Новый филиал</h1>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <p class="subtitle">Создание филиала с адресом, контактами и координатами.</p>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="glass card">
+          <form id="branch-form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="name">Название филиала</label>
+                <input class="input" id="name" type="text" placeholder="Например, Центральный" required />
+              </div>
+              <div class="field">
+                <label for="phone">Телефон</label>
+                <input class="input" id="phone" type="text" placeholder="+7 (999) 123-45-67" />
+              </div>
+              <div class="field" style="grid-column: 1 / -1;">
+                <label for="address">Адрес</label>
+                <input class="input" id="address" type="text" placeholder="Полный адрес филиала" required />
+              </div>
+              <div class="field">
+                <label for="lat">Широта</label>
+                <input class="input" id="lat" type="number" step="0.000001" placeholder="59.934280" />
+              </div>
+              <div class="field">
+                <label for="lng">Долгота</label>
+                <input class="input" id="lng" type="number" step="0.000001" placeholder="30.335099" />
+              </div>
+              <div class="field">
+                <label for="work-hours">Часы работы</label>
+                <input class="input" id="work-hours" type="text" placeholder="Пн-Вс 09:00-21:00" />
+              </div>
+            </div>
+
+            <div class="spacer-16"></div>
+            <div class="field">
+              <label for="description">Описание</label>
+              <textarea class="input" id="description" placeholder="Краткое описание филиала"></textarea>
+            </div>
+
+            <div class="spacer-16"></div>
+            <p id="error-msg"></p>
+            <p id="success-msg"></p>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Создать филиал</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+
+      const session = guard(["admin", "super_admin"]);
+      if (session) {
+        startSessionAutoRefresh();
+
+        const form = document.getElementById("branch-form");
+        const errorMsg = document.getElementById("error-msg");
+        const successMsg = document.getElementById("success-msg");
+        const submitBtn = document.getElementById("submit-btn");
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          errorMsg.textContent = "";
+          successMsg.textContent = "";
+          submitBtn.disabled = true;
+
+          try {
+            const latValue = document.getElementById("lat").value.trim();
+            const lngValue = document.getElementById("lng").value.trim();
+            const workHoursValue = document.getElementById("work-hours").value.trim();
+
+            const payload = {
+              name: document.getElementById("name").value.trim(),
+              address: document.getElementById("address").value.trim(),
+              phone: document.getElementById("phone").value.trim() || null,
+              description: document.getElementById("description").value.trim() || null,
+              workHours: workHoursValue ? { text: workHoursValue } : {},
+              isActive: true
+            };
+
+            if (latValue) payload.lat = Number(latValue);
+            if (lngValue) payload.lng = Number(lngValue);
+
+            const created = await authFetchJson("/branches", {
+              method: "POST",
+              body: payload
+            });
+
+            successMsg.textContent = `Филиал создан. ID: ${created.id}`;
+            form.reset();
+          } catch (error) {
+            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать филиал";
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
