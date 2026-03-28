@@ -33,6 +33,11 @@
         </header>
 
         <div class="spacer-16"></div>
+        <section class="glass card" id="page-state">
+          <p class="subtitle">Загрузка справочников...</p>
+        </section>
+
+        <div class="spacer-16"></div>
         <section class="glass card">
           <form id="visit-form">
             <div class="form-grid">
@@ -88,133 +93,151 @@
     <script type="module">
       import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (!session) return;
-      startSessionAutoRefresh();
+      if (session) {
+        startSessionAutoRefresh();
 
-      const selectedServices = []; // [{serviceId, name, quantity}]
+        const pageState = document.getElementById("page-state");
+        const selectedServices = []; // [{serviceId, name, quantity}]
+        let servicesLoaded = false;
 
-      async function loadData() {
-        const [users, branches, services] = await Promise.all([
-          authFetchJson("/users"),
-          authFetchJson("/branches"),
-          authFetchJson("/services")
-        ]);
+        async function loadData() {
+          pageState.innerHTML = '<p class="subtitle">Загрузка справочников...</p>';
+          const [usersRes, branchesRes, servicesRes] = await Promise.allSettled([
+            authFetchJson("/users"),
+            authFetchJson("/branches"),
+            authFetchJson("/services")
+          ]);
 
-        const selClient = document.getElementById("sel-client");
-        selClient.innerHTML = '<option value="">— Выберите клиента —</option>';
-        for (const u of users.filter(u => u.role === "client")) {
-          const opt = document.createElement("option");
-          opt.value = u.id;
-          opt.textContent = u.name || u.email;
-          selClient.appendChild(opt);
+          if (usersRes.status === "rejected" || branchesRes.status === "rejected" || servicesRes.status === "rejected") {
+            pageState.innerHTML = `<p class="error">Не удалось загрузить часть справочников. Проверьте backend и права доступа.</p>`;
+          } else {
+            pageState.innerHTML = '<p class="subtitle">Справочники загружены из backend.</p>';
+          }
+
+          const users = usersRes.status === "fulfilled" ? usersRes.value : [];
+          const branches = branchesRes.status === "fulfilled" ? branchesRes.value : [];
+          const services = servicesRes.status === "fulfilled" ? servicesRes.value : [];
+
+          const selClient = document.getElementById("sel-client");
+          selClient.innerHTML = '<option value="">— Выберите клиента —</option>';
+          for (const u of users.filter(u => u.role === "client")) {
+            const opt = document.createElement("option");
+            opt.value = u.id;
+            opt.textContent = u.name || u.email;
+            selClient.appendChild(opt);
+          }
+
+          const selBranch = document.getElementById("sel-branch");
+          selBranch.innerHTML = '<option value="">— Выберите филиал —</option>';
+          for (const b of branches.filter(b => b.isActive)) {
+            const opt = document.createElement("option");
+            opt.value = b.id;
+            opt.textContent = b.name;
+            selBranch.appendChild(opt);
+          }
+
+          const selSvc = document.getElementById("add-svc-id");
+          selSvc.innerHTML = '<option value="">— Выберите услугу —</option>';
+          for (const s of services.filter(s => s.isActive)) {
+            const opt = document.createElement("option");
+            opt.value = s.id;
+            opt.dataset.name = s.name;
+            opt.textContent = `${s.name} — ${Number(s.basePrice).toFixed(2)} ₽`;
+            selSvc.appendChild(opt);
+          }
+
+          servicesLoaded = true;
+          document.getElementById("add-svc-btn").disabled = !services.length;
         }
 
-        const selBranch = document.getElementById("sel-branch");
-        selBranch.innerHTML = '<option value="">— Выберите филиал —</option>';
-        for (const b of branches.filter(b => b.isActive)) {
-          const opt = document.createElement("option");
-          opt.value = b.id;
-          opt.textContent = b.name;
-          selBranch.appendChild(opt);
-        }
-
-        const selSvc = document.getElementById("add-svc-id");
-        selSvc.innerHTML = '<option value="">— Выберите услугу —</option>';
-        for (const s of services.filter(s => s.isActive)) {
-          const opt = document.createElement("option");
-          opt.value = s.id;
-          opt.dataset.name = s.name;
-          opt.textContent = `${s.name} — ${Number(s.basePrice).toFixed(2)} ₽`;
-          selSvc.appendChild(opt);
-        }
-      }
-
-      function renderServicesTable() {
-        const tbody = document.getElementById("svc-tbody");
-        const table = document.getElementById("svc-table");
-        const noSvc = document.getElementById("no-services");
-        tbody.innerHTML = "";
-        if (selectedServices.length === 0) {
-          table.style.display = "none";
-          noSvc.style.display = "";
-          return;
-        }
-        table.style.display = "";
-        noSvc.style.display = "none";
-        for (let i = 0; i < selectedServices.length; i++) {
-          const s = selectedServices[i];
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${s.name}</td>
-            <td>${s.quantity}</td>
-            <td><button type="button" class="btn btn-secondary" style="font-size:12px;padding:3px 10px" data-idx="${i}">Удалить</button></td>
-          `;
-          tbody.appendChild(tr);
-        }
-        tbody.querySelectorAll("button[data-idx]").forEach(btn => {
-          btn.addEventListener("click", () => {
-            selectedServices.splice(Number(btn.dataset.idx), 1);
-            renderServicesTable();
+        function renderServicesTable() {
+          const tbody = document.getElementById("svc-tbody");
+          const table = document.getElementById("svc-table");
+          const noSvc = document.getElementById("no-services");
+          tbody.innerHTML = "";
+          if (selectedServices.length === 0) {
+            table.style.display = "none";
+            noSvc.style.display = "";
+            return;
+          }
+          table.style.display = "";
+          noSvc.style.display = "none";
+          for (let i = 0; i < selectedServices.length; i++) {
+            const s = selectedServices[i];
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${s.name}</td>
+              <td>${s.quantity}</td>
+              <td><button type="button" class="btn btn-secondary" style="font-size:12px;padding:3px 10px" data-idx="${i}">Удалить</button></td>
+            `;
+            tbody.appendChild(tr);
+          }
+          tbody.querySelectorAll("button[data-idx]").forEach(btn => {
+            btn.addEventListener("click", () => {
+              selectedServices.splice(Number(btn.dataset.idx), 1);
+              renderServicesTable();
+            });
           });
-        });
-      }
-
-      document.getElementById("add-svc-btn").addEventListener("click", () => {
-        const sel = document.getElementById("add-svc-id");
-        const qty = parseInt(document.getElementById("add-svc-qty").value, 10);
-        if (!sel.value || !qty || qty < 1) return;
-        const existing = selectedServices.find(s => s.serviceId === sel.value);
-        if (existing) {
-          existing.quantity += qty;
-        } else {
-          const opt = sel.options[sel.selectedIndex];
-          selectedServices.push({ serviceId: sel.value, name: opt.dataset.name, quantity: qty });
         }
-        document.getElementById("add-svc-qty").value = "1";
-        renderServicesTable();
-      });
 
-      document.getElementById("visit-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const err = document.getElementById("error-msg");
-        const suc = document.getElementById("success-msg");
-        err.textContent = "";
-        suc.textContent = "";
-
-        const clientId = document.getElementById("sel-client").value;
-        const branchId = document.getElementById("sel-branch").value;
-        if (!clientId) { err.textContent = "Выберите клиента"; return; }
-        if (!branchId) { err.textContent = "Выберите филиал"; return; }
-        if (selectedServices.length === 0) { err.textContent = "Добавьте хотя бы одну услугу"; return; }
-
-        const dateVal = document.getElementById("visit-date").value;
-        const comment = document.getElementById("visit-comment").value.trim();
-        const submitBtn = document.getElementById("submit-btn");
-        submitBtn.disabled = true;
-
-        try {
-          const body = {
-            clientId,
-            branchId,
-            services: selectedServices.map(s => ({ serviceId: s.serviceId, quantity: s.quantity }))
-          };
-          if (dateVal) body.visitDate = dateVal;
-          if (comment) body.comment = comment;
-
-          const result = await authFetchJson("/visits", { method: "POST", body });
-          suc.textContent = `Визит создан (ID: ${result.id})`;
-          selectedServices.length = 0;
+        document.getElementById("add-svc-btn").addEventListener("click", () => {
+          if (!servicesLoaded) return;
+          const sel = document.getElementById("add-svc-id");
+          const qty = parseInt(document.getElementById("add-svc-qty").value, 10);
+          if (!sel.value || !qty || qty < 1) return;
+          const existing = selectedServices.find(s => s.serviceId === sel.value);
+          if (existing) {
+            existing.quantity += qty;
+          } else {
+            const opt = sel.options[sel.selectedIndex];
+            selectedServices.push({ serviceId: sel.value, name: opt.dataset.name, quantity: qty });
+          }
+          document.getElementById("add-svc-qty").value = "1";
           renderServicesTable();
-          e.target.reset();
-        } catch (ex) {
-          err.textContent = ex.message || "Ошибка при создании визита";
-        } finally {
-          submitBtn.disabled = false;
-        }
-      });
+        });
 
-      loadData();
-      renderServicesTable();
+        document.getElementById("visit-form").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const err = document.getElementById("error-msg");
+          const suc = document.getElementById("success-msg");
+          err.textContent = "";
+          suc.textContent = "";
+
+          const clientId = document.getElementById("sel-client").value;
+          const branchId = document.getElementById("sel-branch").value;
+          if (!clientId) { err.textContent = "Выберите клиента"; return; }
+          if (!branchId) { err.textContent = "Выберите филиал"; return; }
+          if (selectedServices.length === 0) { err.textContent = "Добавьте хотя бы одну услугу"; return; }
+
+          const dateVal = document.getElementById("visit-date").value;
+          const comment = document.getElementById("visit-comment").value.trim();
+          const submitBtn = document.getElementById("submit-btn");
+          submitBtn.disabled = true;
+
+          try {
+            const body = {
+              clientId,
+              branchId,
+              services: selectedServices.map(s => ({ serviceId: s.serviceId, quantity: s.quantity }))
+            };
+            if (dateVal) body.visitDate = dateVal;
+            if (comment) body.comment = comment;
+
+            const result = await authFetchJson("/visits", { method: "POST", body });
+            suc.textContent = `Визит создан (ID: ${result.id})`;
+            selectedServices.length = 0;
+            renderServicesTable();
+            e.target.reset();
+          } catch (ex) {
+            err.textContent = ex.message || "Ошибка при создании визита";
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+
+        loadData();
+        renderServicesTable();
+      }
     </script>
   </body>
 </html>

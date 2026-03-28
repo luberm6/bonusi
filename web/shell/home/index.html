@@ -51,34 +51,35 @@
     <script type="module">
       import { guard, bindLogout, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["client", "admin", "super_admin"]);
-      if (!session) return;
-      document.getElementById("who").textContent = `${session.email} (${session.role})`;
-      startSessionAutoRefresh();
-      bindLogout("logout-btn");
+      if (session) {
+        document.getElementById("who").textContent = `${session.email} (${session.role})`;
+        startSessionAutoRefresh();
+        bindLogout("logout-btn");
 
-      document.getElementById("btn-chat").addEventListener("click", () => alert("Скоро"));
-      document.getElementById("btn-visits").addEventListener("click", () => alert("Скоро"));
-      document.getElementById("btn-branches").addEventListener("click", () => alert("Скоро"));
+        document.getElementById("btn-chat").addEventListener("click", () => alert("Скоро"));
+        document.getElementById("btn-visits").addEventListener("click", () => alert("Скоро"));
+        document.getElementById("btn-branches").addEventListener("click", () => alert("Скоро"));
 
-      const [bonusRes, visitsRes] = await Promise.allSettled([
-        authFetchJson(`/bonuses/balance?clientId=${session.userId}`),
-        authFetchJson(`/visits?clientId=${session.userId}`)
-      ]);
+        const [bonusRes, visitsRes] = await Promise.allSettled([
+          authFetchJson(`/bonuses/balance?clientId=${session.userId}`),
+          authFetchJson(`/visits?clientId=${session.userId}`)
+        ]);
 
-      if (bonusRes.status === "fulfilled") {
-        const b = bonusRes.value;
-        document.getElementById("kpi-bonus").textContent =
-          typeof b.balance === "number" ? `${b.balance} ₽` : "—";
-      }
+        if (bonusRes.status === "fulfilled") {
+          const b = bonusRes.value;
+          document.getElementById("kpi-bonus").textContent =
+            typeof b.balance === "number" ? `${b.balance} ₽` : "—";
+        }
 
-      if (visitsRes.status === "fulfilled" && Array.isArray(visitsRes.value) && visitsRes.value.length > 0) {
-        const visits = visitsRes.value;
-        visits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
-        const d = new Date(visits[0].visitDate);
-        document.getElementById("kpi-last-visit").textContent =
-          d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
-      } else {
-        document.getElementById("kpi-last-visit").textContent = "Нет визитов";
+        if (visitsRes.status === "fulfilled" && Array.isArray(visitsRes.value) && visitsRes.value.length > 0) {
+          const visits = visitsRes.value;
+          visits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
+          const d = new Date(visits[0].visitDate);
+          document.getElementById("kpi-last-visit").textContent =
+            d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
+        } else {
+          document.getElementById("kpi-last-visit").textContent = "Нет визитов";
+        }
       }
     </script>
   </body>

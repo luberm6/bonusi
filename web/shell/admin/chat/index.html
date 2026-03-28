@@ -37,6 +37,11 @@
         </header>
 
         <div class="spacer-16"></div>
+        <section class="glass card" id="chat-state">
+          <p class="subtitle">Загрузка диалогов...</p>
+        </section>
+
+        <div class="spacer-16"></div>
         <div class="glass card" style="padding: 16px;">
           <div class="chat-layout">
             <div class="conv-list" id="conv-list">
@@ -51,92 +56,131 @@
     </main>
 
     <script type="module">
-      import { guard, startSessionAutoRefresh, authFetchJson, readSession } from "/assets/app.js";
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (!session) return;
-      startSessionAutoRefresh();
+      if (session) {
+        startSessionAutoRefresh();
 
-      let activeConvId = null;
+        const chatState = document.getElementById("chat-state");
+        let activeConvId = null;
+        let activeConv = null;
 
-      function fmt(iso) {
-        if (!iso) return "";
-        const d = new Date(iso);
-        return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-      }
-
-      async function loadConversations() {
-        const list = await authFetchJson("/chat/conversations");
-        const el = document.getElementById("conv-list");
-        el.innerHTML = "";
-        if (!list.length) {
-          el.innerHTML = '<p class="subtitle" style="padding:12px">Нет чатов</p>';
-          return;
+        function fmt(iso) {
+          if (!iso) return "";
+          const d = new Date(iso);
+          return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
         }
-        for (const c of list) {
-          const div = document.createElement("div");
-          div.className = "conv-item" + (c.id === activeConvId ? " active" : "");
-          div.dataset.id = c.id;
-          const badge = c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : "";
-          div.innerHTML = `
-            <div class="conv-name">${c.participantId || "Клиент"}${badge}</div>
-            <div class="conv-last">${c.lastMessage || "Нет сообщений"}</div>
-          `;
-          div.addEventListener("click", () => openConv(c.id));
-          el.appendChild(div);
+
+        function renderConversationPreview(conv) {
+          const lastMessage = conv.lastMessage?.text || "Нет сообщений";
+          const lastAt = conv.lastMessage?.createdAt ? ` · ${fmt(conv.lastMessage.createdAt)}` : "";
+          return `${lastMessage}${lastAt}`;
         }
-      }
 
-      async function openConv(convId) {
-        activeConvId = convId;
-        document.querySelectorAll(".conv-item").forEach(el => {
-          el.classList.toggle("active", el.dataset.id === convId);
-        });
-
-        const panel = document.getElementById("chat-panel");
-        panel.innerHTML = '<div style="padding:20px;color:#94a3b8">Загрузка...</div>';
-
-        const messages = await authFetchJson(`/chat/conversations/${convId}/messages`);
-        const myId = session.userId;
-
-        panel.innerHTML = `
-          <div class="messages" id="msgs"></div>
-          <div class="send-row">
-            <textarea id="msg-text" rows="2" placeholder="Написать сообщение..."></textarea>
-            <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
-          </div>
-        `;
-
-        const msgsEl = document.getElementById("msgs");
-        for (const m of messages) {
-          const mine = m.senderId === myId;
-          const div = document.createElement("div");
-          div.className = "msg " + (mine ? "msg-mine" : "msg-other");
-          div.innerHTML = `${m.text || ""}<div class="msg-meta">${fmt(m.sentAt)}</div>`;
-          msgsEl.appendChild(div);
-        }
-        msgsEl.scrollTop = msgsEl.scrollHeight;
-
-        document.getElementById("send-btn").addEventListener("click", async () => {
-          const text = document.getElementById("msg-text").value.trim();
-          if (!text) return;
-          document.getElementById("msg-text").value = "";
-          const clientMessageId = crypto.randomUUID();
-          await authFetchJson(`/chat/conversations/${convId}/messages`, {
-            method: "POST",
-            body: { clientMessageId, text }
-          });
-          openConv(convId);
-        });
-
-        document.getElementById("msg-text").addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            document.getElementById("send-btn").click();
+        async function loadConversations() {
+          chatState.innerHTML = '<p class="subtitle">Загрузка диалогов...</p>';
+          const el = document.getElementById("conv-list");
+          try {
+            const list = await authFetchJson("/chat/conversations");
+            el.innerHTML = "";
+            if (!list.length) {
+              chatState.innerHTML = '<p class="subtitle">Диалогов пока нет.</p>';
+              el.innerHTML = '<p class="subtitle" style="padding:12px">Нет чатов</p>';
+              document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Диалогов пока нет</div>';
+              return;
+            }
+            chatState.innerHTML = '<p class="subtitle">Диалоги загружены из backend.</p>';
+            for (const c of list) {
+              const div = document.createElement("div");
+              div.className = "conv-item" + (c.id === activeConvId ? " active" : "");
+              div.dataset.id = c.id;
+              const badge = c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : "";
+              div.innerHTML = `
+                <div class="conv-name">${c.participantId || "Клиент"}${badge}</div>
+                <div class="conv-last">${renderConversationPreview(c)}</div>
+              `;
+              div.addEventListener("click", () => openConv(c));
+              el.appendChild(div);
+            }
+            if (!activeConvId && list[0]) {
+              await openConv(list[0]);
+            }
+          } catch (error) {
+            chatState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить диалоги"}</p>`;
+            el.innerHTML = '<p class="subtitle" style="padding:12px">Ошибка загрузки</p>';
+            document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Не удалось загрузить чат</div>';
           }
-        });
-      }
+        }
 
-      loadConversations();
+        async function openConv(convOrId) {
+          const convId = typeof convOrId === "string" ? convOrId : convOrId.id;
+          activeConvId = convId;
+          activeConv = typeof convOrId === "string" ? activeConv : convOrId;
+          document.querySelectorAll(".conv-item").forEach(el => {
+            el.classList.toggle("active", el.dataset.id === convId);
+          });
+
+          const panel = document.getElementById("chat-panel");
+          panel.innerHTML = '<div style="padding:20px;color:#94a3b8">Загрузка...</div>';
+
+          try {
+            const messages = await authFetchJson(`/chat/conversations/${convId}/messages`);
+            const myId = session.userId;
+
+            panel.innerHTML = `
+              <div class="messages" id="msgs"></div>
+              <div class="send-row">
+                <textarea id="msg-text" rows="2" placeholder="Написать сообщение..."></textarea>
+                <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
+              </div>
+            `;
+
+            const msgsEl = document.getElementById("msgs");
+            if (!messages.length) {
+              msgsEl.innerHTML = '<div class="subtitle">Сообщений пока нет. Напишите первым.</div>';
+            } else {
+              for (const m of messages) {
+                const mine = m.senderId === myId;
+                const div = document.createElement("div");
+                div.className = "msg " + (mine ? "msg-mine" : "msg-other");
+                div.innerHTML = `${m.text || ""}<div class="msg-meta">${fmt(m.createdAt)}</div>`;
+                msgsEl.appendChild(div);
+              }
+              msgsEl.scrollTop = msgsEl.scrollHeight;
+            }
+
+            document.getElementById("send-btn").addEventListener("click", async () => {
+              const text = document.getElementById("msg-text").value.trim();
+              if (!text) return;
+              document.getElementById("msg-text").value = "";
+              const clientMessageId = crypto.randomUUID();
+              const btn = document.getElementById("send-btn");
+              btn.disabled = true;
+              try {
+                await authFetchJson(`/chat/conversations/${convId}/messages`, {
+                  method: "POST",
+                  body: { clientMessageId, text }
+                });
+                await loadConversations();
+                await openConv(convId);
+              } finally {
+                btn.disabled = false;
+              }
+            });
+
+            document.getElementById("msg-text").addEventListener("keydown", (e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById("send-btn").click();
+              }
+            });
+          } catch (error) {
+            panel.innerHTML = `<div class="error" style="padding:16px">${error instanceof Error ? error.message : "Не удалось открыть диалог"}</div>`;
+          }
+        }
+
+        loadConversations();
+      }
     </script>
   </body>
 </html>

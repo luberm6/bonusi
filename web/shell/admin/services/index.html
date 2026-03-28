@@ -29,14 +29,21 @@
         </header>
 
         <div class="spacer-16"></div>
+        <section class="glass card" id="page-state">
+          <p class="subtitle">Загрузка услуг...</p>
+        </section>
+
+        <div class="spacer-16"></div>
         <section class="glass card">
-          <h2 style="margin-top: 0;">Добавить услугу</h2>
+          <h2 id="form-title" style="margin-top: 0;">Добавить услугу</h2>
           <form id="add-form">
+            <input type="hidden" id="edit-id" value="" />
             <div class="form-row">
               <input class="input" id="svc-name" placeholder="Название" required />
               <input class="input" id="svc-desc" placeholder="Описание (необязательно)" />
               <input class="input" id="svc-price" type="number" min="0" step="0.01" placeholder="Цена (₽)" required style="max-width:140px" />
-              <button class="btn btn-primary" type="submit">Добавить</button>
+              <button class="btn btn-primary" id="form-submit" type="submit">Добавить</button>
+              <button class="btn btn-secondary" id="form-cancel" type="button" style="display:none">Отмена</button>
             </div>
             <p id="add-error"></p>
           </form>
@@ -59,58 +66,113 @@
     <script type="module">
       import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (!session) return;
-      startSessionAutoRefresh();
+      if (session) {
+        startSessionAutoRefresh();
 
-      async function loadServices() {
-        const list = await authFetchJson("/services");
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("table").style.display = "";
-        const tbody = document.getElementById("tbody");
-        tbody.innerHTML = "";
-        if (!list.length) {
-          tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Нет услуг</td></tr>';
-          return;
+        const pageState = document.getElementById("page-state");
+        const form = document.getElementById("add-form");
+        const formTitle = document.getElementById("form-title");
+        const formSubmit = document.getElementById("form-submit");
+        const formCancel = document.getElementById("form-cancel");
+        const editId = document.getElementById("edit-id");
+
+        function resetFormMode() {
+          editId.value = "";
+          formTitle.textContent = "Добавить услугу";
+          formSubmit.textContent = "Добавить";
+          formCancel.style.display = "none";
+          form.reset();
         }
-        for (const s of list) {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><strong>${s.name}</strong></td>
-            <td style="color:#475569">${s.description || "—"}</td>
-            <td>${Number(s.basePrice).toFixed(2)} ₽</td>
-            <td><span class="${s.isActive ? "badge-on" : "badge-off"}">${s.isActive ? "Активна" : "Отключена"}</span></td>
-            <td><button class="btn btn-secondary" style="font-size:13px;padding:4px 12px" data-id="${s.id}" data-active="${s.isActive}">${s.isActive ? "Отключить" : "Включить"}</button></td>
-          `;
-          tbody.appendChild(tr);
+
+        async function loadServices() {
+          pageState.innerHTML = '<p class="subtitle">Загрузка услуг...</p>';
+          try {
+            const list = await authFetchJson("/services");
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("table").style.display = "";
+            const tbody = document.getElementById("tbody");
+            tbody.innerHTML = "";
+            if (!list.length) {
+              tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Нет услуг</td></tr>';
+              pageState.innerHTML = '<p class="subtitle">Список услуг пуст. Добавьте первую услугу.</p>';
+              return;
+            }
+            pageState.innerHTML = '<p class="subtitle">Реальные данные из backend загружены.</p>';
+            for (const s of list) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td><strong>${s.name}</strong></td>
+                <td style="color:#475569">${s.description || "—"}</td>
+                <td>${Number(s.basePrice).toFixed(2)} ₽</td>
+                <td><span class="${s.isActive ? "badge-on" : "badge-off"}">${s.isActive ? "Активна" : "Отключена"}</span></td>
+                <td style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button class="btn btn-secondary" style="font-size:13px;padding:4px 12px" data-action="edit" data-id="${s.id}">Редактировать</button>
+                  <button class="btn btn-secondary" style="font-size:13px;padding:4px 12px" data-action="toggle" data-id="${s.id}" data-active="${s.isActive}">${s.isActive ? "Отключить" : "Включить"}</button>
+                </td>
+              `;
+              tbody.appendChild(tr);
+            }
+            tbody.querySelectorAll("button[data-action]").forEach(btn => {
+              btn.addEventListener("click", async () => {
+                const action = btn.dataset.action;
+                if (action === "toggle") {
+                  const nowActive = btn.dataset.active === "true";
+                  btn.disabled = true;
+                  try {
+                    await authFetchJson(`/services/${btn.dataset.id}`, { method: "PATCH", body: { isActive: !nowActive } });
+                    await loadServices();
+                  } catch (ex) {
+                    pageState.innerHTML = `<p class="error">${ex.message || "Не удалось изменить статус услуги"}</p>`;
+                  }
+                }
+                if (action === "edit") {
+                  const current = list.find((item) => item.id === btn.dataset.id);
+                  if (!current) return;
+                  editId.value = current.id;
+                  formTitle.textContent = "Редактировать услугу";
+                  formSubmit.textContent = "Сохранить";
+                  formCancel.style.display = "";
+                  document.getElementById("svc-name").value = current.name;
+                  document.getElementById("svc-desc").value = current.description || "";
+                  document.getElementById("svc-price").value = String(current.basePrice);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              });
+            });
+          } catch (ex) {
+            pageState.innerHTML = `<p class="error">${ex.message || "Ошибка загрузки услуг"}</p>`;
+            document.getElementById("loading").textContent = "Не удалось загрузить услуги";
+          }
         }
-        tbody.querySelectorAll("button[data-id]").forEach(btn => {
-          btn.addEventListener("click", async () => {
-            const nowActive = btn.dataset.active === "true";
-            btn.disabled = true;
-            await authFetchJson(`/services/${btn.dataset.id}`, { method: "PATCH", body: { isActive: !nowActive } });
-            loadServices();
-          });
+
+        formCancel.addEventListener("click", () => {
+          resetFormMode();
         });
-      }
 
-      loadServices();
-
-      document.getElementById("add-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const err = document.getElementById("add-error");
-        err.textContent = "";
-        try {
-          await authFetchJson("/services", { method: "POST", body: {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const err = document.getElementById("add-error");
+          err.textContent = "";
+          const payload = {
             name: document.getElementById("svc-name").value.trim(),
             description: document.getElementById("svc-desc").value.trim() || null,
             basePrice: parseFloat(document.getElementById("svc-price").value)
-          }});
-          e.target.reset();
-          loadServices();
-        } catch (ex) {
-          err.textContent = ex.message || "Ошибка при добавлении";
-        }
-      });
+          };
+          try {
+            if (editId.value) {
+              await authFetchJson(`/services/${editId.value}`, { method: "PATCH", body: payload });
+            } else {
+              await authFetchJson("/services", { method: "POST", body: payload });
+            }
+            resetFormMode();
+            await loadServices();
+          } catch (ex) {
+            err.textContent = ex.message || "Ошибка при сохранении услуги";
+          }
+        });
+
+        loadServices();
+      }
     </script>
   </body>
 </html>

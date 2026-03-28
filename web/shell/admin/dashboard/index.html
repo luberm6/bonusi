@@ -23,6 +23,11 @@
         </header>
 
         <div class="spacer-16"></div>
+        <section class="glass card" id="dashboard-state">
+          <p class="subtitle">Загрузка дашборда...</p>
+        </section>
+
+        <div class="spacer-16"></div>
         <section class="grid">
           <article class="glass kpi">
             <h3>Визиты сегодня</h3>
@@ -57,34 +62,47 @@
     <script type="module">
       import { guard, bindLogout, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
       const session = guard(["admin", "super_admin"]);
-      if (!session) return;
-      document.getElementById("who").textContent = `${session.email} (${session.role})`;
-      startSessionAutoRefresh();
-      bindLogout("logout-btn");
+      if (session) {
+        document.getElementById("who").textContent = `${session.email} (${session.role})`;
+        startSessionAutoRefresh();
+        bindLogout("logout-btn");
 
-      const todayIso = new Date().toISOString().slice(0, 10);
+        const dashboardState = document.getElementById("dashboard-state");
+        const todayIso = new Date().toISOString().slice(0, 10);
 
-      const [visits, users, chats, branches] = await Promise.allSettled([
-        authFetchJson(`/visits?dateFrom=${todayIso}T00:00:00Z`),
-        authFetchJson("/users"),
-        authFetchJson("/chat/conversations"),
-        authFetchJson("/branches")
-      ]);
+        try {
+          const [visits, users, chats, branches] = await Promise.allSettled([
+            authFetchJson(`/visits?dateFrom=${todayIso}T00:00:00Z`),
+            authFetchJson("/users"),
+            authFetchJson("/chat/conversations"),
+            authFetchJson("/branches")
+          ]);
 
-      const val = (r) => (r.status === "fulfilled" ? r.value : null);
-      const visitsData = val(visits);
-      const usersData = val(users);
-      const chatsData = val(chats);
-      const branchesData = val(branches);
+          const val = (r) => (r.status === "fulfilled" ? r.value : null);
+          const visitsData = val(visits);
+          const usersData = val(users);
+          const chatsData = val(chats);
+          const branchesData = val(branches);
 
-      document.getElementById("kpi-visits").textContent =
-        Array.isArray(visitsData) ? visitsData.length : "—";
-      document.getElementById("kpi-clients").textContent =
-        Array.isArray(usersData) ? usersData.filter(u => u.role === "client" && u.isActive).length : "—";
-      document.getElementById("kpi-chats").textContent =
-        Array.isArray(chatsData) ? chatsData.length : "—";
-      document.getElementById("kpi-branches").textContent =
-        Array.isArray(branchesData) ? branchesData.filter(b => b.isActive).length : "—";
+          document.getElementById("kpi-visits").textContent =
+            Array.isArray(visitsData) ? visitsData.length : "—";
+          document.getElementById("kpi-clients").textContent =
+            Array.isArray(usersData) ? usersData.filter(u => u.role === "client" && u.isActive).length : "—";
+          document.getElementById("kpi-chats").textContent =
+            Array.isArray(chatsData) ? chatsData.length : "—";
+          document.getElementById("kpi-branches").textContent =
+            Array.isArray(branchesData) ? branchesData.filter(b => b.isActive).length : "—";
+
+          const failures = [visits, users, chats, branches].filter((r) => r.status === "rejected");
+          if (failures.length) {
+            dashboardState.innerHTML = `<p class="error">Часть данных дашборда недоступна. Основные действия работают, но некоторые KPI не загрузились.</p>`;
+          } else {
+            dashboardState.innerHTML = '<p class="subtitle">Дашборд загружен с реальными данными.</p>';
+          }
+        } catch (error) {
+          dashboardState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить дашборд"}</p>`;
+        }
+      }
     </script>
   </body>
 </html>
