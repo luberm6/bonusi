@@ -1,13 +1,13 @@
 import type { OfflineApi } from "../offline/offline-api";
-
-function randomUUID(): string {
-  return globalThis.crypto.randomUUID();
-}
 import type { Connectivity } from "../offline/connectivity";
 import type { ChatSendPayload, OfflineStore } from "../offline/offline-store";
 import type { LocalMessageRecord, PendingActionRecord } from "../types/offline";
 import { resolveCacheEntityConflict } from "./entity-conflict-policy";
 import { resolveMessageConflict, type ServerMessageSnapshot } from "./message-conflict-resolution";
+
+function randomUUID(): string {
+  return globalThis.crypto.randomUUID();
+}
 
 const VISITS_CACHE_LIMIT = 100;
 const BONUS_HISTORY_LIMIT = 200;
