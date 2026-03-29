@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Настройки бонусов</title>
+    <title>Autoservice | Настройки начисления бонусов</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
@@ -44,6 +44,32 @@
       .bonus-settings-kpi-label { margin: 0 0 6px; color: var(--muted); font-size: 13px; font-weight: 700; text-transform: uppercase; }
       .bonus-settings-kpi-value { margin: 0; font-size: 28px; font-weight: 800; }
       .bonus-settings-feedback { min-height: 22px; font-size: 14px; margin: 0; }
+      .bonus-settings-helper {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .bonus-settings-preview {
+        padding: 18px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(248,250,252,0.86));
+        border: 1px solid rgba(148,163,184,0.14);
+      }
+      .bonus-settings-preview-title {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .bonus-settings-preview-text {
+        margin: 0;
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .bonus-settings-preview-text strong {
+        font-size: 20px;
+      }
       @media (max-width: 860px) {
         .bonus-settings-grid,
         .bonus-settings-mode { grid-template-columns: 1fr; }
@@ -56,8 +82,8 @@
         <header class="glass card nav workspace-header">
           <div class="workspace-header-copy">
             <p class="workspace-eyebrow">Правила начисления</p>
-            <h1 class="workspace-title">Настройки бонусов</h1>
-            <p class="subtitle">Автоматическое начисление считается при создании визита от суммы после скидок.</p>
+            <h1 class="workspace-title">Настройки начисления бонусов</h1>
+            <p class="subtitle">Определите, как начисляются бонусы клиентам после каждого визита.</p>
           </div>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
@@ -81,8 +107,8 @@
             <form id="bonus-settings-form" class="workspace-panel workspace-panel-compact" style="background: rgba(255,255,255,0.52);">
               <div class="workspace-toolbar">
                 <div>
-                  <h2 class="workspace-section-title">Активная схема</h2>
-                  <p class="workspace-section-meta">Выберите один режим и сохраните новую актуальную схему начисления.</p>
+                  <h2 class="workspace-section-title">Как начислять бонусы</h2>
+                  <p class="workspace-section-meta">Выберите режим расчёта и сохраните актуальные правила для всех следующих визитов.</p>
                 </div>
                 <span class="badge badge-soft" id="current-badge">—</span>
               </div>
@@ -102,19 +128,27 @@
               <div class="spacer-16"></div>
               <div class="workspace-form-grid">
                 <div class="workspace-field" id="field-percentage">
-                  <label for="percentage-value">Процент начисления</label>
+                  <label for="percentage-value">Процент начисления (%)</label>
                   <input class="input" type="number" id="percentage-value" min="0.01" step="0.01" placeholder="Например, 5" />
+                  <p class="bonus-settings-helper" id="percentage-helper">Бонусы будут начисляться от суммы визита после скидок.</p>
                 </div>
                 <div class="workspace-field" id="field-fixed">
-                  <label for="fixed-value">Фиксированное количество бонусов</label>
+                  <label for="fixed-value">Бонусов за визит</label>
                   <input class="input" type="number" id="fixed-value" min="1" step="1" placeholder="Например, 100" />
+                  <p class="bonus-settings-helper" id="fixed-helper">Клиент будет получать фиксированное количество бонусов за каждый визит.</p>
                 </div>
               </div>
 
               <div class="spacer-16"></div>
+              <section class="bonus-settings-preview">
+                <p class="bonus-settings-preview-title">Пример начисления</p>
+                <p class="bonus-settings-preview-text" id="preview-text">Если сумма визита 1 000 ₽ → будет начислено <strong>50 бонусов</strong></p>
+              </section>
+
+              <div class="spacer-16"></div>
               <p class="bonus-settings-feedback error" id="error-msg"></p>
               <p class="bonus-settings-feedback success" id="success-msg"></p>
-              <button class="btn btn-primary" type="submit" id="save-btn">Сохранить</button>
+              <button class="btn btn-primary" type="submit" id="save-btn">Сохранить настройки</button>
             </form>
 
             <aside class="workspace-panel workspace-panel-compact bonus-settings-summary" style="background: rgba(255,255,255,0.52);">
@@ -158,6 +192,7 @@
         const successMsg = document.getElementById("success-msg");
         const modePercentage = document.getElementById("mode-percentage");
         const modeFixed = document.getElementById("mode-fixed");
+        const previewText = document.getElementById("preview-text");
 
         let currentMode = "percentage";
 
@@ -186,6 +221,30 @@
           return value > 0 ? `${value.toFixed(2)} %` : "Укажите значение";
         }
 
+        function previewLabel(mode) {
+          if (mode === "fixed") {
+            const value = Number(fixedInput.value || 0);
+            if (!Number.isFinite(value) || value <= 0) {
+              return "Укажите количество бонусов, чтобы увидеть пример начисления.";
+            }
+            return `Если сумма визита 1 000 ₽ → будет начислено ${Math.floor(value)} бонусов`;
+          }
+          const value = Number(percentageInput.value || 0);
+          if (!Number.isFinite(value) || value <= 0) {
+            return "Укажите процент, чтобы увидеть пример начисления.";
+          }
+          return `Если сумма визита 1 000 ₽ → будет начислено ${Math.floor((1000 * value) / 100)} бонусов`;
+        }
+
+        function formIsValid() {
+          if (currentMode === "percentage") {
+            const percentageValue = Number(percentageInput.value);
+            return Number.isFinite(percentageValue) && percentageValue > 0;
+          }
+          const fixedValue = Number(fixedInput.value);
+          return Number.isFinite(fixedValue) && fixedValue > 0;
+        }
+
         function syncModeUi() {
           modePercentage.classList.toggle("is-active", currentMode === "percentage");
           modeFixed.classList.toggle("is-active", currentMode === "fixed");
@@ -194,6 +253,8 @@
           currentBadge.textContent = modeLabel(currentMode);
           summaryMode.textContent = modeLabel(currentMode);
           summaryValue.textContent = valueLabel(currentMode);
+          previewText.innerHTML = previewLabel(currentMode).replace(/(\d+\sбонусов)/, "<strong>$1</strong>");
+          saveBtn.disabled = !formIsValid();
         }
 
         function applySettings(settings) {
@@ -263,7 +324,7 @@
               }
             });
             applySettings(payload);
-            successMsg.textContent = "Настройки начисления сохранены.";
+            successMsg.textContent = "Настройки успешно сохранены.";
             renderState("success", "Схема обновлена", "Новые правила будут применяться ко всем следующим визитам.", "Сохранено");
           } catch (error) {
             errorMsg.textContent = error instanceof Error ? error.message : "Не удалось сохранить настройки.";
