@@ -83,55 +83,6 @@
       </section>
     </main>
 
-    <script type="module">
-      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-
-      const session = guard(["admin", "super_admin"]);
-      if (session) {
-        startSessionAutoRefresh();
-
-        const form = document.getElementById("branch-form");
-        const errorMsg = document.getElementById("error-msg");
-        const successMsg = document.getElementById("success-msg");
-        const submitBtn = document.getElementById("submit-btn");
-
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          errorMsg.textContent = "";
-          successMsg.textContent = "";
-          submitBtn.disabled = true;
-
-          try {
-            const latValue = document.getElementById("lat").value.trim();
-            const lngValue = document.getElementById("lng").value.trim();
-            const workHoursValue = document.getElementById("work-hours").value.trim();
-
-            const payload = {
-              name: document.getElementById("name").value.trim(),
-              address: document.getElementById("address").value.trim(),
-              phone: document.getElementById("phone").value.trim() || null,
-              description: document.getElementById("description").value.trim() || null,
-              workHours: workHoursValue ? { text: workHoursValue } : {},
-              isActive: true
-            };
-
-            if (latValue) payload.lat = Number(latValue);
-            if (lngValue) payload.lng = Number(lngValue);
-
-            const created = await authFetchJson("/branches", {
-              method: "POST",
-              body: payload
-            });
-
-            successMsg.innerHTML = `Филиал создан. ID: ${created.id}. <a class="link" href="/admin/branches/">Открыть список</a>`;
-            form.reset();
-          } catch (error) {
-            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать филиал";
-          } finally {
-            submitBtn.disabled = false;
-          }
-        });
-      }
-    </script>
+    <script type="module" src="/assets/admin-branches-create.js"></script>
   </body>
 </html>

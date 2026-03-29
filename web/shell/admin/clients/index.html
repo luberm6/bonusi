@@ -60,63 +60,6 @@
       </section>
     </main>
 
-    <script type="module">
-      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-      const session = guard(["admin", "super_admin"]);
-      if (session) {
-        startSessionAutoRefresh();
-
-        const pageState = document.getElementById("page-state");
-        const loading = document.getElementById("loading");
-        const table = document.getElementById("table");
-        const tbody = document.getElementById("tbody");
-        const renderState = (tone, title, text, badge = "Клиенты") => {
-          pageState.innerHTML = `
-            <div class="workspace-state" data-tone="${tone}">
-              <div class="workspace-state-copy">
-                <p class="workspace-state-title">${title}</p>
-                <p class="workspace-state-text">${text}</p>
-              </div>
-              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
-            </div>
-          `;
-        };
-
-        function formatDate(value) {
-          if (!value) return "—";
-          const date = new Date(value);
-          return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("ru-RU");
-        }
-
-        try {
-          const users = await authFetchJson("/users");
-          const clients = Array.isArray(users) ? users.filter((user) => user.role === "client") : [];
-          loading.style.display = "none";
-          table.style.display = "";
-          tbody.innerHTML = "";
-
-          if (!clients.length) {
-            tbody.innerHTML = '<tr><td colspan="5"><p class="workspace-empty">Клиентов пока нет. Создайте первую запись, чтобы начать работу.</p></td></tr>';
-            renderState("default", "Клиентская база пока пустая", "Создайте первого клиента, чтобы открыть запись, визиты и бонусный контур.");
-          } else {
-            renderState("success", "Клиентская база актуальна", `Найдено клиентов: ${clients.length}.`, "Актуально");
-            for (const client of clients) {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td><strong>${client.fullName || "Без имени"}</strong></td>
-                <td>${client.email}</td>
-                <td>${client.phone || "—"}</td>
-                <td><span class="${client.isActive ? "badge-on" : "badge-off"}">${client.isActive ? "Активен" : "Отключен"}</span></td>
-                <td>${formatDate(client.lastSeen)}</td>
-              `;
-              tbody.appendChild(tr);
-            }
-          }
-        } catch (error) {
-          loading.textContent = "Не удалось загрузить данные";
-          renderState("error", "Не удалось загрузить список клиентов", error instanceof Error ? error.message : "Не удалось загрузить список клиентов", "Ошибка");
-        }
-      }
-    </script>
+    <script type="module" src="/assets/admin-clients-list.js"></script>
   </body>
 </html>

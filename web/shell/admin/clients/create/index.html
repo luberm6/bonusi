@@ -75,49 +75,6 @@
       </section>
     </main>
 
-    <script type="module">
-      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-
-      const session = guard(["admin", "super_admin"]);
-      if (session) {
-        startSessionAutoRefresh();
-
-        const form = document.getElementById("client-form");
-        const errorMsg = document.getElementById("error-msg");
-        const successMsg = document.getElementById("success-msg");
-        const submitBtn = document.getElementById("submit-btn");
-
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          errorMsg.textContent = "";
-          successMsg.textContent = "";
-          submitBtn.disabled = true;
-
-          try {
-            const payload = {
-              email: document.getElementById("email").value.trim(),
-              password: document.getElementById("password").value,
-              role: "client",
-              fullName: document.getElementById("full-name").value.trim() || null,
-              phone: document.getElementById("phone").value.trim() || null,
-              notes: document.getElementById("notes").value.trim() || null,
-              isActive: true
-            };
-
-            const created = await authFetchJson("/users", {
-              method: "POST",
-              body: payload
-            });
-
-            successMsg.innerHTML = `Клиент создан. ID: ${created.id}. <a class="link" href="/admin/clients/">Открыть список</a>`;
-            form.reset();
-          } catch (error) {
-            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать клиента";
-          } finally {
-            submitBtn.disabled = false;
-          }
-        });
-      }
-    </script>
+    <script type="module" src="/assets/admin-clients-create.js"></script>
   </body>
 </html>

@@ -68,51 +68,6 @@
       </section>
     </main>
 
-    <script type="module">
-      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-
-      const session = guard(["super_admin"]);
-      if (session) {
-        startSessionAutoRefresh();
-
-        const form = document.getElementById("admin-form");
-        const errorMsg = document.getElementById("error-msg");
-        const successMsg = document.getElementById("success-msg");
-        const submitBtn = document.getElementById("submit-btn");
-
-        form.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          errorMsg.textContent = "";
-          successMsg.textContent = "";
-
-          const password = document.getElementById("password").value;
-          const passwordConfirm = document.getElementById("password-confirm").value;
-          if (password !== passwordConfirm) {
-            errorMsg.textContent = "Подтверждение пароля не совпадает";
-            return;
-          }
-
-          submitBtn.disabled = true;
-          try {
-            const created = await authFetchJson("/admins", {
-              method: "POST",
-              body: {
-                email: document.getElementById("email").value.trim(),
-                password,
-                fullName: document.getElementById("full-name").value.trim() || null,
-                isActive: true
-              }
-            });
-
-            successMsg.innerHTML = `Администратор создан. ID: ${created.id}. <a class="link" href="/admin/admins/">Открыть список</a>`;
-            form.reset();
-          } catch (error) {
-            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать администратора";
-          } finally {
-            submitBtn.disabled = false;
-          }
-        });
-      }
-    </script>
+    <script type="module" src="/assets/admin-admins-create.js"></script>
   </body>
 </html>

@@ -60,56 +60,6 @@
       </section>
     </main>
 
-    <script type="module">
-      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-      const session = guard(["admin", "super_admin"]);
-      if (session) {
-        startSessionAutoRefresh();
-
-        const pageState = document.getElementById("page-state");
-        const loading = document.getElementById("loading");
-        const table = document.getElementById("table");
-        const tbody = document.getElementById("tbody");
-        const renderState = (tone, title, text, badge = "Филиалы") => {
-          pageState.innerHTML = `
-            <div class="workspace-state" data-tone="${tone}">
-              <div class="workspace-state-copy">
-                <p class="workspace-state-title">${title}</p>
-                <p class="workspace-state-text">${text}</p>
-              </div>
-              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
-            </div>
-          `;
-        };
-
-        try {
-          const branches = await authFetchJson("/branches");
-          loading.style.display = "none";
-          table.style.display = "";
-          tbody.innerHTML = "";
-
-          if (!Array.isArray(branches) || !branches.length) {
-            tbody.innerHTML = '<tr><td colspan="5"><p class="workspace-empty">Филиалов пока нет. Создайте первую точку обслуживания.</p></td></tr>';
-            renderState("default", "Сеть филиалов пока пустая", "Добавьте первый филиал, чтобы запись и карта начали показывать точки сервиса.");
-          } else {
-            renderState("success", "Филиалы синхронизированы", `Найдено филиалов: ${branches.length}.`, "Актуально");
-            for (const branch of branches) {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td><strong>${branch.name}</strong></td>
-                <td>${branch.address}</td>
-                <td>${branch.phone || "—"}</td>
-                <td><span class="${branch.isActive ? "badge-on" : "badge-off"}">${branch.isActive ? "Активен" : "Отключен"}</span></td>
-                <td>${Number(branch.lat).toFixed(6)}, ${Number(branch.lng).toFixed(6)}</td>
-              `;
-              tbody.appendChild(tr);
-            }
-          }
-        } catch (error) {
-          loading.textContent = "Не удалось загрузить данные";
-          renderState("error", "Не удалось загрузить филиалы", error instanceof Error ? error.message : "Не удалось загрузить список филиалов", "Ошибка");
-        }
-      }
-    </script>
+    <script type="module" src="/assets/admin-branches-list.js"></script>
   </body>
 </html>

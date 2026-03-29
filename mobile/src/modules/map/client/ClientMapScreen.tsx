@@ -30,7 +30,11 @@ export function ClientMapScreen(props: Props) {
 
   return (
     <View style={styles.screen}>
-      <BranchMapPanel branches={vm.state.branches} onBranchPress={vm.actions.selectBranch} />
+      <BranchMapPanel
+        branches={vm.state.branches}
+        selectedBranchId={vm.state.selectedBranch?.id}
+        onBranchPress={vm.actions.selectBranch}
+      />
       <GlassCard style={styles.metaCard}>
         <StatusBadge
           status={vm.state.source === "network" ? "success" : "warning"}
