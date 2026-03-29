@@ -6,9 +6,11 @@
   --primary-2: #2563eb;
   --error: #dc2626;
   --success: #16a34a;
-  --glass: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(148, 163, 184, 0.24);
-  --shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+  --glass: rgba(255, 255, 255, 0.74);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.34);
+  --shadow: 0 22px 56px rgba(15, 23, 42, 0.13);
+  --inner-light: inset 0 1px 0 rgba(255, 255, 255, 0.58);
 }
 
 @keyframes clientFadeSlide {
@@ -61,11 +63,11 @@ body {
 }
 
 .glass {
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: 18px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), var(--inner-light);
 }
 
 .card {
@@ -297,6 +299,8 @@ a.link:active {
   display: flex;
   align-items: center;
   gap: 14px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.68));
 }
 
 .client-brand-logo {
@@ -335,10 +339,13 @@ a.link:active {
   color: var(--text);
   font-weight: 800;
   letter-spacing: 0.08em;
-  backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(16px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.46);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -347,8 +354,11 @@ a.link:active {
 
 .client-contact-link:hover {
   transform: translateY(-1px);
-  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.1);
-  background: rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 18px 34px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255,255,255,0.54);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.7));
 }
 
 .client-contact-link:active {
@@ -364,10 +374,13 @@ a.link:active {
 .client-action-tile {
   min-height: 108px;
   border-radius: 22px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.64));
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 18px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.54);
   font: inherit;
   color: var(--text);
   font-weight: 700;
@@ -382,8 +395,11 @@ a.link:active {
 
 .client-action-tile:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.1);
-  background: rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 22px 38px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255,255,255,0.62);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72));
 }
 
 .client-action-tile:active {
@@ -402,13 +418,16 @@ a.link:active {
 .client-hero-card {
   padding: 0;
   overflow: hidden;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.46), rgba(255,255,255,0.2));
 }
 
 .client-hero-frame {
   position: relative;
   min-height: 270px;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.24) 0%, rgba(15,23,42,0.06) 100%),
+    linear-gradient(180deg, rgba(255,255,255,0.26) 0%, rgba(15,23,42,0.04) 100%),
     linear-gradient(180deg, #f7f9fc 0%, #edf1f6 100%);
 }
 
@@ -417,6 +436,26 @@ a.link:active {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.client-hero-glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 110px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+.client-hero-top-fade {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 138px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.28), rgba(255,255,255,0) 72%);
+  pointer-events: none;
 }
 
 .client-hero-shadow {
@@ -434,10 +473,12 @@ a.link:active {
   padding: 24px;
   min-height: 132px;
   border-radius: 24px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255,255,255,0.16);
   background:
-    linear-gradient(135deg, rgba(15,23,42,0.86), rgba(51,65,85,0.74));
-  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.18);
+    linear-gradient(135deg, rgba(15,23,42,0.86), rgba(51,65,85,0.76));
+  box-shadow:
+    0 24px 48px rgba(15, 23, 42, 0.2),
+    inset 0 1px 0 rgba(255,255,255,0.1);
   color: #fff;
   text-decoration: none;
 }
@@ -470,7 +511,8 @@ a.link:active {
   min-width: 42px;
   min-height: 42px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
   color: #fff;
   font-weight: 700;
 }
@@ -480,6 +522,8 @@ a.link:active {
   grid-template-columns: 178px minmax(0, 1fr);
   gap: 18px;
   align-items: center;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.68));
 }
 
 .client-bonus-circle {
@@ -490,9 +534,12 @@ a.link:active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.78);
-  border: 2px solid rgba(15, 23, 42, 0.82);
-  box-shadow: inset 0 0 0 8px rgba(255,255,255,0.36);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.58));
+  border: 1.5px solid rgba(15, 23, 42, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.62),
+    0 14px 28px rgba(15, 23, 42, 0.08);
 }
 
 .client-bonus-value {
@@ -549,6 +596,8 @@ a.link:active {
 
 .client-list-card {
   padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.66));
 }
 
 .client-list-title {
@@ -609,13 +658,15 @@ a.link:active {
   font: inherit;
   font-weight: 600;
   color: var(--text);
-  background: rgba(255,255,255,0.72);
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.64));
+  border: 1px solid rgba(255,255,255,0.34);
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.46);
 }
 
 .client-chat-tab.is-active {
-  background: rgba(37, 99, 235, 0.12);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(15, 118, 110, 0.12));
   color: var(--primary-2);
 }
 
@@ -625,6 +676,8 @@ a.link:active {
 
 .client-chat-panel {
   padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.68));
 }
 
 .client-messages {
@@ -654,7 +707,9 @@ a.link:active {
 
 .client-message.other {
   align-self: flex-start;
-  background: rgba(255,255,255,0.92);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.82));
+  border: 1px solid rgba(255,255,255,0.42);
   border-bottom-left-radius: 6px;
 }
 
@@ -684,6 +739,12 @@ a.link:active {
 .client-chat-input {
   min-height: 50px;
   resize: vertical;
+  border-color: rgba(255,255,255,0.46);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.78));
+  box-shadow:
+    0 10px 22px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255,255,255,0.58);
 }
 
 .client-loading {
