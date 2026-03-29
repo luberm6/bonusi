@@ -49,6 +49,16 @@
         let chatError = null;
         let sendingMessage = false;
         let messageDraft = "";
+        let transitionDirection = "forward";
+        let toast = null;
+        const SCREEN_DEPTH = {
+          home: 0,
+          booking: 1,
+          visits: 1,
+          "bonus-history": 1,
+          cashback: 1,
+          chat: 1
+        };
 
         function escapeHtml(value) {
           return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -111,6 +121,23 @@
           return total > 0 ? `<span class="client-chat-badge">${total}</span>` : `<span class="client-chat-badge">→</span>`;
         }
 
+        function showToast(type, message) {
+          toast = { type, message };
+          renderApp();
+          window.clearTimeout(showToast._timer);
+          showToast._timer = window.setTimeout(() => {
+            toast = null;
+            renderApp();
+          }, 2200);
+        }
+
+        function goToScreen(nextScreen) {
+          transitionDirection = (SCREEN_DEPTH[nextScreen] ?? 0) >= (SCREEN_DEPTH[screen] ?? 0) ? "forward" : "backward";
+          screen = nextScreen;
+          renderApp();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
         function renderHeader() {
           return `
             <header class="glass card client-home-header">
@@ -123,6 +150,15 @@
                 <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
               </div>
             </header>
+          `;
+        }
+
+        function renderToast() {
+          if (!toast) return "";
+          return `
+            <div class="client-toast client-toast-${toast.type}" role="status" aria-live="polite">
+              ${escapeHtml(toast.message)}
+            </div>
           `;
         }
 
@@ -234,6 +270,23 @@
           `;
         }
 
+        function renderListSkeleton(rows = 3) {
+          return `
+            <section class="client-screen client-fade">
+              <div class="client-skeleton-grid">
+                ${Array.from({ length: rows }).map(() => `
+                  <section class="glass card client-skeleton-card client-list-skeleton">
+                    <div class="client-skeleton-line is-medium"></div>
+                    <div class="client-skeleton-line is-short"></div>
+                    <div class="client-skeleton-line is-short client-skeleton-value"></div>
+                    <div class="client-skeleton-line is-medium"></div>
+                  </section>
+                `).join("")}
+              </div>
+            </section>
+          `;
+        }
+
         function renderHomeSkeleton() {
           return `
             <section class="client-screen client-fade">
@@ -278,7 +331,7 @@
         }
 
         function renderVisitsScreen() {
-          if (visitsLoading && !visits) return renderLoading("Загружаем историю посещений...");
+          if (visitsLoading && !visits) return renderListSkeleton(3);
           if (!visits?.length) {
             return renderEmpty("История посещений пуста", "Как только появятся визиты, они отобразятся здесь.");
           }
@@ -302,7 +355,7 @@
         }
 
         function renderBonusHistoryScreen() {
-          if (bonusHistoryLoading && !bonusHistory) return renderLoading("Загружаем историю бонусов...");
+          if (bonusHistoryLoading && !bonusHistory) return renderListSkeleton(3);
           if (!bonusHistory?.length) {
             return renderEmpty("История начислений пуста", "История бонусов появится после первой операции.");
           }
@@ -342,7 +395,7 @@
         }
 
         function renderBookingScreen() {
-          if (branchesLoading && !branches) return renderLoading("Загружаем филиалы...");
+          if (branchesLoading && !branches) return renderListSkeleton(2);
           if (!branches?.length) {
             return renderEmpty("Нет доступных филиалов", "Когда филиалы станут доступны, они появятся здесь.");
           }
@@ -430,53 +483,50 @@
 
         function renderApp() {
           app.innerHTML = `
+            ${renderToast()}
             ${renderHeader()}
-            ${renderCurrentScreen()}
+            <div class="client-screen-stage client-screen-stage-${transitionDirection}">
+              ${renderCurrentScreen()}
+            </div>
           `;
 
           bindLogout("logout-btn");
           app.querySelector('[data-action="go-home"]')?.addEventListener("click", () => {
-            screen = "home";
-            renderApp();
+            goToScreen("home");
           });
 
           app.querySelectorAll('[data-action="open-booking"]').forEach((element) => {
             element.addEventListener("click", async () => {
               await ensureBranchesLoaded();
-              screen = "booking";
-              renderApp();
+              goToScreen("booking");
             });
           });
 
           app.querySelectorAll('[data-action="open-visits"]').forEach((element) => {
             element.addEventListener("click", async () => {
               await ensureVisitsLoaded();
-              screen = "visits";
-              renderApp();
+              goToScreen("visits");
             });
           });
 
           app.querySelectorAll('[data-action="open-bonus-history"]').forEach((element) => {
             element.addEventListener("click", async () => {
               await ensureBonusHistoryLoaded();
-              screen = "bonus-history";
-              renderApp();
+              goToScreen("bonus-history");
             });
           });
 
           app.querySelectorAll('[data-action="open-cashback"]').forEach((element) => {
             element.addEventListener("click", async () => {
               await ensureBonusHistoryLoaded();
-              screen = "cashback";
-              renderApp();
+              goToScreen("cashback");
             });
           });
 
           app.querySelectorAll('[data-action="open-chat"]').forEach((element) => {
             element.addEventListener("click", async () => {
               await ensureChatLoaded();
-              screen = "chat";
-              renderApp();
+              goToScreen("chat");
             });
           });
 
@@ -528,6 +578,7 @@
             bonusBalance = typeof bonusPayload.balance === "number" ? bonusPayload.balance : 0;
           } catch (error) {
             homeError = error instanceof Error ? error.message : "Не удалось загрузить данные клиента.";
+            showToast("error", homeError);
           } finally {
             homeLoading = false;
             renderApp();
@@ -542,7 +593,9 @@
             visits = await authFetchJson(`/visits?clientId=${encodeURIComponent(session.userId)}`);
           } catch (error) {
             visits = [];
-            homeError = homeError || (error instanceof Error ? error.message : "Не удалось загрузить визиты.");
+            const message = error instanceof Error ? error.message : "Не удалось загрузить визиты.";
+            homeError = homeError || message;
+            showToast("error", message);
           } finally {
             visitsLoading = false;
           }
@@ -556,7 +609,9 @@
             bonusHistory = await authFetchJson(`/bonuses/history?client_id=${encodeURIComponent(session.userId)}`);
           } catch (error) {
             bonusHistory = [];
-            homeError = homeError || (error instanceof Error ? error.message : "Не удалось загрузить бонусы.");
+            const message = error instanceof Error ? error.message : "Не удалось загрузить бонусы.";
+            homeError = homeError || message;
+            showToast("error", message);
           } finally {
             bonusHistoryLoading = false;
           }
@@ -571,7 +626,9 @@
             branches = Array.isArray(payload) ? payload.filter((branch) => branch.isActive !== false) : [];
           } catch (error) {
             branches = [];
-            homeError = homeError || (error instanceof Error ? error.message : "Не удалось загрузить филиалы.");
+            const message = error instanceof Error ? error.message : "Не удалось загрузить филиалы.";
+            homeError = homeError || message;
+            showToast("error", message);
           } finally {
             branchesLoading = false;
           }
@@ -592,6 +649,7 @@
             }
           } catch (error) {
             chatError = error instanceof Error ? error.message : "Не удалось загрузить чат.";
+            showToast("error", chatError);
           } finally {
             chatLoading = false;
           }
@@ -606,6 +664,7 @@
             messages = await authFetchJson(`/chat/conversations/${encodeURIComponent(conversationId)}/messages`);
           } catch (error) {
             chatError = error instanceof Error ? error.message : "Не удалось открыть диалог.";
+            showToast("error", chatError);
           } finally {
             chatLoading = false;
           }
@@ -632,10 +691,12 @@
               }
             });
             messageDraft = "";
+            showToast("success", "Сообщение отправлено");
             await refreshConversations();
             await openConversation(activeConversationId);
           } catch (error) {
             chatError = error instanceof Error ? error.message : "Не удалось отправить сообщение.";
+            showToast("error", chatError);
           } finally {
             sendingMessage = false;
             renderApp();
