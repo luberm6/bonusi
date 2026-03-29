@@ -5,7 +5,7 @@ import { ru } from "../../../shared/i18n/ru";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import { BranchBottomSheet } from "./BranchBottomSheet";
-import { MapLibreMap } from "../ui/MapLibreMap";
+import { BranchMapPanel } from "../ui/BranchMapPanel";
 import { useClientMapViewModel } from "./useClientMapViewModel";
 import type { MapDataService } from "../map-data-service";
 import type { BranchMapItem } from "../../../shared/types/map";
@@ -30,7 +30,7 @@ export function ClientMapScreen(props: Props) {
 
   return (
     <View style={styles.screen}>
-      <MapLibreMap branches={vm.state.branches} onBranchPress={vm.actions.selectBranch} />
+      <BranchMapPanel branches={vm.state.branches} onBranchPress={vm.actions.selectBranch} />
       <GlassCard style={styles.metaCard}>
         <StatusBadge
           status={vm.state.source === "network" ? "success" : "warning"}

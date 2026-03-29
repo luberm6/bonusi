@@ -18,7 +18,6 @@
   - `GET /api/v1/readyz` with db/integration status
   - startup integration state logs in `backend/src/main.ts`
 - Added robust trust proxy parsing (`TRUST_PROXY=true` no longer crashes startup).
-- Added wildcard-aware CORS mode for zero-touch first deploy (`CORS_ORIGIN=*`).
 - Added static web build pipeline with backend URL injection:
   - `web/scripts/build-static.sh`
   - generated `web/dist/assets/config.js` from `PUBLIC_API_BASE`
@@ -44,7 +43,8 @@
 ### B) From database/service links
 
 - `DATABASE_URL` (`fromDatabase.connectionString`)
-- `PUBLIC_API_BASE` (`fromService.url` for backend; build script appends `/api/v1`)
+- `PUBLIC_API_BASE` (`fromService.host` for backend; build script adds `https://` and appends `/api/v1`)
+- `CORS_ORIGIN` (`fromService.host` for web; backend normalizes it to a valid origin)
 
 ### C) Defaults / safe automatic values
 
@@ -52,7 +52,7 @@
 - `ACCESS_TOKEN_TTL=15m`
 - `REFRESH_TOKEN_TTL_DAYS=30`
 - `TRUST_PROXY=true`
-- `CORS_ORIGIN=*`
+- `CORS_EXTRA_ORIGINS=http://localhost:3000,http://127.0.0.1:3100`
 - `FILES_ENABLED=false`
 - `NOMINATIM_*` and cache TTL defaults
 - `SUPER_ADMIN_EMAIL=admin@autoservice.local`
@@ -84,4 +84,4 @@
 ## Known limitations
 
 - Web service is static shell for stage-1 runtime; migrate to Next.js service when Next app is added to repository.
-- `CORS_ORIGIN=*` is intentionally permissive for zero-touch bootstrap; tighten to real web domains after initial deploy.
+- Mobile map module currently exposes branch geography as an operational panel, not a full native interactive map runtime.

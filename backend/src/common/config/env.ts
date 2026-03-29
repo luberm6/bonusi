@@ -25,15 +25,32 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   throw new Error(`Invalid boolean value: ${value}`);
 }
 
+function normalizeOrigin(value: string): string {
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+  return `https://${value}`;
+}
+
+function parseOrigins(...values: Array<string | undefined>) {
+  return values
+    .flatMap((value) => (value ?? "").split(","))
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map(normalizeOrigin);
+}
+
+const corsOrigins = parseOrigins(
+  process.env.CORS_ORIGIN ?? "http://localhost:3000,http://127.0.0.1:3100",
+  process.env.CORS_EXTRA_ORIGINS
+);
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: Number(process.env.PORT ?? 4000),
   databaseUrl: requireEnv("DATABASE_URL"),
-  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:3000,http://127.0.0.1:3100",
-  corsOrigins: (process.env.CORS_ORIGIN ?? "http://localhost:3000,http://127.0.0.1:3100")
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean),
+  corsOrigin: corsOrigins.join(","),
+  corsOrigins,
   trustProxy: process.env.TRUST_PROXY ?? "loopback",
   jwtAccessSecret: requireEnv("JWT_ACCESS_SECRET", process.env.JWT_SECRET),
   jwtRefreshSecret: requireEnv("JWT_REFRESH_SECRET"),

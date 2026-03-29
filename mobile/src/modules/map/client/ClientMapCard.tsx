@@ -5,7 +5,7 @@ import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
 import { ru } from "../../../shared/i18n/ru";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 import { AppButton } from "../../../shared/ui/AppButton";
-import { MapLibreMap } from "../ui/MapLibreMap";
+import { BranchMapPanel } from "../ui/BranchMapPanel";
 
 type Props = {
   branches: BranchMapItem[];
@@ -20,7 +20,7 @@ export function ClientMapCard(props: Props) {
         <Text style={styles.title}>{ru.map.branchesTitle}</Text>
         <AppButton label={ru.map.openMap} variant="ghost" onPress={props.onOpenFullMap} style={styles.headerAction} />
       </View>
-      <MapLibreMap compact branches={props.branches} onBranchPress={props.onSelectBranch} />
+      <BranchMapPanel compact branches={props.branches} onBranchPress={props.onSelectBranch} />
       <Pressable onPress={props.onOpenFullMap} hitSlop={8}>
         <Text style={styles.hint}>{ru.map.tapMarkerHint}</Text>
       </Pressable>

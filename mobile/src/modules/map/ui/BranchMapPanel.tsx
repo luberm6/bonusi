@@ -13,12 +13,14 @@ type Props = {
   compact?: boolean;
 };
 
-export function MapLibreMap(props: Props) {
+export function BranchMapPanel(props: Props) {
   const { branches, compact, editableMarker } = props;
   return (
     <View style={[styles.container, compact ? styles.compact : styles.full]}>
       <Text style={styles.title}>{ru.map.screenTitle}</Text>
-      <Text style={styles.caption}>{ru.map.mapCount}: {branches.length}</Text>
+      <Text style={styles.caption}>
+        {ru.map.mapCount}: {branches.length}
+      </Text>
       {editableMarker ? (
         <Text style={styles.caption}>
           {ru.map.markerLabel}: {editableMarker.lat.toFixed(5)}, {editableMarker.lng.toFixed(5)}

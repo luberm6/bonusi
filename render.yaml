@@ -30,7 +30,12 @@ services:
       - key: TRUST_PROXY
         value: true
       - key: CORS_ORIGIN
-        value: https://autoservice-web.onrender.com,http://localhost:3000,http://127.0.0.1:3100
+        fromService:
+          type: web
+          name: autoservice-web
+          property: host
+      - key: CORS_EXTRA_ORIGINS
+        value: http://localhost:3000,http://127.0.0.1:3100
       - key: FILES_ENABLED
         value: false
       - key: PUSH_ENABLED
@@ -76,7 +81,10 @@ services:
     autoDeploy: true
     envVars:
       - key: PUBLIC_API_BASE
-        value: https://autoservice-backend-atyj.onrender.com
+        fromService:
+          type: web
+          name: autoservice-backend
+          property: host
 
 databases:
   - name: autoservice-postgres

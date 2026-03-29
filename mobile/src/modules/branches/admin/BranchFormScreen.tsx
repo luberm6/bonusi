@@ -6,7 +6,7 @@ import { ru } from "../../../shared/i18n/ru";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { AppInput } from "../../../shared/ui/AppInput";
 import { GlassCard } from "../../../shared/ui/GlassCard";
-import { MapLibreMap } from "../../map/ui/MapLibreMap";
+import { BranchMapPanel } from "../../map/ui/BranchMapPanel";
 import type { BranchFormViewModel } from "./branch-form-view-model";
 
 type Props = {
@@ -60,7 +60,7 @@ export function BranchFormScreen(props: Props) {
 
       <GlassCard style={styles.card} elevated>
         <Text style={styles.sectionTitle}>{ru.branchAdmin.mapPlacementTitle}</Text>
-        <MapLibreMap
+        <BranchMapPanel
           branches={[]}
           editableMarker={marker}
           onMarkerDragEnd={(coords) => setState((s) => vm.applyManualMarker(s, coords))}
