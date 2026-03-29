@@ -1,60 +1,45 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import type { AppBootstrapState, MobileAppBootstrap } from "./src/app/bootstrap/mobile-app-bootstrap";
-import { startMobileAppShell } from "./src/app/entrypoint/start-mobile-app-shell";
 import { readAccessTokenFromBridge, restoreSessionFromBridge } from "./src/app/entrypoint/session-bridge";
+import type { AuthSession } from "./src/app/navigation/role-navigation-resolver";
+import { resolveNavigationAfterLogin } from "./src/app/navigation/role-navigation-resolver";
+import { ClientHomeScreen } from "./src/modules/client/home/ClientHomeScreen";
 
 function AnonymousView() {
   return (
     <View style={styles.centered}>
       <Text style={styles.title}>Autoservice Mobile</Text>
-      <Text style={styles.subtitle}>No active session. Please login to continue.</Text>
+      <Text style={styles.subtitle}>Нет активной сессии. Выполните вход, чтобы продолжить.</Text>
     </View>
   );
 }
 
-function ReadyView(props: { state: Extract<AppBootstrapState, { phase: "ready" }> }) {
+function AdminFallbackView(props: { session: AuthSession }) {
+  const navigation = useMemo(() => resolveNavigationAfterLogin(props.session), [props.session]);
   return (
     <View style={styles.centered}>
       <Text style={styles.title}>Autoservice Mobile</Text>
-      <Text style={styles.subtitle}>Role: {props.state.session.role}</Text>
-      <Text style={styles.subtitle}>Default route: {props.state.navigation.defaultPath}</Text>
+      <Text style={styles.subtitle}>Роль: {props.session.role}</Text>
+      <Text style={styles.subtitle}>Базовый маршрут: {navigation.defaultPath}</Text>
     </View>
   );
 }
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const [state, setState] = useState<AppBootstrapState>({
-    phase: "anonymous",
-    session: null,
-    navigation: null,
-    runtime: null
-  });
+  const [session, setSession] = useState<AuthSession | null>(null);
+  const [accessToken, setAccessToken] = useState("");
 
   useEffect(() => {
-    let mounted = true;
-    let bootstrap: MobileAppBootstrap | null = null;
-
     (async () => {
       try {
-        bootstrap = await startMobileAppShell({
-          restoreSession: restoreSessionFromBridge,
-          getAccessToken: readAccessTokenFromBridge,
-          onStateChange(next) {
-            if (mounted) setState(next);
-          }
-        });
-        if (mounted) setState(bootstrap.getState());
+        const nextSession = await restoreSessionFromBridge();
+        setSession(nextSession);
+        setAccessToken(readAccessTokenFromBridge());
       } finally {
-        if (mounted) setLoading(false);
+        setLoading(false);
       }
     })();
-
-    return () => {
-      mounted = false;
-      bootstrap?.stop();
-    };
   }, []);
 
   if (loading) {
@@ -62,7 +47,7 @@ export default function App() {
       <SafeAreaView style={styles.root}>
         <View style={styles.centered}>
           <ActivityIndicator />
-          <Text style={styles.subtitle}>Initializing app runtime...</Text>
+          <Text style={styles.subtitle}>Запускаем приложение...</Text>
         </View>
       </SafeAreaView>
     );
@@ -70,7 +55,13 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.root}>
-      {state.phase === "ready" ? <ReadyView state={state} /> : <AnonymousView />}
+      {!session ? (
+        <AnonymousView />
+      ) : session.role === "client" ? (
+        <ClientHomeScreen session={session} accessToken={accessToken || session.token} />
+      ) : (
+        <AdminFallbackView session={session} />
+      )}
     </SafeAreaView>
   );
 }
@@ -99,4 +90,3 @@ const styles = StyleSheet.create({
     marginBottom: 6
   }
 });
-
