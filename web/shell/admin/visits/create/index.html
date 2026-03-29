@@ -7,73 +7,82 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
-      .field { display: flex; flex-direction: column; gap: 4px; }
-      .field label { font-size: 13px; font-weight: 600; color: #475569; }
       select.input { appearance: auto; }
-      .services-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
-      .services-table th, .services-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
-      .services-table th { font-weight: 600; color: #475569; }
-      .services-table tr:last-child td { border-bottom: none; }
-      .add-service-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 12px; }
-      .add-service-row .input { flex: 1; min-width: 120px; }
       #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
       #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
     </style>
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Новый визит</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Оформление визита</p>
+            <h1 class="workspace-title">Новый визит</h1>
+            <p class="subtitle">Оперативное создание визита клиента с филиалом, услугами и комментариями.</p>
+          </div>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card" id="page-state">
-          <p class="subtitle">Загружаем справочники...</p>
+        <section class="workspace-panel" id="page-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем справочники</p>
+              <p class="workspace-state-text">Подготавливаем клиентов, филиалы и каталог активных услуг.</p>
+            </div>
+            <span class="badge badge-soft">Визиты</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
+        <section class="workspace-panel">
           <form id="visit-form">
-            <div class="form-grid">
-              <div class="field">
+            <div class="workspace-form-grid">
+              <div class="workspace-field">
                 <label for="sel-client">Клиент</label>
                 <select class="input" id="sel-client" required>
                   <option value="">Загружаем...</option>
                 </select>
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="sel-branch">Филиал</label>
                 <select class="input" id="sel-branch" required>
                   <option value="">Загружаем...</option>
                 </select>
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="visit-date">Дата визита</label>
                 <input class="input" type="date" id="visit-date" />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="visit-comment">Комментарий</label>
                 <input class="input" type="text" id="visit-comment" placeholder="Необязательно" />
               </div>
             </div>
 
             <div class="spacer-16"></div>
-            <h3 style="margin: 0 0 8px;">Состав визита</h3>
-            <table class="services-table" id="svc-table" style="display:none">
-              <thead>
-                <tr><th>Услуга</th><th>Количество</th><th></th></tr>
-              </thead>
-              <tbody id="svc-tbody"></tbody>
-            </table>
-            <p id="no-services" style="color:#94a3b8;font-size:14px">Пока не добавлено ни одной услуги</p>
+            <div class="workspace-toolbar">
+              <div>
+                <h2 class="workspace-section-title">Состав визита</h2>
+                <p class="workspace-section-meta">Фиксируем услуги снапшотом на момент оформления визита.</p>
+              </div>
+            </div>
+            <div class="spacer-16"></div>
+            <div class="workspace-table-wrap">
+              <table class="workspace-table" id="svc-table" style="display:none">
+                <thead>
+                  <tr><th>Услуга</th><th>Количество</th><th>Действие</th></tr>
+                </thead>
+                <tbody id="svc-tbody"></tbody>
+              </table>
+            </div>
+            <p id="no-services" class="workspace-empty">Пока не добавлено ни одной услуги</p>
 
-            <div class="add-service-row">
+            <div class="spacer-16"></div>
+            <div class="workspace-form-row">
               <select class="input" id="add-svc-id" style="flex:2">
                 <option value="">Загружаем услуги...</option>
               </select>
@@ -92,16 +101,27 @@
 
     <script type="module">
       import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
-      const session = guard(["admin", "super_admin"]);
-      if (session) {
-        startSessionAutoRefresh();
+        const session = guard(["admin", "super_admin"]);
+        if (session) {
+          startSessionAutoRefresh();
 
-        const pageState = document.getElementById("page-state");
-        const selectedServices = []; // [{serviceId, name, quantity}]
-        let servicesLoaded = false;
+          const pageState = document.getElementById("page-state");
+          const renderState = (tone, title, text, badge = "Визиты") => {
+            pageState.innerHTML = `
+              <div class="workspace-state" data-tone="${tone}">
+                <div class="workspace-state-copy">
+                  <p class="workspace-state-title">${title}</p>
+                  <p class="workspace-state-text">${text}</p>
+                </div>
+                <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+              </div>
+            `;
+          };
+          const selectedServices = []; // [{serviceId, name, quantity}]
+          let servicesLoaded = false;
 
         async function loadData() {
-          pageState.innerHTML = '<p class="subtitle">Загружаем справочники...</p>';
+          renderState("default", "Загружаем справочники", "Подтягиваем клиентов, филиалы и список активных услуг.");
           const [usersRes, branchesRes, servicesRes] = await Promise.allSettled([
             authFetchJson("/users"),
             authFetchJson("/branches"),
@@ -109,9 +129,9 @@
           ]);
 
           if (usersRes.status === "rejected" || branchesRes.status === "rejected" || servicesRes.status === "rejected") {
-            pageState.innerHTML = `<p class="error">Не удалось загрузить часть справочников. Проверьте backend и права доступа.</p>`;
+            renderState("error", "Справочники загружены частично", "Часть данных сейчас недоступна. Проверьте backend и права доступа.", "Частичная ошибка");
           } else {
-            pageState.innerHTML = '<p class="subtitle">Справочники загружены.</p>';
+            renderState("success", "Справочники готовы", "Можно оформлять визит и добавлять услуги в состав.", "Готово");
           }
 
           const users = usersRes.status === "fulfilled" ? usersRes.value : [];
@@ -168,7 +188,7 @@
             tr.innerHTML = `
               <td>${s.name}</td>
               <td>${s.quantity}</td>
-              <td><button type="button" class="btn btn-secondary" style="font-size:12px;padding:3px 10px" data-idx="${i}">Удалить</button></td>
+              <td><div class="workspace-inline-actions"><button type="button" class="btn btn-secondary" data-idx="${i}">Удалить</button></div></td>
             `;
             tbody.appendChild(tr);
           }

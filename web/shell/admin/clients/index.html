@@ -7,19 +7,19 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-      table { width: 100%; border-collapse: collapse; font-size: 14px; }
-      th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
-      th { font-weight: 600; color: #475569; }
-      tr:last-child td { border-bottom: none; }
       .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
       .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
     </style>
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Клиенты</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Клиентская база</p>
+            <h1 class="workspace-title">Клиенты</h1>
+            <p class="subtitle">Список активных и отключенных клиентских учетных записей.</p>
+          </div>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
             <a class="btn btn-primary" href="/admin/clients/create/">Новый клиент</a>
@@ -27,20 +27,35 @@
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card" id="page-state">
-          <p class="subtitle">Загружаем список клиентов...</p>
+        <section class="workspace-panel" id="page-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем список клиентов</p>
+              <p class="workspace-state-text">Подготавливаем клиентскую базу и статусы активности.</p>
+            </div>
+            <span class="badge badge-soft">Клиенты</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <h2 style="margin-top: 0;">Список клиентов</h2>
-          <p id="loading" class="subtitle">Загружаем данные...</p>
-          <table id="table" style="display:none">
-            <thead>
-              <tr><th>Имя</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Последняя активность</th></tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
+              <h2 class="workspace-section-title">Список клиентов</h2>
+              <p class="workspace-section-meta">Рабочий обзор по пользователям с ролью client.</p>
+            </div>
+            <span class="badge badge-soft">CRM</span>
+          </div>
+          <div class="spacer-16"></div>
+          <p id="loading" class="workspace-helper">Загружаем данные...</p>
+          <div class="workspace-table-wrap">
+            <table id="table" class="workspace-table" style="display:none">
+              <thead>
+                <tr><th>Имя</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Последняя активность</th></tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
         </section>
       </section>
     </main>
@@ -55,6 +70,17 @@
         const loading = document.getElementById("loading");
         const table = document.getElementById("table");
         const tbody = document.getElementById("tbody");
+        const renderState = (tone, title, text, badge = "Клиенты") => {
+          pageState.innerHTML = `
+            <div class="workspace-state" data-tone="${tone}">
+              <div class="workspace-state-copy">
+                <p class="workspace-state-title">${title}</p>
+                <p class="workspace-state-text">${text}</p>
+              </div>
+              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+            </div>
+          `;
+        };
 
         function formatDate(value) {
           if (!value) return "—";
@@ -70,10 +96,10 @@
           tbody.innerHTML = "";
 
           if (!clients.length) {
-            tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Клиентов пока нет</td></tr>';
-            pageState.innerHTML = '<p class="subtitle">Список пока пуст. Создайте первого клиента, чтобы начать работу.</p>';
+            tbody.innerHTML = '<tr><td colspan="5"><p class="workspace-empty">Клиентов пока нет. Создайте первую запись, чтобы начать работу.</p></td></tr>';
+            renderState("default", "Клиентская база пока пустая", "Создайте первого клиента, чтобы открыть запись, визиты и бонусный контур.");
           } else {
-            pageState.innerHTML = `<p class="subtitle">Найдено клиентов: ${clients.length}</p>`;
+            renderState("success", "Клиентская база актуальна", `Найдено клиентов: ${clients.length}.`, "Актуально");
             for (const client of clients) {
               const tr = document.createElement("tr");
               tr.innerHTML = `
@@ -88,7 +114,7 @@
           }
         } catch (error) {
           loading.textContent = "Не удалось загрузить данные";
-          pageState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить список клиентов"}</p>`;
+          renderState("error", "Не удалось загрузить список клиентов", error instanceof Error ? error.message : "Не удалось загрузить список клиентов", "Ошибка");
         }
       }
     </script>

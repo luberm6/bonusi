@@ -7,59 +7,82 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-      table { width: 100%; border-collapse: collapse; font-size: 14px; }
-      th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.08); }
-      th { font-weight: 600; color: #475569; }
-      tr:last-child td { border-bottom: none; }
       .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
       .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
-      .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
-      .form-row .input { flex: 1; min-width: 140px; }
       #add-error { color: #dc2626; font-size: 14px; min-height: 20px; }
+      #form-note { min-height: 20px; }
     </style>
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Каталог услуг</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Каталог</p>
+            <h1 class="workspace-title">Каталог услуг</h1>
+            <p class="subtitle">Управление рабочим каталогом, ценами и доступностью услуг.</p>
+          </div>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
           </div>
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card" id="page-state">
-          <p class="subtitle">Загружаем каталог услуг...</p>
+        <section class="workspace-panel" id="page-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем каталог услуг</p>
+              <p class="workspace-state-text">Подготавливаем список услуг и рабочую форму редактирования.</p>
+            </div>
+            <span class="badge badge-soft">Каталог</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <h2 id="form-title" style="margin-top: 0;">Добавить услугу</h2>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
+              <h2 id="form-title" class="workspace-section-title">Добавить услугу</h2>
+              <p class="workspace-section-meta">Все изменения сохраняются сразу в backend и отражаются в рабочем каталоге.</p>
+            </div>
+            <span class="badge badge-soft" id="form-mode-badge">Создание</span>
+          </div>
+          <div class="spacer-16"></div>
           <form id="add-form">
             <input type="hidden" id="edit-id" value="" />
-            <div class="form-row">
-              <input class="input" id="svc-name" placeholder="Название" required />
-              <input class="input" id="svc-desc" placeholder="Описание (необязательно)" />
-              <input class="input" id="svc-price" type="number" min="0" step="0.01" placeholder="Цена (₽)" required style="max-width:140px" />
+            <div class="workspace-form-row">
+              <input class="input" id="svc-name" placeholder="Название услуги" required />
+              <input class="input" id="svc-desc" placeholder="Описание или краткая пометка" />
+              <input class="input" id="svc-price" type="number" min="0" step="0.01" placeholder="Цена (₽)" required style="max-width:160px" />
               <button class="btn btn-primary" id="form-submit" type="submit">Добавить</button>
               <button class="btn btn-secondary" id="form-cancel" type="button" style="display:none">Отмена</button>
             </div>
+            <div class="spacer-16"></div>
             <p id="add-error"></p>
+            <p id="form-note" class="workspace-helper"></p>
           </form>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <h2 style="margin-top: 0;">Список услуг</h2>
-          <p id="loading" class="subtitle">Загружаем данные...</p>
-          <table id="table" style="display:none">
-            <thead>
-              <tr><th>Название</th><th>Описание</th><th>Цена</th><th>Статус</th><th></th></tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
+              <h2 class="workspace-section-title">Список услуг</h2>
+              <p class="workspace-section-meta">Текущие позиции каталога с быстрым управлением статусом и ценой.</p>
+            </div>
+          </div>
+          <div class="spacer-16"></div>
+          <p id="loading" class="workspace-helper">Загружаем данные...</p>
+          <div class="workspace-table-wrap">
+            <table id="table" class="workspace-table" style="display:none">
+              <thead>
+                <tr><th>Название</th><th>Описание</th><th>Цена</th><th>Статус</th><th>Действия</th></tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
         </section>
+        <div id="toast" class="workspace-toast"></div>
       </section>
     </main>
 
@@ -75,17 +98,45 @@
         const formSubmit = document.getElementById("form-submit");
         const formCancel = document.getElementById("form-cancel");
         const editId = document.getElementById("edit-id");
+        const formModeBadge = document.getElementById("form-mode-badge");
+        const formNote = document.getElementById("form-note");
+        const toast = document.getElementById("toast");
+        let toastTimer = null;
+
+        const showToast = (text, tone = "success") => {
+          toast.textContent = text;
+          toast.className = `workspace-toast ${tone} show`;
+          window.clearTimeout(toastTimer);
+          toastTimer = window.setTimeout(() => {
+            toast.className = "workspace-toast";
+          }, 2200);
+        };
+
+        const renderState = (tone, title, text, badge = "Каталог") => {
+          pageState.innerHTML = `
+            <div class="workspace-state" data-tone="${tone}">
+              <div class="workspace-state-copy">
+                <p class="workspace-state-title">${title}</p>
+                <p class="workspace-state-text">${text}</p>
+              </div>
+              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+            </div>
+          `;
+        };
 
         function resetFormMode() {
           editId.value = "";
           formTitle.textContent = "Добавить услугу";
           formSubmit.textContent = "Добавить";
           formCancel.style.display = "none";
+          formModeBadge.textContent = "Создание";
+          formModeBadge.className = "badge badge-soft";
+          formNote.textContent = "Новая услуга сразу станет доступна в рабочем каталоге.";
           form.reset();
         }
 
         async function loadServices() {
-          pageState.innerHTML = '<p class="subtitle">Загружаем каталог услуг...</p>';
+          renderState("default", "Загружаем каталог услуг", "Обновляем список услуг и их статусы.");
           try {
             const list = await authFetchJson("/services");
             document.getElementById("loading").style.display = "none";
@@ -93,11 +144,11 @@
             const tbody = document.getElementById("tbody");
             tbody.innerHTML = "";
             if (!list.length) {
-              tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Каталог пока пуст</td></tr>';
-              pageState.innerHTML = '<p class="subtitle">Каталог пока пуст. Добавьте первую услугу, чтобы начать работу.</p>';
+              tbody.innerHTML = '<tr><td colspan="5"><p class="workspace-empty">Каталог пока пуст. Добавьте первую услугу, чтобы начать работу.</p></td></tr>';
+              renderState("default", "Каталог пока пуст", "Добавьте первую услугу, чтобы начать работу с визитами и расчетами.");
               return;
             }
-            pageState.innerHTML = '<p class="subtitle">Каталог услуг загружен.</p>';
+            renderState("success", "Каталог синхронизирован", `В системе доступно ${list.length} услуг.`, "Актуально");
             for (const s of list) {
               const tr = document.createElement("tr");
               tr.innerHTML = `
@@ -105,9 +156,11 @@
                 <td style="color:#475569">${s.description || "—"}</td>
                 <td>${Number(s.basePrice).toFixed(2)} ₽</td>
                 <td><span class="${s.isActive ? "badge-on" : "badge-off"}">${s.isActive ? "Активна" : "Отключена"}</span></td>
-                <td style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button class="btn btn-secondary" style="font-size:13px;padding:4px 12px" data-action="edit" data-id="${s.id}">Редактировать</button>
-                  <button class="btn btn-secondary" style="font-size:13px;padding:4px 12px" data-action="toggle" data-id="${s.id}" data-active="${s.isActive}">${s.isActive ? "Отключить" : "Включить"}</button>
+                <td>
+                  <div class="workspace-inline-actions">
+                    <button class="btn btn-secondary" data-action="edit" data-id="${s.id}">Редактировать</button>
+                    <button class="btn btn-secondary" data-action="toggle" data-id="${s.id}" data-active="${s.isActive}">${s.isActive ? "Отключить" : "Включить"}</button>
+                  </div>
                 </td>
               `;
               tbody.appendChild(tr);
@@ -120,9 +173,11 @@
                   btn.disabled = true;
                   try {
                     await authFetchJson(`/services/${btn.dataset.id}`, { method: "PATCH", body: { isActive: !nowActive } });
+                    showToast(nowActive ? "Услуга отключена" : "Услуга снова активна");
                     await loadServices();
                   } catch (ex) {
-                    pageState.innerHTML = `<p class="error">${ex.message || "Не удалось изменить статус услуги"}</p>`;
+                    renderState("error", "Не удалось обновить статус", ex.message || "Не удалось изменить статус услуги", "Ошибка");
+                    showToast(ex.message || "Не удалось изменить статус услуги", "error");
                   }
                 }
                 if (action === "edit") {
@@ -132,6 +187,9 @@
                   formTitle.textContent = "Редактировать услугу";
                   formSubmit.textContent = "Сохранить";
                   formCancel.style.display = "";
+                  formModeBadge.textContent = "Редактирование";
+                  formModeBadge.className = "badge badge-neutral";
+                  formNote.textContent = "Изменения сохранятся сразу после подтверждения.";
                   document.getElementById("svc-name").value = current.name;
                   document.getElementById("svc-desc").value = current.description || "";
                   document.getElementById("svc-price").value = String(current.basePrice);
@@ -140,8 +198,9 @@
               });
             });
           } catch (ex) {
-            pageState.innerHTML = `<p class="error">${ex.message || "Не удалось загрузить каталог услуг"}</p>`;
+            renderState("error", "Не удалось загрузить каталог", ex.message || "Не удалось загрузить каталог услуг", "Ошибка");
             document.getElementById("loading").textContent = "Не удалось загрузить данные";
+            showToast(ex.message || "Не удалось загрузить каталог услуг", "error");
           }
         }
 
@@ -161,17 +220,21 @@
           try {
             if (editId.value) {
               await authFetchJson(`/services/${editId.value}`, { method: "PATCH", body: payload });
+              showToast("Изменения услуги сохранены");
             } else {
               await authFetchJson("/services", { method: "POST", body: payload });
+              showToast("Новая услуга добавлена");
             }
             resetFormMode();
             await loadServices();
           } catch (ex) {
             err.textContent = ex.message || "Не удалось сохранить услугу";
+            showToast(ex.message || "Не удалось сохранить услугу", "error");
           }
         });
 
         loadServices();
+        resetFormMode();
       }
     </script>
   </body>

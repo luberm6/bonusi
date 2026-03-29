@@ -7,51 +7,57 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-      .chat-layout { display: flex; gap: 16px; min-height: 500px; }
-      .conv-list { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
-      .conv-item { padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: rgba(255,255,255,0.5); }
-      .conv-item:hover { background: rgba(255,255,255,0.8); }
-      .conv-item.active { border-color: #3b82f6; background: rgba(255,255,255,0.9); }
-      .conv-name { font-weight: 600; font-size: 14px; }
-      .conv-last { font-size: 12px; color: #64748b; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .chat-panel { flex: 1; display: flex; flex-direction: column; }
-      .messages { flex: 1; min-height: 360px; max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: rgba(248,250,252,0.6); border-radius: 10px; margin-bottom: 12px; }
-      .msg { max-width: 70%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
-      .msg-mine { align-self: flex-end; background: #3b82f6; color: #fff; border-radius: 12px 12px 2px 12px; }
-      .msg-other { align-self: flex-start; background: #fff; color: #0f172a; border-radius: 12px 12px 12px 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-      .msg-meta { font-size: 11px; margin-top: 3px; opacity: 0.65; }
-      .send-row { display: flex; gap: 8px; }
-      .send-row textarea { flex: 1; resize: none; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-family: inherit; }
       .unread-badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 11px; margin-left: 6px; }
       #no-conv { color: #94a3b8; padding: 20px; text-align: center; }
     </style>
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Диалоги</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Коммуникации</p>
+            <h1 class="workspace-title">Диалоги</h1>
+            <p class="subtitle">Рабочее пространство переписки с клиентами и быстрых ответов.</p>
+          </div>
           <div class="nav-links">
             <a class="link" href="/admin/dashboard/">← В центр управления</a>
           </div>
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card" id="chat-state">
-          <p class="subtitle">Загружаем диалоги...</p>
+        <section class="workspace-panel" id="chat-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем диалоги</p>
+              <p class="workspace-state-text">Подготавливаем список обращений и историю сообщений.</p>
+            </div>
+            <span class="badge badge-soft">Чат</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <div class="glass card" style="padding: 16px;">
-          <div class="chat-layout">
-            <div class="conv-list" id="conv-list">
-              <p class="subtitle" style="padding:12px">Загружаем список...</p>
-            </div>
-            <div class="chat-panel" id="chat-panel">
-              <div id="no-conv">Выберите диалог слева</div>
+        <div class="workspace-panel">
+          <div class="workspace-chat">
+            <aside class="workspace-chat-sidebar">
+              <div class="workspace-toolbar">
+                <div>
+                  <h2 class="workspace-section-title">Список диалогов</h2>
+                  <p class="workspace-section-meta">Текущие обращения клиентов и новые сообщения.</p>
+                </div>
+              </div>
+              <div class="workspace-chat-list" id="conv-list">
+                <div class="workspace-chat-item workspace-skeleton" style="min-height:76px;"></div>
+                <div class="workspace-chat-item workspace-skeleton" style="min-height:76px;"></div>
+                <div class="workspace-chat-item workspace-skeleton" style="min-height:76px;"></div>
+              </div>
+            </aside>
+            <div class="workspace-chat-panel" id="chat-panel">
+              <div id="no-conv" class="workspace-panel workspace-panel-compact">Выберите диалог слева</div>
             </div>
           </div>
         </div>
+        <div id="toast" class="workspace-toast"></div>
       </section>
     </main>
 
@@ -62,8 +68,29 @@
         startSessionAutoRefresh();
 
         const chatState = document.getElementById("chat-state");
+        const toast = document.getElementById("toast");
+        let toastTimer = null;
         let activeConvId = null;
         let activeConv = null;
+        const showToast = (text, tone = "success") => {
+          toast.textContent = text;
+          toast.className = `workspace-toast ${tone} show`;
+          window.clearTimeout(toastTimer);
+          toastTimer = window.setTimeout(() => {
+            toast.className = "workspace-toast";
+          }, 2200);
+        };
+        const renderState = (tone, title, text, badge = "Чат") => {
+          chatState.innerHTML = `
+            <div class="workspace-state" data-tone="${tone}">
+              <div class="workspace-state-copy">
+                <p class="workspace-state-title">${title}</p>
+                <p class="workspace-state-text">${text}</p>
+              </div>
+              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+            </div>
+          `;
+        };
 
         function fmt(iso) {
           if (!iso) return "";
@@ -78,26 +105,26 @@
         }
 
         async function loadConversations() {
-          chatState.innerHTML = '<p class="subtitle">Загружаем диалоги...</p>';
+          renderState("default", "Загружаем диалоги", "Синхронизируем обращения и последние сообщения.");
           const el = document.getElementById("conv-list");
           try {
             const list = await authFetchJson("/chat/conversations");
             el.innerHTML = "";
             if (!list.length) {
-              chatState.innerHTML = '<p class="subtitle">Пока нет диалогов.</p>';
-              el.innerHTML = '<p class="subtitle" style="padding:12px">Диалогов пока нет</p>';
-              document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Диалогов пока нет. Когда появится первый, он отобразится здесь.</div>';
+              renderState("default", "Диалогов пока нет", "Когда появится первое обращение, оно отобразится в рабочем списке.");
+              el.innerHTML = '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Диалогов пока нет.</p></div>';
+              document.getElementById("chat-panel").innerHTML = '<div id="no-conv" class="workspace-panel workspace-panel-compact">Диалогов пока нет. Когда появится первый, он отобразится здесь.</div>';
               return;
             }
-            chatState.innerHTML = '<p class="subtitle">Диалоги загружены из backend.</p>';
+            renderState("success", "Диалоги синхронизированы", "Список обращений получен из backend и готов к работе.", "Актуально");
             for (const c of list) {
               const div = document.createElement("div");
-              div.className = "conv-item" + (c.id === activeConvId ? " active" : "");
+              div.className = "workspace-chat-item" + (c.id === activeConvId ? " active" : "");
               div.dataset.id = c.id;
               const badge = c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : "";
               div.innerHTML = `
-                <div class="conv-name">${c.participantId || "Клиент"}${badge}</div>
-                <div class="conv-last">${renderConversationPreview(c)}</div>
+                <div class="workspace-chat-name">${c.participantId || "Клиент"}${badge}</div>
+                <div class="workspace-chat-preview">${renderConversationPreview(c)}</div>
               `;
               div.addEventListener("click", () => openConv(c));
               el.appendChild(div);
@@ -106,9 +133,10 @@
               await openConv(list[0]);
             }
           } catch (error) {
-            chatState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить диалоги"}</p>`;
-            el.innerHTML = '<p class="subtitle" style="padding:12px">Не удалось загрузить диалоги</p>';
-            document.getElementById("chat-panel").innerHTML = '<div id="no-conv">Не удалось открыть диалог</div>';
+            renderState("error", "Не удалось загрузить диалоги", error instanceof Error ? error.message : "Не удалось загрузить диалоги", "Ошибка");
+            el.innerHTML = '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Не удалось загрузить диалоги.</p></div>';
+            document.getElementById("chat-panel").innerHTML = '<div id="no-conv" class="workspace-panel workspace-panel-compact">Не удалось открыть диалог.</div>';
+            showToast(error instanceof Error ? error.message : "Не удалось загрузить диалоги", "error");
           }
         }
 
@@ -116,34 +144,36 @@
           const convId = typeof convOrId === "string" ? convOrId : convOrId.id;
           activeConvId = convId;
           activeConv = typeof convOrId === "string" ? activeConv : convOrId;
-          document.querySelectorAll(".conv-item").forEach(el => {
+          document.querySelectorAll(".workspace-chat-item").forEach(el => {
             el.classList.toggle("active", el.dataset.id === convId);
           });
 
           const panel = document.getElementById("chat-panel");
-          panel.innerHTML = '<div style="padding:20px;color:#94a3b8">Открываем диалог...</div>';
+          panel.innerHTML = '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Открываем диалог...</p></div>';
 
           try {
             const messages = await authFetchJson(`/chat/conversations/${convId}/messages`);
             const myId = session.userId;
 
             panel.innerHTML = `
-              <div class="messages" id="msgs"></div>
-              <div class="send-row">
-                <textarea id="msg-text" rows="2" placeholder="Введите сообщение..."></textarea>
-                <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
+              <div class="workspace-chat-board">
+                <div class="workspace-chat-messages" id="msgs"></div>
+                <div class="workspace-chat-compose">
+                  <textarea id="msg-text" class="input" rows="2" placeholder="Введите сообщение..."></textarea>
+                  <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
+                </div>
               </div>
             `;
 
             const msgsEl = document.getElementById("msgs");
             if (!messages.length) {
-              msgsEl.innerHTML = '<div class="subtitle">Сообщений пока нет. Начните диалог первым.</div>';
+              msgsEl.innerHTML = '<p class="workspace-empty">Сообщений пока нет. Начните диалог первым.</p>';
             } else {
               for (const m of messages) {
                 const mine = m.senderId === myId;
                 const div = document.createElement("div");
-                div.className = "msg " + (mine ? "msg-mine" : "msg-other");
-                div.innerHTML = `${m.text || ""}<div class="msg-meta">${fmt(m.createdAt)}</div>`;
+                div.className = "workspace-msg " + (mine ? "mine" : "other");
+                div.innerHTML = `${m.text || ""}<div class="workspace-msg-meta">${fmt(m.createdAt)}</div>`;
                 msgsEl.appendChild(div);
               }
               msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -161,8 +191,11 @@
                   method: "POST",
                   body: { clientMessageId, text }
                 });
+                showToast("Сообщение отправлено");
                 await loadConversations();
                 await openConv(convId);
+              } catch (error) {
+                showToast(error instanceof Error ? error.message : "Не удалось отправить сообщение", "error");
               } finally {
                 btn.disabled = false;
               }
@@ -175,7 +208,8 @@
               }
             });
           } catch (error) {
-            panel.innerHTML = `<div class="error" style="padding:16px">${error instanceof Error ? error.message : "Не удалось открыть диалог"}</div>`;
+            panel.innerHTML = `<div class="workspace-panel workspace-panel-compact"><p class="error">${error instanceof Error ? error.message : "Не удалось открыть диалог"}</p></div>`;
+            showToast(error instanceof Error ? error.message : "Не удалось открыть диалог", "error");
           }
         }
 

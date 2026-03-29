@@ -7,10 +7,6 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr; } }
-      .field { display: flex; flex-direction: column; gap: 6px; }
-      .field label { font-size: 13px; font-weight: 600; color: #475569; }
       textarea.input { min-height: 120px; resize: vertical; }
       #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
       #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
@@ -18,9 +14,13 @@
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Новый филиал</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Создание точки</p>
+            <h1 class="workspace-title">Новый филиал</h1>
+            <p class="subtitle">Создание филиала с адресом, контактами, графиком работы и координатами.</p>
+          </div>
           <div class="nav-links">
             <a class="link" href="/admin/branches/">Филиалы</a>
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
@@ -28,42 +28,48 @@
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <p class="subtitle">Создание филиала с адресом, контактами и координатами.</p>
+        <section class="workspace-panel">
+          <div class="workspace-state" data-tone="default">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Готово к созданию филиала</p>
+              <p class="workspace-state-text">После сохранения филиал сразу появится в рабочем списке и станет доступен для сценариев записи.</p>
+            </div>
+            <span class="badge badge-soft">Новая точка</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
+        <section class="workspace-panel">
           <form id="branch-form">
-            <div class="form-grid">
-              <div class="field">
+            <div class="workspace-form-grid">
+              <div class="workspace-field">
                 <label for="name">Название филиала</label>
                 <input class="input" id="name" type="text" placeholder="Например, Центральный" required />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="phone">Телефон</label>
                 <input class="input" id="phone" type="text" placeholder="+7 (999) 123-45-67" />
               </div>
-              <div class="field" style="grid-column: 1 / -1;">
+              <div class="workspace-field workspace-field-wide">
                 <label for="address">Адрес</label>
                 <input class="input" id="address" type="text" placeholder="Полный адрес филиала" required />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="lat">Широта</label>
                 <input class="input" id="lat" type="number" step="0.000001" placeholder="59.934280" />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="lng">Долгота</label>
                 <input class="input" id="lng" type="number" step="0.000001" placeholder="30.335099" />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="work-hours">Часы работы</label>
                 <input class="input" id="work-hours" type="text" placeholder="Пн-Вс 09:00-21:00" />
               </div>
             </div>
 
             <div class="spacer-16"></div>
-            <div class="field">
+            <div class="workspace-field">
               <label for="description">Описание</label>
               <textarea class="input" id="description" placeholder="Краткое описание филиала"></textarea>
             </div>

@@ -7,10 +7,6 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
     <style>
-      .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr; } }
-      .field { display: flex; flex-direction: column; gap: 6px; }
-      .field label { font-size: 13px; font-weight: 600; color: #475569; }
       textarea.input { min-height: 120px; resize: vertical; }
       #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
       #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
@@ -18,9 +14,13 @@
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <h1 class="title" style="font-size: 22px; margin: 0;">Новый клиент</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Создание записи</p>
+            <h1 class="workspace-title">Новый клиент</h1>
+            <p class="subtitle">Создание учетной записи клиента с привязкой к backend-роли и базовой контактной карточкой.</p>
+          </div>
           <div class="nav-links">
             <a class="link" href="/admin/clients/">Клиенты</a>
             <a class="link" href="/admin/dashboard/">← Дашборд</a>
@@ -28,34 +28,40 @@
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <p class="subtitle">Создание учетной записи клиента с привязкой к backend-роли.</p>
+        <section class="workspace-panel">
+          <div class="workspace-state" data-tone="default">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Готово к созданию клиента</p>
+              <p class="workspace-state-text">После сохранения карточка сразу появится в рабочем списке клиентов.</p>
+            </div>
+            <span class="badge badge-soft">Новая запись</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
+        <section class="workspace-panel">
           <form id="client-form">
-            <div class="form-grid">
-              <div class="field">
+            <div class="workspace-form-grid">
+              <div class="workspace-field">
                 <label for="full-name">Имя клиента</label>
                 <input class="input" id="full-name" type="text" placeholder="Например, Иван Петров" />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="email">Электронная почта</label>
                 <input class="input" id="email" type="email" placeholder="client@example.com" required />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="phone">Телефон</label>
                 <input class="input" id="phone" type="text" placeholder="+7 (999) 123-45-67" />
               </div>
-              <div class="field">
+              <div class="workspace-field">
                 <label for="password">Пароль</label>
                 <input class="input" id="password" type="password" placeholder="Минимум 8 символов" required />
               </div>
             </div>
 
             <div class="spacer-16"></div>
-            <div class="field">
+            <div class="workspace-field">
               <label for="notes">Заметки</label>
               <textarea class="input" id="notes" placeholder="Внутренняя заметка о клиенте"></textarea>
             </div>

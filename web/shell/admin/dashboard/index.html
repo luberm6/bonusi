@@ -9,10 +9,11 @@
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <div>
-            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Центр управления</h1>
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Операционный контур</p>
+            <h1 class="workspace-title">Центр управления</h1>
             <p id="who" class="subtitle"></p>
           </div>
           <div class="nav-links">
@@ -23,41 +24,79 @@
         </header>
 
         <div class="spacer-16"></div>
-        <section class="glass card" id="dashboard-state">
-          <p class="subtitle">Загружаем данные дашборда...</p>
+        <section class="workspace-panel" id="dashboard-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем сводку</p>
+              <p class="workspace-state-text">Подтягиваем KPI и состояние операционного дня.</p>
+            </div>
+            <span class="badge badge-soft">Статус</span>
+          </div>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="grid">
-          <article class="glass kpi">
-            <h3>Визиты сегодня</h3>
-            <p id="kpi-visits">—</p>
+        <section class="workspace-kpi-grid">
+          <article class="workspace-panel workspace-kpi">
+            <div class="workspace-kpi-label">Визиты сегодня</div>
+            <div class="workspace-kpi-value" id="kpi-visits">—</div>
+            <div class="workspace-kpi-meta">Актуальная загрузка по текущему дню.</div>
           </article>
-          <article class="glass kpi">
-            <h3>Активные клиенты</h3>
-            <p id="kpi-clients">—</p>
+          <article class="workspace-panel workspace-kpi">
+            <div class="workspace-kpi-label">Активные клиенты</div>
+            <div class="workspace-kpi-value" id="kpi-clients">—</div>
+            <div class="workspace-kpi-meta">Клиенты с доступом к сервису.</div>
           </article>
-          <article class="glass kpi">
-            <h3>Открытые чаты</h3>
-            <p id="kpi-chats">—</p>
+          <article class="workspace-panel workspace-kpi">
+            <div class="workspace-kpi-label">Открытые диалоги</div>
+            <div class="workspace-kpi-value" id="kpi-chats">—</div>
+            <div class="workspace-kpi-meta">Текущие клиентские обращения.</div>
           </article>
-          <article class="glass kpi">
-            <h3>Филиалы</h3>
-            <p id="kpi-branches">—</p>
+          <article class="workspace-panel workspace-kpi">
+            <div class="workspace-kpi-label">Активные филиалы</div>
+            <div class="workspace-kpi-value" id="kpi-branches">—</div>
+            <div class="workspace-kpi-meta">Точки, доступные для записи и визитов.</div>
           </article>
         </section>
 
         <div class="spacer-16"></div>
-        <section class="glass card">
-          <h2 style="margin-top: 0;">Быстрые действия</h2>
-          <div class="row">
-            <a class="btn btn-primary" href="/admin/visits/create/">Создать визит</a>
-            <a class="btn btn-secondary" href="/admin/clients/create/">Создать клиента</a>
-            <a class="btn btn-secondary" href="/admin/branches/create/">Создать филиал</a>
-            <a class="btn btn-secondary" href="/admin/clients/">Клиенты</a>
-            <a class="btn btn-secondary" href="/admin/branches/">Филиалы</a>
-            <a class="btn btn-secondary" href="/admin/services/">Каталог услуг</a>
-            <a class="btn btn-secondary" href="/admin/chat/">Диалоги</a>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
+              <h2 class="workspace-section-title">Быстрые действия</h2>
+              <p class="workspace-section-meta">Частые операционные сценарии без лишних переходов.</p>
+            </div>
+            <span class="badge badge-soft">Back office</span>
+          </div>
+          <div class="spacer-16"></div>
+          <div class="workspace-action-grid">
+            <a class="workspace-action-card primary" href="/admin/visits/create/">
+              <span class="workspace-action-title">Создать визит</span>
+              <span class="workspace-action-meta">Оформить новый визит клиента и собрать услуги в один сценарий.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/clients/create/">
+              <span class="workspace-action-title">Создать клиента</span>
+              <span class="workspace-action-meta">Добавить новую учетную запись клиента с доступом в систему.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/branches/create/">
+              <span class="workspace-action-title">Создать филиал</span>
+              <span class="workspace-action-meta">Добавить новую точку обслуживания с адресом и координатами.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/services/">
+              <span class="workspace-action-title">Каталог услуг</span>
+              <span class="workspace-action-meta">Обновить услуги, цены и доступность в рабочем каталоге.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/clients/">
+              <span class="workspace-action-title">Клиенты</span>
+              <span class="workspace-action-meta">Просмотреть текущую клиентскую базу и статус активности.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/branches/">
+              <span class="workspace-action-title">Филиалы</span>
+              <span class="workspace-action-meta">Проверить сеть филиалов и актуальность контактных данных.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/chat/">
+              <span class="workspace-action-title">Диалоги</span>
+              <span class="workspace-action-meta">Перейти в рабочее пространство сообщений и ответов клиентам.</span>
+            </a>
           </div>
         </section>
       </section>
@@ -73,6 +112,17 @@
 
         const dashboardState = document.getElementById("dashboard-state");
         const todayIso = new Date().toISOString().slice(0, 10);
+        const renderState = (tone, title, text, badge = "Статус") => {
+          dashboardState.innerHTML = `
+            <div class="workspace-state" data-tone="${tone}">
+              <div class="workspace-state-copy">
+                <p class="workspace-state-title">${title}</p>
+                <p class="workspace-state-text">${text}</p>
+              </div>
+              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+            </div>
+          `;
+        };
 
         try {
           const [visits, users, chats, branches] = await Promise.allSettled([
@@ -99,12 +149,27 @@
 
           const failures = [visits, users, chats, branches].filter((r) => r.status === "rejected");
           if (failures.length) {
-            dashboardState.innerHTML = `<p class="error">Часть данных дашборда недоступна. Основные действия работают, но некоторые KPI не загрузились.</p>`;
+            renderState(
+              "error",
+              "Сводка загружена частично",
+              "Основные действия доступны, но часть KPI сейчас не ответила со стороны backend.",
+              "Частичная ошибка"
+            );
           } else {
-            dashboardState.innerHTML = '<p class="subtitle">Данные дашборда загружены.</p>';
+            renderState(
+              "success",
+              "Сводка актуальна",
+              "Ключевые показатели и операционные данные успешно обновлены.",
+              "Синхронизировано"
+            );
           }
         } catch (error) {
-          dashboardState.innerHTML = `<p class="error">${error instanceof Error ? error.message : "Не удалось загрузить дашборд"}</p>`;
+          renderState(
+            "error",
+            "Не удалось загрузить дашборд",
+            error instanceof Error ? error.message : "Не удалось загрузить дашборд",
+            "Ошибка"
+          );
         }
       }
     </script>
