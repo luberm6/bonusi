@@ -9,8 +9,8 @@ export const mobileTokens = {
     warning: "#F59E0B",
     error: "#DC2626",
     borderSoft: "rgba(15, 23, 42, 0.12)",
-    glass: "rgba(255,255,255,0.74)",
-    glassStrong: "rgba(255,255,255,0.82)",
+    glass: "rgba(255,255,255,0.72)",
+    glassStrong: "rgba(255,255,255,0.84)",
     overlay: "rgba(15, 23, 42, 0.24)"
   },
   spacing: {
@@ -38,17 +38,17 @@ export const mobileTokens = {
   shadow: {
     glass: {
       shadowColor: "#0f172a",
-      shadowOpacity: 0.14,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 7
+      shadowOpacity: 0.16,
+      shadowRadius: 28,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 9
     },
     soft: {
       shadowColor: "#0f172a",
-      shadowOpacity: 0.08,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 3
+      shadowOpacity: 0.1,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 4
     }
   }
 } as const;

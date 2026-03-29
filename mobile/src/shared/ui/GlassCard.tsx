@@ -38,9 +38,9 @@ export function GlassCard(props: Props) {
 const styles = StyleSheet.create({
   base: {
     backgroundColor: mobileTokens.color.glass,
-    borderRadius: mobileTokens.radius[16],
+    borderRadius: mobileTokens.radius[20],
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft
+    borderColor: "rgba(255,255,255,0.42)"
   },
   elevated: {
     ...mobileTokens.shadow.glass

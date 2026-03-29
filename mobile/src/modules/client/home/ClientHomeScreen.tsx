@@ -514,7 +514,12 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         </GlassCard>
 
         <GlassCard elevated animated style={styles.heroCard}>
-          <Image source={HERO_IMAGE} resizeMode="cover" style={styles.heroImage} />
+          <View style={styles.heroFrame}>
+            <Image source={HERO_IMAGE} resizeMode="cover" style={styles.heroImage} />
+            <View pointerEvents="none" style={styles.heroGlassGlow} />
+            <View pointerEvents="none" style={styles.heroTopFade} />
+            <View pointerEvents="none" style={styles.heroBottomShade} />
+          </View>
         </GlassCard>
 
         <Pressable
@@ -836,7 +841,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    backgroundColor: "rgba(255,255,255,0.82)"
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderColor: "rgba(255,255,255,0.5)"
   },
   brandLogo: {
     fontSize: 40,
@@ -867,7 +873,9 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 18,
-    backgroundColor: "#161616",
+    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
     ...mobileTokens.shadow.soft
@@ -882,7 +890,9 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   actionGridCard: {
-    padding: 14
+    padding: 14,
+    backgroundColor: "rgba(255,255,255,0.58)",
+    borderColor: "rgba(255,255,255,0.46)"
   },
   actionGrid: {
     flexDirection: "row",
@@ -892,14 +902,18 @@ const styles = StyleSheet.create({
   actionTile: {
     width: "48%",
     minHeight: 78,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.72)",
     borderWidth: 1,
-    borderColor: "rgba(15, 23, 42, 0.08)",
+    borderColor: "rgba(255,255,255,0.42)",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 14,
-    ...mobileTokens.shadow.soft
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3
   },
   pressedTile: {
     transform: [{ scale: 0.97 }],
@@ -914,20 +928,57 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     overflow: "hidden",
-    backgroundColor: "#D9DDE4",
-    shadowOpacity: 0.14
+    backgroundColor: "rgba(255,255,255,0.42)",
+    borderRadius: 24,
+    borderColor: "rgba(255,255,255,0.36)",
+    shadowOpacity: 0.18
+  },
+  heroFrame: {
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 24
   },
   heroImage: {
     width: "100%",
     height: 220
   },
+  heroGlassGlow: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 96,
+    backgroundColor: "rgba(255,255,255,0.16)"
+  },
+  heroTopFade: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    backgroundColor: "rgba(255,255,255,0.08)"
+  },
+  heroBottomShade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 92,
+    backgroundColor: "rgba(15,23,42,0.18)"
+  },
   chatCta: {
     minHeight: 114,
-    borderRadius: 22,
-    backgroundColor: "#1F1F1F",
+    borderRadius: 24,
+    backgroundColor: "rgba(23, 31, 47, 0.84)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
     justifyContent: "center",
     paddingHorizontal: 24,
-    ...mobileTokens.shadow.glass
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.24,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 9
   },
   pressedCta: {
     transform: [{ scale: 0.985 }],
@@ -940,7 +991,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1
   },
   chatCtaHint: {
-    color: "rgba(255,255,255,0.72)",
+    color: "rgba(255,255,255,0.76)",
     fontSize: 14,
     marginTop: 4
   },
@@ -949,20 +1000,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 18,
-    backgroundColor: "rgba(255,255,255,0.88)"
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderColor: "rgba(255,255,255,0.46)"
   },
   bonusCircle: {
     width: 132,
     height: 132,
     borderRadius: 66,
-    borderWidth: 5,
-    borderColor: "#101010",
+    borderWidth: 1.5,
+    borderColor: "rgba(15, 23, 42, 0.22)",
+    backgroundColor: "rgba(255,255,255,0.56)",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    shadowColor: "#ffffff",
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 2
   },
   bonusValue: {
-    fontSize: 38,
-    lineHeight: 40,
+    fontSize: 42,
+    lineHeight: 42,
     fontWeight: "900",
     color: "#101010"
   },
@@ -986,7 +1044,7 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 14,
-    color: mobileTokens.color.textSecondary
+    color: "rgba(71, 85, 105, 0.92)"
   },
   screenHeader: {
     flexDirection: "row",
@@ -1052,7 +1110,9 @@ const styles = StyleSheet.create({
   },
   cashbackCard: {
     padding: 22,
-    gap: 12
+    gap: 12,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderColor: "rgba(255,255,255,0.48)"
   },
   cashbackTitle: {
     fontSize: 20,
@@ -1105,7 +1165,9 @@ const styles = StyleSheet.create({
   },
   chatPanel: {
     padding: 16,
-    minHeight: 520
+    minHeight: 520,
+    backgroundColor: "rgba(255,255,255,0.78)",
+    borderColor: "rgba(255,255,255,0.46)"
   },
   messagesList: {
     gap: 10,
@@ -1123,7 +1185,9 @@ const styles = StyleSheet.create({
   },
   messageOther: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.92)"
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.42)"
   },
   messageText: {
     fontSize: 15,
@@ -1155,13 +1219,18 @@ const styles = StyleSheet.create({
     minHeight: 92,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    borderColor: "rgba(255,255,255,0.58)",
+    backgroundColor: "rgba(255,255,255,0.78)",
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     color: mobileTokens.color.textPrimary,
-    textAlignVertical: "top"
+    textAlignVertical: "top",
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2
   },
   sendButton: {
     minHeight: 52
