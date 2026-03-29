@@ -87,8 +87,7 @@ function getWorkHoursText(value: BranchRow["workHours"]): string | null {
   return typeof candidate === "string" && candidate.trim().length > 0 ? candidate.trim() : null;
 }
 
-const HERO_IMAGE_URI =
-  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80";
+const HERO_IMAGE = require("./assets/client-hero-car.png");
 
 const CONTACT_LINKS = [
   { key: "vk", label: "VK", url: "https://vk.com" },
@@ -349,7 +348,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         </GlassCard>
 
         <GlassCard elevated animated style={styles.heroCard}>
-          <Image source={{ uri: HERO_IMAGE_URI }} resizeMode="cover" style={styles.heroImage} />
+          <Image source={HERO_IMAGE} resizeMode="cover" style={styles.heroImage} />
         </GlassCard>
 
         <Pressable
