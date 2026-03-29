@@ -135,6 +135,17 @@ async function requestJson<T>(path: string, token: string, init?: RequestInit): 
   return json as T;
 }
 
+function friendlyErrorMessage(error: unknown, fallback: string) {
+  if (!(error instanceof Error)) return fallback;
+  const message = error.message.trim();
+  if (!message) return fallback;
+  if (/request failed/i.test(message) || /network request failed/i.test(message)) return fallback;
+  if (/fetch/i.test(message) || /network/i.test(message)) {
+    return "Похоже, соединение нестабильно. Попробуйте ещё раз через пару секунд.";
+  }
+  return message;
+}
+
 function ScreenHeader(props: { title: string; onBack: () => void }) {
   return (
     <View style={styles.screenHeader}>
@@ -411,7 +422,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         setBonusBalance(Number(balanceData.balance ?? 0));
       } catch (error) {
         if (!mounted) return;
-        setHomeError(error instanceof Error ? error.message : "Не удалось загрузить главный экран");
+        setHomeError(friendlyErrorMessage(error, "Не удалось открыть главный экран. Попробуйте ещё раз чуть позже."));
       } finally {
         if (mounted) setLoadingHome(false);
       }
@@ -564,7 +575,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       );
       setVisits(rows);
     } catch (error) {
-      presentToast("error", error instanceof Error ? error.message : "Не удалось загрузить визиты", "notificationError");
+      presentToast("error", friendlyErrorMessage(error, "Не удалось загрузить визиты. Попробуйте ещё раз чуть позже."), "notificationError");
       setVisits([]);
     } finally {
       setVisitsLoading(false);
@@ -583,7 +594,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     } catch (error) {
       presentToast(
         "error",
-        error instanceof Error ? error.message : "Не удалось загрузить историю бонусов",
+        friendlyErrorMessage(error, "Не удалось загрузить историю бонусов. Попробуйте ещё раз чуть позже."),
         "notificationError"
       );
       setBonusHistory([]);
@@ -599,7 +610,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       const rows = await requestJson<BranchRow[]>("/branches", props.accessToken);
       setBranches(rows.filter((branch) => branch.isActive));
     } catch (error) {
-      presentToast("error", error instanceof Error ? error.message : "Не удалось загрузить филиалы", "notificationError");
+      presentToast("error", friendlyErrorMessage(error, "Не удалось загрузить филиалы. Попробуйте ещё раз чуть позже."), "notificationError");
       setBranches([]);
     } finally {
       setBranchesLoading(false);
@@ -625,8 +636,8 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         setMessages([]);
       }
     } catch (error) {
-      setChatError(error instanceof Error ? error.message : "Не удалось загрузить чат");
-      presentToast("error", error instanceof Error ? error.message : "Чат временно недоступен", "notificationError");
+      setChatError(friendlyErrorMessage(error, "Не удалось открыть чат. Попробуйте ещё раз чуть позже."));
+      presentToast("error", friendlyErrorMessage(error, "Чат временно недоступен. Попробуйте ещё раз чуть позже."), "notificationError");
     } finally {
       setChatLoading(false);
     }
@@ -643,8 +654,8 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       );
       setMessages(rows);
     } catch (error) {
-      setChatError(error instanceof Error ? error.message : "Не удалось загрузить сообщения");
-      presentToast("error", error instanceof Error ? error.message : "Не удалось открыть сообщения", "notificationError");
+      setChatError(friendlyErrorMessage(error, "Не удалось загрузить сообщения. Попробуйте ещё раз чуть позже."));
+      presentToast("error", friendlyErrorMessage(error, "Не удалось открыть диалог. Попробуйте ещё раз чуть позже."), "notificationError");
     } finally {
       setChatLoading(false);
     }
@@ -671,8 +682,8 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       presentToast("success", "Сообщение отправлено");
       await openConversation(activeConversationId);
     } catch (error) {
-      setChatError(error instanceof Error ? error.message : "Не удалось отправить сообщение");
-      presentToast("error", error instanceof Error ? error.message : "Не удалось отправить сообщение", "notificationError");
+      setChatError(friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже."));
+      presentToast("error", friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже."), "notificationError");
     } finally {
       setSubmittingMessage(false);
     }
@@ -694,7 +705,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     }
 
     if (homeError) {
-      return <EmptyState title="Экран недоступен" description={homeError} />;
+      return <EmptyState title="Не удалось открыть экран" description={homeError} />;
     }
 
     return (
@@ -815,14 +826,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         {visitsLoading && !visits ? (
           <ListSkeleton rows={3} />
         ) : !visits?.length ? (
-          <EmptyState title="Пусто" description="Как только появятся визиты, они отобразятся здесь." />
+          <EmptyState title="У вас пока нет визитов" description="Начните с записи, и история посещений появится здесь." />
         ) : (
           visits.map((visit) => (
             <GlassCard key={visit.id} elevated style={styles.listCard}>
               <Text style={styles.listTitle}>{new Date(visit.visitDate).toLocaleDateString("ru-RU")}</Text>
-              <Text style={styles.listSubtitle}>{visit.branchName || "Филиал автосервиса"}</Text>
+              <Text style={styles.listSubtitle}>{visit.branchName || "Филиал сервиса"}</Text>
               <Text style={styles.listValue}>
-                {typeof visit.finalAmount === "number" ? `${visit.finalAmount.toFixed(2)} ₽` : "Сумма уточняется"}
+                {typeof visit.finalAmount === "number" ? `${visit.finalAmount.toFixed(2)} ₽` : "Сумма появится после подтверждения"}
               </Text>
               {visit.comment ? <Text style={styles.listHint}>{visit.comment}</Text> : null}
             </GlassCard>
@@ -839,7 +850,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         {bonusHistoryLoading && !bonusHistory ? (
           <ListSkeleton rows={3} />
         ) : !bonusHistory?.length ? (
-          <EmptyState title="Пусто" description="История бонусов появится после первой операции." />
+          <EmptyState title="История бонусов пока пуста" description="После первого начисления или списания все операции появятся здесь." />
         ) : (
           bonusHistory.map((row) => (
             <GlassCard key={row.id} elevated style={styles.listCard}>
@@ -879,7 +890,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         {branchesLoading && !branches ? (
           <ListSkeleton rows={2} />
         ) : !branches?.length ? (
-          <EmptyState title="Нет доступных филиалов" description="Когда филиалы станут доступны, они появятся здесь." />
+          <EmptyState title="Запись пока недоступна" description="Подходящие филиалы скоро появятся здесь. Пока можно написать нам в чат." />
         ) : (
           branches.map((branch) => (
             <GlassCard key={branch.id} elevated style={styles.listCard}>
@@ -925,9 +936,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         {chatLoading ? (
           <ChatSkeleton />
         ) : chatError ? (
-          <EmptyState title="Чат недоступен" description={chatError} />
+          <EmptyState title="Не удалось открыть чат" description={chatError} />
         ) : !conversations?.length || !activeConversationId ? (
-          <EmptyState title="Диалогов пока нет" description="Как только администратор откроет диалог, он появится здесь." />
+          <EmptyState title="Диалог пока не начат" description="Напишите первым, и администратор ответит в этом окне." />
         ) : (
           <>
             <ScrollView

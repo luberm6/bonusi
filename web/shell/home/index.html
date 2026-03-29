@@ -73,7 +73,7 @@
         function money(value) {
           return typeof value === "number" && Number.isFinite(value)
             ? `${value.toFixed(2)} ₽`
-            : "Сумма уточняется";
+            : "Сумма появится после подтверждения";
         }
 
         function formatDate(value) {
@@ -103,6 +103,17 @@
         function clientName() {
           const value = me?.fullName?.trim();
           return value && value.length > 0 ? value : session.email;
+        }
+
+        function friendlyErrorMessage(error, fallback) {
+          if (!(error instanceof Error)) return fallback;
+          const message = String(error.message || "").trim();
+          if (!message) return fallback;
+          if (/request failed/i.test(message) || /network request failed/i.test(message)) return fallback;
+          if (/fetch/i.test(message) || /network/i.test(message)) {
+            return "Похоже, соединение нестабильно. Попробуйте ещё раз через пару секунд.";
+          }
+          return message;
         }
 
         function workHoursText(value) {
@@ -317,7 +328,7 @@
 
         function renderHomeScreen() {
           if (homeLoading) return renderHomeSkeleton();
-          if (homeError) return renderEmpty("Экран недоступен", homeError);
+          if (homeError) return renderEmpty("Не удалось открыть экран", homeError);
           return `
             <section class="client-screen client-fade">
               ${renderBrand()}
@@ -333,7 +344,7 @@
         function renderVisitsScreen() {
           if (visitsLoading && !visits) return renderListSkeleton(3);
           if (!visits?.length) {
-            return renderEmpty("История посещений пуста", "Как только появятся визиты, они отобразятся здесь.");
+            return renderEmpty("У вас пока нет визитов", "Начните с записи, и история посещений появится здесь.");
           }
           return `
             <section class="client-screen client-fade">
@@ -344,7 +355,7 @@
                 ${visits.map((visit) => `
                   <article class="glass card client-list-card">
                     <h3 class="client-list-title">${escapeHtml(formatDate(visit.visitDate))}</h3>
-                    <p class="client-list-subtitle">${escapeHtml(visit.branchName || "Филиал автосервиса")}</p>
+                    <p class="client-list-subtitle">${escapeHtml(visit.branchName || "Филиал сервиса")}</p>
                     <p class="client-list-value">${escapeHtml(money(visit.finalAmount))}</p>
                     ${visit.comment ? `<p class="client-list-hint">${escapeHtml(visit.comment)}</p>` : ""}
                   </article>
@@ -357,7 +368,7 @@
         function renderBonusHistoryScreen() {
           if (bonusHistoryLoading && !bonusHistory) return renderListSkeleton(3);
           if (!bonusHistory?.length) {
-            return renderEmpty("История начислений пуста", "История бонусов появится после первой операции.");
+            return renderEmpty("История бонусов пока пуста", "После первого начисления или списания все операции появятся здесь.");
           }
           return `
             <section class="client-screen client-fade">
@@ -397,7 +408,7 @@
         function renderBookingScreen() {
           if (branchesLoading && !branches) return renderListSkeleton(2);
           if (!branches?.length) {
-            return renderEmpty("Нет доступных филиалов", "Когда филиалы станут доступны, они появятся здесь.");
+            return renderEmpty("Запись пока недоступна", "Подходящие филиалы скоро появятся здесь. Пока можно написать нам в чат.");
           }
           return `
             <section class="client-screen client-fade">
@@ -425,9 +436,9 @@
 
         function renderChatScreen() {
           if (chatLoading && !messages) return renderLoading("Загружаем диалог...");
-          if (chatError) return renderEmpty("Чат недоступен", chatError);
+          if (chatError) return renderEmpty("Не удалось открыть чат", chatError);
           if (!conversations?.length || !activeConversationId) {
-            return renderEmpty("Диалогов пока нет", "Как только администратор откроет диалог, он появится здесь.");
+            return renderEmpty("Диалог пока не начат", "Напишите первым, и администратор ответит в этом окне.");
           }
 
           const tabs = conversations.map((conversation) => `
@@ -458,7 +469,7 @@
               <div class="client-chat-tabs">${tabs}</div>
               <section class="glass card client-chat-panel">
                 <div class="client-messages" id="client-chat-messages">
-                  ${messageMarkup || '<div class="client-loading">Сообщений пока нет. Начните диалог первым.</div>'}
+                  ${messageMarkup || '<div class="client-loading">Сообщений пока нет. Напишите первым, и мы продолжим диалог здесь.</div>'}
                 </div>
                 <div class="client-chat-composer">
                   <textarea id="chat-message-input" class="input client-chat-input" placeholder="Напишите сообщение">${escapeHtml(messageDraft)}</textarea>
@@ -577,7 +588,7 @@
             me = mePayload;
             bonusBalance = typeof bonusPayload.balance === "number" ? bonusPayload.balance : 0;
           } catch (error) {
-            homeError = error instanceof Error ? error.message : "Не удалось загрузить данные клиента.";
+            homeError = friendlyErrorMessage(error, "Не удалось открыть главный экран. Попробуйте ещё раз чуть позже.");
             showToast("error", homeError);
           } finally {
             homeLoading = false;
@@ -593,7 +604,7 @@
             visits = await authFetchJson(`/visits?clientId=${encodeURIComponent(session.userId)}`);
           } catch (error) {
             visits = [];
-            const message = error instanceof Error ? error.message : "Не удалось загрузить визиты.";
+            const message = friendlyErrorMessage(error, "Не удалось загрузить визиты. Попробуйте ещё раз чуть позже.");
             homeError = homeError || message;
             showToast("error", message);
           } finally {
@@ -609,7 +620,7 @@
             bonusHistory = await authFetchJson(`/bonuses/history?client_id=${encodeURIComponent(session.userId)}`);
           } catch (error) {
             bonusHistory = [];
-            const message = error instanceof Error ? error.message : "Не удалось загрузить бонусы.";
+            const message = friendlyErrorMessage(error, "Не удалось загрузить историю бонусов. Попробуйте ещё раз чуть позже.");
             homeError = homeError || message;
             showToast("error", message);
           } finally {
@@ -626,7 +637,7 @@
             branches = Array.isArray(payload) ? payload.filter((branch) => branch.isActive !== false) : [];
           } catch (error) {
             branches = [];
-            const message = error instanceof Error ? error.message : "Не удалось загрузить филиалы.";
+            const message = friendlyErrorMessage(error, "Не удалось загрузить филиалы. Попробуйте ещё раз чуть позже.");
             homeError = homeError || message;
             showToast("error", message);
           } finally {
@@ -648,7 +659,7 @@
               messages = [];
             }
           } catch (error) {
-            chatError = error instanceof Error ? error.message : "Не удалось загрузить чат.";
+            chatError = friendlyErrorMessage(error, "Не удалось открыть чат. Попробуйте ещё раз чуть позже.");
             showToast("error", chatError);
           } finally {
             chatLoading = false;
@@ -663,7 +674,7 @@
           try {
             messages = await authFetchJson(`/chat/conversations/${encodeURIComponent(conversationId)}/messages`);
           } catch (error) {
-            chatError = error instanceof Error ? error.message : "Не удалось открыть диалог.";
+            chatError = friendlyErrorMessage(error, "Не удалось открыть диалог. Попробуйте ещё раз чуть позже.");
             showToast("error", chatError);
           } finally {
             chatLoading = false;
@@ -695,7 +706,7 @@
             await refreshConversations();
             await openConversation(activeConversationId);
           } catch (error) {
-            chatError = error instanceof Error ? error.message : "Не удалось отправить сообщение.";
+            chatError = friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже.");
             showToast("error", chatError);
           } finally {
             sendingMessage = false;
