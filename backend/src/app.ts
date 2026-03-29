@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { env } from "./common/config/env.js";
 import { errorMiddleware } from "./common/http/error-middleware.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { bonusSettingsRouter } from "./modules/bonus-settings/bonus-settings.routes.js";
 import { bonusesRouter } from "./modules/bonuses/bonuses.routes.js";
 import { branchesRouter } from "./modules/branches/branches.routes.js";
 import { filesRouter } from "./modules/attachments/files.routes.js";
@@ -57,6 +58,7 @@ export function buildApp() {
 
   app.use("/api/v1", healthRouter);
   app.use("/api/v1", authRouter);
+  app.use("/api/v1", bonusSettingsRouter);
   app.use("/api/v1", usersRouter);
   app.use("/api/v1", branchesRouter);
   app.use("/api/v1", filesRouter);
