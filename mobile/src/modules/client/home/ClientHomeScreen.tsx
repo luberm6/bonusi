@@ -14,6 +14,7 @@ import {
 import type { AuthSession } from "../../../app/navigation/role-navigation-resolver";
 import { mobileEnv } from "../../../shared/config/mobile-env";
 import { mobileTokens } from "../../../shared/design/tokens";
+import { fireHaptic, type HapticIntent } from "../../../shared/native/haptics";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 
@@ -134,7 +135,13 @@ async function requestJson<T>(path: string, token: string, init?: RequestInit): 
 function ScreenHeader(props: { title: string; onBack: () => void }) {
   return (
     <View style={styles.screenHeader}>
-      <Pressable onPress={props.onBack} style={({ pressed }) => [styles.backButton, pressed && styles.pressedNav]}>
+      <Pressable
+        onPress={() => {
+          fireHaptic("selection");
+          props.onBack();
+        }}
+        style={({ pressed }) => [styles.backButton, pressed && styles.pressedNav]}
+      >
         <Text style={styles.backButtonLabel}>Назад</Text>
       </Pressable>
       <Text style={styles.screenTitle}>{props.title}</Text>
@@ -373,6 +380,8 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [transitionDirection, setTransitionDirection] = useState<1 | -1>(1);
   const chatScrollRef = useRef<ScrollView | null>(null);
+  const hasChatBaselineRef = useRef(false);
+  const lastIncomingMessageIdRef = useRef<string | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-12)).current;
 
@@ -417,6 +426,25 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   }, [messages, screen]);
 
   useEffect(() => {
+    if (!messages?.length) {
+      hasChatBaselineRef.current = false;
+      lastIncomingMessageIdRef.current = null;
+      return;
+    }
+    const latestIncoming = [...messages].reverse().find((message) => message.senderId !== props.session.userId) ?? null;
+    if (!latestIncoming) return;
+    if (!hasChatBaselineRef.current) {
+      hasChatBaselineRef.current = true;
+      lastIncomingMessageIdRef.current = latestIncoming.id;
+      return;
+    }
+    if (lastIncomingMessageIdRef.current !== latestIncoming.id) {
+      lastIncomingMessageIdRef.current = latestIncoming.id;
+      fireHaptic("soft");
+    }
+  }, [messages, props.session.userId]);
+
+  useEffect(() => {
     if (!toast) return;
     toastOpacity.setValue(0);
     toastTranslateY.setValue(-12);
@@ -456,7 +484,15 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     return () => clearTimeout(timer);
   }, [toast, toastOpacity, toastTranslateY]);
 
-  function goToScreen(next: ScreenKey) {
+  function presentToast(type: "success" | "error", message: string, haptic?: HapticIntent | null) {
+    if (haptic) fireHaptic(haptic);
+    setToast({ type, message });
+  }
+
+  function goToScreen(next: ScreenKey, options?: { haptic?: HapticIntent | null }) {
+    if (options?.haptic !== null) {
+      fireHaptic(options?.haptic ?? "selection");
+    }
     const currentDepth = SCREEN_DEPTH[screen];
     const nextDepth = SCREEN_DEPTH[next];
     setTransitionDirection(nextDepth >= currentDepth ? 1 : -1);
@@ -473,10 +509,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       );
       setVisits(rows);
     } catch (error) {
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Не удалось загрузить визиты"
-      });
+      presentToast("error", error instanceof Error ? error.message : "Не удалось загрузить визиты", "notificationError");
       setVisits([]);
     } finally {
       setVisitsLoading(false);
@@ -493,10 +526,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       );
       setBonusHistory(rows);
     } catch (error) {
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Не удалось загрузить историю бонусов"
-      });
+      presentToast(
+        "error",
+        error instanceof Error ? error.message : "Не удалось загрузить историю бонусов",
+        "notificationError"
+      );
       setBonusHistory([]);
     } finally {
       setBonusHistoryLoading(false);
@@ -510,10 +544,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       const rows = await requestJson<BranchRow[]>("/branches", props.accessToken);
       setBranches(rows.filter((branch) => branch.isActive));
     } catch (error) {
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Не удалось загрузить филиалы"
-      });
+      presentToast("error", error instanceof Error ? error.message : "Не удалось загрузить филиалы", "notificationError");
       setBranches([]);
     } finally {
       setBranchesLoading(false);
@@ -540,10 +571,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       }
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "Не удалось загрузить чат");
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Чат временно недоступен"
-      });
+      presentToast("error", error instanceof Error ? error.message : "Чат временно недоступен", "notificationError");
     } finally {
       setChatLoading(false);
     }
@@ -561,10 +589,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       setMessages(rows);
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "Не удалось загрузить сообщения");
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Не удалось открыть сообщения"
-      });
+      presentToast("error", error instanceof Error ? error.message : "Не удалось открыть сообщения", "notificationError");
     } finally {
       setChatLoading(false);
     }
@@ -572,6 +597,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
   async function sendMessage() {
     if (!activeConversationId || !messageText.trim()) return;
+    fireHaptic("impactLight");
     setSubmittingMessage(true);
     setChatError(null);
     try {
@@ -587,14 +613,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         }
       );
       setMessageText("");
-      setToast({ type: "success", message: "Сообщение отправлено" });
+      presentToast("success", "Сообщение отправлено");
       await openConversation(activeConversationId);
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "Не удалось отправить сообщение");
-      setToast({
-        type: "error",
-        message: error instanceof Error ? error.message : "Не удалось отправить сообщение"
-      });
+      presentToast("error", error instanceof Error ? error.message : "Не удалось отправить сообщение", "notificationError");
     } finally {
       setSubmittingMessage(false);
     }
@@ -633,7 +656,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           {CONTACT_LINKS.map((item) => (
             <Pressable
               key={item.key}
-              onPress={() => openLink(item.url)}
+              onPress={() => {
+                fireHaptic("selection");
+                openLink(item.url);
+              }}
               style={({ pressed }) => [styles.contactIcon, pressed && styles.pressedSurface]}
             >
               <Text style={styles.contactIconLabel}>{item.label}</Text>
@@ -645,25 +671,37 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <View style={styles.actionGrid}>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureBranchesLoaded().then(() => goToScreen("booking"))}
+              onPress={() => {
+                fireHaptic("impactLight");
+                void ensureBranchesLoaded().then(() => goToScreen("booking", { haptic: null }));
+              }}
             >
               <Text style={styles.actionTileLabel}>Записаться</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureVisitsLoaded().then(() => goToScreen("visits"))}
+              onPress={() => {
+                fireHaptic("impactLight");
+                void ensureVisitsLoaded().then(() => goToScreen("visits", { haptic: null }));
+              }}
             >
               <Text style={styles.actionTileLabel}>История посещений</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureBonusHistoryLoaded().then(() => goToScreen("bonus-history"))}
+              onPress={() => {
+                fireHaptic("impactLight");
+                void ensureBonusHistoryLoaded().then(() => goToScreen("bonus-history", { haptic: null }));
+              }}
             >
               <Text style={styles.actionTileLabel}>История начислений</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureBonusHistoryLoaded().then(() => goToScreen("cashback"))}
+              onPress={() => {
+                fireHaptic("impactLight");
+                void ensureBonusHistoryLoaded().then(() => goToScreen("cashback", { haptic: null }));
+              }}
             >
               <Text style={styles.actionTileLabel}>Система кешбека</Text>
             </Pressable>
@@ -682,8 +720,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         <Pressable
           style={({ pressed }) => [styles.chatCta, pressed && styles.pressedCta]}
           onPress={() => {
+            fireHaptic("impactMedium");
             void ensureChatLoaded();
-            goToScreen("chat");
+            goToScreen("chat", { haptic: null });
           }}
         >
           <Text style={styles.chatCtaLabel}>ЧАТ</Text>
@@ -707,7 +746,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderVisits() {
     return (
       <>
-        <ScreenHeader title="История посещений" onBack={() => goToScreen("home")} />
+        <ScreenHeader title="История посещений" onBack={() => goToScreen("home", { haptic: null })} />
         {visitsLoading && !visits ? (
           <ListSkeleton rows={3} />
         ) : !visits?.length ? (
@@ -731,7 +770,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderBonusHistory() {
     return (
       <>
-        <ScreenHeader title="История начислений" onBack={() => goToScreen("home")} />
+        <ScreenHeader title="История начислений" onBack={() => goToScreen("home", { haptic: null })} />
         {bonusHistoryLoading && !bonusHistory ? (
           <ListSkeleton rows={3} />
         ) : !bonusHistory?.length ? (
@@ -753,7 +792,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderCashback() {
     return (
       <>
-        <ScreenHeader title="Система кешбека" onBack={() => goToScreen("home")} />
+        <ScreenHeader title="Система кешбека" onBack={() => goToScreen("home", { haptic: null })} />
         <GlassCard elevated style={styles.cashbackCard}>
           <Text style={styles.cashbackTitle}>Текущий бонусный баланс</Text>
           <Text style={styles.cashbackValue}>{bonusBalance} бонусов</Text>
@@ -771,7 +810,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderBooking() {
     return (
       <>
-        <ScreenHeader title="Записаться" onBack={() => goToScreen("home")} />
+        <ScreenHeader title="Записаться" onBack={() => goToScreen("home", { haptic: null })} />
         {branchesLoading && !branches ? (
           <ListSkeleton rows={2} />
         ) : !branches?.length ? (
@@ -787,18 +826,25 @@ export function ClientHomeScreen(props: ClientHomeProps) {
               ) : null}
               <View style={styles.cardActions}>
                 {branch.phone ? (
-                  <AppButton label="Позвонить" variant="secondary" onPress={() => openLink(`tel:${branch.phone}`)} style={styles.cardButton} />
+                  <AppButton
+                    label="Позвонить"
+                    variant="secondary"
+                    onPress={() => openLink(`tel:${branch.phone}`)}
+                    style={styles.cardButton}
+                    haptic="impactLight"
+                  />
                 ) : null}
                 <AppButton
                   label="Написать в чат"
                   variant="secondary"
                   onPress={() => {
+                    fireHaptic("impactMedium");
                     void ensureChatLoaded();
-                    goToScreen("chat");
+                    goToScreen("chat", { haptic: null });
                   }}
                   style={styles.cardButton}
                 />
-                <AppButton label="Маршрут" onPress={() => openBranchRoute(branch)} style={styles.cardButton} />
+                <AppButton label="Маршрут" onPress={() => openBranchRoute(branch)} style={styles.cardButton} haptic="impactLight" />
               </View>
             </GlassCard>
           ))
@@ -810,7 +856,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderChat() {
     return (
       <>
-        <ScreenHeader title="Чат" onBack={() => goToScreen("home")} />
+        <ScreenHeader title="Чат" onBack={() => goToScreen("home", { haptic: null })} />
         {chatLoading ? (
           <ChatSkeleton />
         ) : chatError ? (
@@ -829,7 +875,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
               {conversations.map((conversation) => (
                 <Pressable
                   key={conversation.id}
-                  onPress={() => void openConversation(conversation.id)}
+                  onPress={() => {
+                    fireHaptic("selection");
+                    void openConversation(conversation.id);
+                  }}
                   style={({ pressed }) => [
                     styles.conversationTab,
                     conversation.id === activeConversationId && styles.conversationTabActive,

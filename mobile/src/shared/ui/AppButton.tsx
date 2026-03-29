@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 import { mobileTokens } from "../design/tokens";
+import { fireHaptic, type HapticIntent } from "../native/haptics";
 
 export type AppButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
 
@@ -10,13 +11,17 @@ type Props = {
   variant?: AppButtonVariant;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  haptic?: HapticIntent | null;
 };
 
 export function AppButton(props: Props) {
   const variant = props.variant ?? "primary";
   return (
     <Pressable
-      onPress={props.onPress}
+      onPress={() => {
+        if (props.haptic) fireHaptic(props.haptic);
+        props.onPress();
+      }}
       disabled={props.disabled}
       style={({ pressed }) => [
         styles.base,
