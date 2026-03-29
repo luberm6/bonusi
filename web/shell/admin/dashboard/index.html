@@ -68,7 +68,7 @@
             <span class="badge badge-soft">Back office</span>
           </div>
           <div class="spacer-16"></div>
-          <div class="workspace-action-grid">
+          <div class="workspace-action-grid" id="workspace-actions">
             <a class="workspace-action-card primary" href="/admin/visits/create/">
               <span class="workspace-action-title">Создать визит</span>
               <span class="workspace-action-meta">Оформить новый визит клиента и собрать услуги в один сценарий.</span>
@@ -113,6 +113,21 @@
         document.getElementById("who").textContent = `${session.email} (${session.role})`;
         startSessionAutoRefresh();
         bindLogout("logout-btn");
+        if (session.role === "super_admin") {
+          document.getElementById("workspace-actions").insertAdjacentHTML(
+            "beforeend",
+            `
+              <a class="workspace-action-card" href="/admin/admins/">
+                <span class="workspace-action-title">Администраторы</span>
+                <span class="workspace-action-meta">Открыть список администраторов и проверить статус доступа.</span>
+              </a>
+              <a class="workspace-action-card" href="/admin/admins/create/">
+                <span class="workspace-action-title">Создать администратора</span>
+                <span class="workspace-action-meta">Добавить нового администратора и выдать доступ в систему.</span>
+              </a>
+            `
+          );
+        }
 
         const dashboardState = document.getElementById("dashboard-state");
         const todayIso = new Date().toISOString().slice(0, 10);

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Администраторы</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .admin-actions { display: flex; gap: 8px; justify-content: flex-end; }
+      .admin-actions button { min-width: 110px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Управление доступом</p>
+            <h1 class="workspace-title">Администраторы</h1>
+            <p class="subtitle">Список учетных записей администраторов. Только super_admin управляет этим контуром.</p>
+          </div>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
+            <a class="btn btn-primary" href="/admin/admins/create/">Добавить администратора</a>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="workspace-panel" id="page-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем список администраторов</p>
+              <p class="workspace-state-text">Проверяем роли, статусы и актуальность доступа.</p>
+            </div>
+            <span class="badge badge-soft">Доступ</span>
+          </div>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
+              <h2 class="workspace-section-title">Список администраторов</h2>
+              <p class="workspace-section-meta">Email, статус и последняя активность по административным учетным записям.</p>
+            </div>
+            <span class="badge badge-soft">Super admin</span>
+          </div>
+          <div class="spacer-16"></div>
+          <p id="loading" class="workspace-helper">Загружаем данные...</p>
+          <div class="workspace-table-wrap">
+            <table id="table" class="workspace-table" style="display:none">
+              <thead>
+                <tr><th>Имя</th><th>Email</th><th>Роль</th><th>Статус</th><th>Последняя активность</th><th></th></tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+
+      const session = guard(["super_admin"]);
+      if (session) {
+        startSessionAutoRefresh();
+
+        const pageState = document.getElementById("page-state");
+        const loading = document.getElementById("loading");
+        const table = document.getElementById("table");
+        const tbody = document.getElementById("tbody");
+
+        const renderState = (tone, title, text, badge = "Доступ") => {
+          pageState.innerHTML = `
+            <div class="workspace-state" data-tone="${tone}">
+              <div class="workspace-state-copy">
+                <p class="workspace-state-title">${title}</p>
+                <p class="workspace-state-text">${text}</p>
+              </div>
+              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+            </div>
+          `;
+        };
+
+        const formatDate = (value) => {
+          if (!value) return "—";
+          const date = new Date(value);
+          return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("ru-RU");
+        };
+
+        async function loadAdmins() {
+          try {
+            const admins = await authFetchJson("/admins");
+            loading.style.display = "none";
+            table.style.display = "";
+            tbody.innerHTML = "";
+
+            if (!Array.isArray(admins) || admins.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6"><p class="workspace-empty">Пока нет дополнительных администраторов. Добавьте первую учетную запись, чтобы делегировать работу.</p></td></tr>';
+              renderState("default", "Администраторы пока не добавлены", "Создайте первого администратора для операционной команды.");
+              return;
+            }
+
+            renderState("success", "Контур администраторов актуален", `Найдено администраторов: ${admins.length}.`, "Актуально");
+            for (const admin of admins) {
+              const tr = document.createElement("tr");
+              const disableButton = admin.id === session.userId ? '<button class="btn btn-secondary" type="button" disabled>Ваш аккаунт</button>' : '<button class="btn btn-secondary" type="button">Отключить</button>';
+              tr.innerHTML = `
+                <td><strong>${admin.fullName || "Без имени"}</strong></td>
+                <td>${admin.email}</td>
+                <td>${admin.role}</td>
+                <td><span class="${admin.isActive ? "badge-on" : "badge-off"}">${admin.isActive ? "Активен" : "Отключен"}</span></td>
+                <td>${formatDate(admin.lastSeen)}</td>
+                <td>
+                  <div class="admin-actions">
+                    ${disableButton}
+                  </div>
+                </td>
+              `;
+
+              if (admin.id !== session.userId) {
+                const button = tr.querySelector("button");
+                button.addEventListener("click", async () => {
+                  button.disabled = true;
+                  try {
+                    await authFetchJson(`/admins/${admin.id}`, { method: "DELETE" });
+                    await loadAdmins();
+                  } catch (error) {
+                    renderState("error", "Не удалось отключить администратора", error instanceof Error ? error.message : "Не удалось отключить администратора", "Ошибка");
+                    button.disabled = false;
+                  }
+                });
+              }
+
+              tbody.appendChild(tr);
+            }
+          } catch (error) {
+            loading.textContent = "Не удалось загрузить данные";
+            renderState("error", "Не удалось загрузить список администраторов", error instanceof Error ? error.message : "Не удалось загрузить список администраторов", "Ошибка");
+          }
+        }
+
+        await loadAdmins();
+      }
+    </script>
+  </body>
+</html>

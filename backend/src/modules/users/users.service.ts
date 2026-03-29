@@ -53,6 +53,9 @@ function assertCanManageCreation(actor: AuthenticatedUser, roleToCreate: UserRol
   if (!["admin", "client"].includes(roleToCreate)) {
     throw new HttpError(400, "Only admin or client can be created");
   }
+  if (actor.role === "admin" && roleToCreate === "admin") {
+    throw new HttpError(403, "admin cannot create admin users");
+  }
 }
 
 async function getUserRowById(userId: string, client?: PoolClient): Promise<UserRow> {
@@ -103,8 +106,11 @@ function validateUpdatePermissions(actor: AuthenticatedUser, target: UserRow, dt
     if (target.role === "super_admin") {
       throw new HttpError(403, "admin cannot update super_admin");
     }
-    if (dto.role === "super_admin") {
-      throw new HttpError(403, "admin cannot assign super_admin role");
+    if (target.role === "admin") {
+      throw new HttpError(403, "admin cannot manage admin users");
+    }
+    if (dto.role !== undefined) {
+      throw new HttpError(403, "admin cannot change roles");
     }
   }
 }
@@ -242,8 +248,8 @@ export async function deactivateUser(actor: AuthenticatedUser, userId: string) {
   try {
     await client.query("begin");
     const target = await getUserRowById(userId, client);
-    if (actor.role === "admin" && target.role === "super_admin") {
-      throw new HttpError(403, "admin cannot deactivate super_admin");
+    if (actor.role === "admin" && target.role !== "client") {
+      throw new HttpError(403, "admin cannot deactivate admin users");
     }
 
     if (target.is_active) {

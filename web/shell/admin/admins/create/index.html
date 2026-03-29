@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Новый администратор</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
+      #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Управление доступом</p>
+            <h1 class="workspace-title">Новый администратор</h1>
+            <p class="subtitle">Создайте новую административную учетную запись для команды. Пароль будет захеширован на backend.</p>
+          </div>
+          <div class="nav-links">
+            <a class="link" href="/admin/admins/">Администраторы</a>
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="workspace-panel">
+          <div class="workspace-state" data-tone="default">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Доступ готов к настройке</p>
+              <p class="workspace-state-text">Новый администратор сможет войти сразу после создания, если учетная запись останется активной.</p>
+            </div>
+            <span class="badge badge-soft">Super admin</span>
+          </div>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="workspace-panel">
+          <form id="admin-form">
+            <div class="workspace-form-grid">
+              <div class="workspace-field">
+                <label for="full-name">Имя администратора</label>
+                <input class="input" id="full-name" type="text" placeholder="Например, Анна Смирнова" />
+              </div>
+              <div class="workspace-field">
+                <label for="email">Электронная почта</label>
+                <input class="input" id="email" type="email" placeholder="admin@example.com" required />
+              </div>
+              <div class="workspace-field">
+                <label for="password">Пароль</label>
+                <input class="input" id="password" type="password" placeholder="Минимум 8 символов" required />
+              </div>
+              <div class="workspace-field">
+                <label for="password-confirm">Подтверждение пароля</label>
+                <input class="input" id="password-confirm" type="password" placeholder="Повторите пароль" required />
+              </div>
+            </div>
+
+            <div class="spacer-16"></div>
+            <p id="error-msg"></p>
+            <p id="success-msg"></p>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Создать администратора</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+
+      const session = guard(["super_admin"]);
+      if (session) {
+        startSessionAutoRefresh();
+
+        const form = document.getElementById("admin-form");
+        const errorMsg = document.getElementById("error-msg");
+        const successMsg = document.getElementById("success-msg");
+        const submitBtn = document.getElementById("submit-btn");
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          errorMsg.textContent = "";
+          successMsg.textContent = "";
+
+          const password = document.getElementById("password").value;
+          const passwordConfirm = document.getElementById("password-confirm").value;
+          if (password !== passwordConfirm) {
+            errorMsg.textContent = "Подтверждение пароля не совпадает";
+            return;
+          }
+
+          submitBtn.disabled = true;
+          try {
+            const created = await authFetchJson("/admins", {
+              method: "POST",
+              body: {
+                email: document.getElementById("email").value.trim(),
+                password,
+                fullName: document.getElementById("full-name").value.trim() || null,
+                isActive: true
+              }
+            });
+
+            successMsg.innerHTML = `Администратор создан. ID: ${created.id}. <a class="link" href="/admin/admins/">Открыть список</a>`;
+            form.reset();
+          } catch (error) {
+            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось создать администратора";
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

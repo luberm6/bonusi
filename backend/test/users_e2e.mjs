@@ -99,8 +99,8 @@ async function run() {
       notes: "created by admin"
     }
   });
-  assert(adminByAdmin.status === 201, `admin->admin create failed: ${adminByAdmin.status}`);
-  report.push(`admin_create_admin=${adminByAdmin.status}`);
+  assert(adminByAdmin.status === 403, `admin->admin create should be 403, got ${adminByAdmin.status}`);
+  report.push(`admin_create_admin_forbidden=${adminByAdmin.status}`);
 
   const clientByAdminEmail = `client-by-admin-${suffix}@example.com`;
   const clientByAdmin = await request("/users", {
@@ -183,7 +183,7 @@ async function run() {
   assert(clientList.json.length === 1, `client list expected 1 self record, got ${clientList.json.length}`);
   report.push(`client_list_self_only=${clientList.status}`);
 
-  const clientGetOther = await request(`/users/${adminByAdmin.json.id}`, { token: clientAccess });
+  const clientGetOther = await request(`/users/${adminBySuper.json.id}`, { token: clientAccess });
   assert(clientGetOther.status === 403, `client get other should be 403, got ${clientGetOther.status}`);
   report.push(`client_get_other_forbidden=${clientGetOther.status}`);
 
