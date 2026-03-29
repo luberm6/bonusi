@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textPrimary
   },
   pressed: {
-    transform: [{ scale: 0.985 }]
+    transform: [{ scale: 0.972 }],
+    opacity: 0.96
   },
   disabled: {
     opacity: 0.45

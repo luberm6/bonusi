@@ -82,6 +82,15 @@ type MessageRow = {
   readAt?: string | null;
 };
 
+const SCREEN_DEPTH: Record<ScreenKey, number> = {
+  home: 0,
+  booking: 1,
+  visits: 1,
+  "bonus-history": 1,
+  cashback: 1,
+  chat: 1
+};
+
 function getWorkHoursText(value: BranchRow["workHours"]): string | null {
   if (!value || typeof value !== "object") return null;
   const candidate = (value as { text?: unknown }).text;
@@ -268,30 +277,38 @@ function ListSkeleton(props: { rows?: number }) {
   );
 }
 
-function MotionScreen(props: { motionKey: string; children: React.ReactNode }) {
+function MotionScreen(props: { motionKey: string; direction: 1 | -1; children: React.ReactNode }) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(12)).current;
+  const translateX = useRef(new Animated.Value(props.direction * 28)).current;
+  const translateY = useRef(new Animated.Value(6)).current;
 
   useEffect(() => {
     opacity.setValue(0);
-    translateY.setValue(12);
+    translateX.setValue(props.direction * 28);
+    translateY.setValue(6);
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 240,
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      }),
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 250,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true
       }),
       Animated.timing(translateY, {
         toValue: 0,
-        duration: 240,
+        duration: 220,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true
       })
     ]).start();
-  }, [opacity, props.motionKey, translateY]);
+  }, [opacity, props.direction, props.motionKey, translateX, translateY]);
 
-  return <Animated.View style={{ opacity, transform: [{ translateY }] }}>{props.children}</Animated.View>;
+  return <Animated.View style={{ opacity, transform: [{ translateX }, { translateY }] }}>{props.children}</Animated.View>;
 }
 
 function AnimatedMessageBubble(props: { mine: boolean; text: string; createdAt: string }) {
@@ -354,6 +371,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const [chatError, setChatError] = useState<string | null>(null);
   const [submittingMessage, setSubmittingMessage] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [transitionDirection, setTransitionDirection] = useState<1 | -1>(1);
   const chatScrollRef = useRef<ScrollView | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-12)).current;
@@ -437,6 +455,13 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     }, 2200);
     return () => clearTimeout(timer);
   }, [toast, toastOpacity, toastTranslateY]);
+
+  function goToScreen(next: ScreenKey) {
+    const currentDepth = SCREEN_DEPTH[screen];
+    const nextDepth = SCREEN_DEPTH[next];
+    setTransitionDirection(nextDepth >= currentDepth ? 1 : -1);
+    setScreen(next);
+  }
 
   async function ensureVisitsLoaded() {
     if (visits) return;
@@ -620,25 +645,25 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <View style={styles.actionGrid}>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureBranchesLoaded().then(() => setScreen("booking"))}
+              onPress={() => void ensureBranchesLoaded().then(() => goToScreen("booking"))}
             >
               <Text style={styles.actionTileLabel}>Записаться</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureVisitsLoaded().then(() => setScreen("visits"))}
+              onPress={() => void ensureVisitsLoaded().then(() => goToScreen("visits"))}
             >
               <Text style={styles.actionTileLabel}>История посещений</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureBonusHistoryLoaded().then(() => setScreen("bonus-history"))}
+              onPress={() => void ensureBonusHistoryLoaded().then(() => goToScreen("bonus-history"))}
             >
               <Text style={styles.actionTileLabel}>История начислений</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => void ensureBonusHistoryLoaded().then(() => setScreen("cashback"))}
+              onPress={() => void ensureBonusHistoryLoaded().then(() => goToScreen("cashback"))}
             >
               <Text style={styles.actionTileLabel}>Система кешбека</Text>
             </Pressable>
@@ -658,7 +683,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           style={({ pressed }) => [styles.chatCta, pressed && styles.pressedCta]}
           onPress={() => {
             void ensureChatLoaded();
-            setScreen("chat");
+            goToScreen("chat");
           }}
         >
           <Text style={styles.chatCtaLabel}>ЧАТ</Text>
@@ -682,7 +707,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderVisits() {
     return (
       <>
-        <ScreenHeader title="История посещений" onBack={() => setScreen("home")} />
+        <ScreenHeader title="История посещений" onBack={() => goToScreen("home")} />
         {visitsLoading && !visits ? (
           <ListSkeleton rows={3} />
         ) : !visits?.length ? (
@@ -706,7 +731,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderBonusHistory() {
     return (
       <>
-        <ScreenHeader title="История начислений" onBack={() => setScreen("home")} />
+        <ScreenHeader title="История начислений" onBack={() => goToScreen("home")} />
         {bonusHistoryLoading && !bonusHistory ? (
           <ListSkeleton rows={3} />
         ) : !bonusHistory?.length ? (
@@ -728,7 +753,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderCashback() {
     return (
       <>
-        <ScreenHeader title="Система кешбека" onBack={() => setScreen("home")} />
+        <ScreenHeader title="Система кешбека" onBack={() => goToScreen("home")} />
         <GlassCard elevated style={styles.cashbackCard}>
           <Text style={styles.cashbackTitle}>Текущий бонусный баланс</Text>
           <Text style={styles.cashbackValue}>{bonusBalance} бонусов</Text>
@@ -746,7 +771,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderBooking() {
     return (
       <>
-        <ScreenHeader title="Записаться" onBack={() => setScreen("home")} />
+        <ScreenHeader title="Записаться" onBack={() => goToScreen("home")} />
         {branchesLoading && !branches ? (
           <ListSkeleton rows={2} />
         ) : !branches?.length ? (
@@ -769,7 +794,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                   variant="secondary"
                   onPress={() => {
                     void ensureChatLoaded();
-                    setScreen("chat");
+                    goToScreen("chat");
                   }}
                   style={styles.cardButton}
                 />
@@ -785,7 +810,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   function renderChat() {
     return (
       <>
-        <ScreenHeader title="Чат" onBack={() => setScreen("home")} />
+        <ScreenHeader title="Чат" onBack={() => goToScreen("home")} />
         {chatLoading ? (
           <ChatSkeleton />
         ) : chatError ? (
@@ -794,7 +819,13 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <EmptyState title="Диалогов пока нет" description="Как только администратор откроет диалог, он появится здесь." />
         ) : (
           <>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.conversationTabs}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              decelerationRate="fast"
+              bounces
+              contentContainerStyle={styles.conversationTabs}
+            >
               {conversations.map((conversation) => (
                 <Pressable
                   key={conversation.id}
@@ -818,7 +849,16 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             </ScrollView>
 
             <GlassCard elevated style={styles.chatPanel}>
-              <ScrollView ref={chatScrollRef} contentContainerStyle={styles.messagesList}>
+              <ScrollView
+                ref={chatScrollRef}
+                contentContainerStyle={styles.messagesList}
+                showsVerticalScrollIndicator={false}
+                decelerationRate="normal"
+                bounces
+                alwaysBounceVertical
+                keyboardDismissMode="interactive"
+                keyboardShouldPersistTaps="handled"
+              >
                 {(messages ?? []).map((message) => {
                   const mine = message.senderId === props.session.userId;
                   return (
@@ -870,8 +910,16 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <Text style={styles.toastText}>{toast.message}</Text>
         </Animated.View>
       ) : null}
-      <ScrollView contentContainerStyle={styles.content}>
-        <MotionScreen motionKey={screen}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        decelerationRate="normal"
+        bounces
+        alwaysBounceVertical
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+      >
+        <MotionScreen motionKey={screen} direction={transitionDirection}>
           {screen === "home" && renderHome()}
           {screen === "visits" && renderVisits()}
           {screen === "bonus-history" && renderBonusHistory()}
@@ -1062,7 +1110,7 @@ const styles = StyleSheet.create({
     ...mobileTokens.shadow.soft
   },
   pressedSurface: {
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.972 }],
     opacity: 0.92
   },
   contactIconLabel: {
@@ -1097,7 +1145,7 @@ const styles = StyleSheet.create({
     elevation: 3
   },
   pressedTile: {
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.972 }],
     opacity: 0.96
   },
   actionTileLabel: {
@@ -1162,7 +1210,7 @@ const styles = StyleSheet.create({
     elevation: 9
   },
   pressedCta: {
-    transform: [{ scale: 0.985 }],
+    transform: [{ scale: 0.976 }],
     opacity: 0.97
   },
   chatCtaLabel: {
@@ -1237,7 +1285,7 @@ const styles = StyleSheet.create({
     minWidth: 74
   },
   pressedNav: {
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.972 }],
     opacity: 0.9
   },
   backButtonPlaceholder: {
@@ -1336,7 +1384,7 @@ const styles = StyleSheet.create({
     borderColor: mobileTokens.color.borderSoft
   },
   pressedTab: {
-    transform: [{ scale: 0.98 }]
+    transform: [{ scale: 0.976 }]
   },
   conversationTabActive: {
     backgroundColor: "#111827"
