@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  Dimensions,
   Easing,
   Image,
   Linking,
+  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -359,6 +361,7 @@ function AnimatedMessageBubble(props: { mine: boolean; text: string; createdAt: 
 }
 
 export function ClientHomeScreen(props: ClientHomeProps) {
+  const screenWidth = Dimensions.get("window").width;
   const [screen, setScreen] = useState<ScreenKey>("home");
   const [loadingHome, setLoadingHome] = useState(true);
   const [homeError, setHomeError] = useState<string | null>(null);
@@ -384,6 +387,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const lastIncomingMessageIdRef = useRef<string | null>(null);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-12)).current;
+  const swipeBackTranslateX = useRef(new Animated.Value(0)).current;
 
   const clientName = useMemo(() => {
     const raw = me?.fullName?.trim();
@@ -493,11 +497,61 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     if (options?.haptic !== null) {
       fireHaptic(options?.haptic ?? "selection");
     }
+    swipeBackTranslateX.setValue(0);
     const currentDepth = SCREEN_DEPTH[screen];
     const nextDepth = SCREEN_DEPTH[next];
     setTransitionDirection(nextDepth >= currentDepth ? 1 : -1);
     setScreen(next);
   }
+
+  const swipeBackResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: (event) => {
+          if (screen === "home") return false;
+          return event.nativeEvent.pageX <= 28;
+        },
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          if (screen === "home") return false;
+          return gestureState.dx > 10 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.25;
+        },
+        onPanResponderMove: (_, gestureState) => {
+          swipeBackTranslateX.setValue(Math.max(0, Math.min(gestureState.dx, screenWidth)));
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const shouldGoBack = gestureState.dx > screenWidth * 0.28 || gestureState.vx > 0.45;
+          if (shouldGoBack) {
+            fireHaptic("selection");
+            Animated.timing(swipeBackTranslateX, {
+              toValue: screenWidth,
+              duration: 180,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: true
+            }).start(() => {
+              goToScreen("home", { haptic: null });
+            });
+            return;
+          }
+          Animated.spring(swipeBackTranslateX, {
+            toValue: 0,
+            damping: 20,
+            stiffness: 240,
+            mass: 0.9,
+            useNativeDriver: true
+          }).start();
+        },
+        onPanResponderTerminate: () => {
+          Animated.spring(swipeBackTranslateX, {
+            toValue: 0,
+            damping: 20,
+            stiffness: 240,
+            mass: 0.9,
+            useNativeDriver: true
+          }).start();
+        }
+      }),
+    [screen, screenWidth, swipeBackTranslateX]
+  );
 
   async function ensureVisitsLoaded() {
     if (visits) return;
@@ -968,14 +1022,30 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
       >
-        <MotionScreen motionKey={screen} direction={transitionDirection}>
-          {screen === "home" && renderHome()}
-          {screen === "visits" && renderVisits()}
-          {screen === "bonus-history" && renderBonusHistory()}
-          {screen === "cashback" && renderCashback()}
-          {screen === "booking" && renderBooking()}
-          {screen === "chat" && renderChat()}
-        </MotionScreen>
+        <Animated.View
+          {...(screen === "home" ? {} : swipeBackResponder.panHandlers)}
+          style={[
+            screen === "home"
+              ? null
+              : {
+                  transform: [{ translateX: swipeBackTranslateX }],
+                  opacity: swipeBackTranslateX.interpolate({
+                    inputRange: [0, screenWidth],
+                    outputRange: [1, 0.92],
+                    extrapolate: "clamp"
+                  })
+                }
+          ]}
+        >
+          <MotionScreen motionKey={screen} direction={transitionDirection}>
+            {screen === "home" && renderHome()}
+            {screen === "visits" && renderVisits()}
+            {screen === "bonus-history" && renderBonusHistory()}
+            {screen === "cashback" && renderCashback()}
+            {screen === "booking" && renderBooking()}
+            {screen === "chat" && renderChat()}
+          </MotionScreen>
+        </Animated.View>
       </ScrollView>
     </View>
   );

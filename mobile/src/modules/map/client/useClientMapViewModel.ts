@@ -60,7 +60,8 @@ export function useClientMapViewModel(mapDataService: MapDataService) {
 
   const actions = useMemo(
     () => ({
-      selectBranch: (branch: BranchMapItem) => setState((s) => ({ ...s, selectedBranch: branch }))
+      selectBranch: (branch: BranchMapItem) => setState((s) => ({ ...s, selectedBranch: branch })),
+      clearSelectedBranch: () => setState((s) => ({ ...s, selectedBranch: null }))
     }),
     []
   );

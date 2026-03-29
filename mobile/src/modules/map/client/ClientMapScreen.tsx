@@ -42,6 +42,7 @@ export function ClientMapScreen(props: Props) {
       </GlassCard>
       <BranchBottomSheet
         branch={vm.state.selectedBranch}
+        onClose={vm.actions.clearSelectedBranch}
         onRoutePress={props.onRoutePress}
         onCallPress={props.onCallPress}
         onChatPress={props.onChatPress}
