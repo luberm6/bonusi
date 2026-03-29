@@ -99,6 +99,9 @@ export async function createAdmin(actor: AuthenticatedUser, dto: CreateAdminDto)
     return toAdminView(admin);
   } catch (error) {
     await client.query("rollback");
+    if ((error as { code?: string }).code === "23505") {
+      throw new HttpError(409, "Пользователь с такими данными уже существует");
+    }
     throw error;
   } finally {
     client.release();
@@ -165,6 +168,9 @@ export async function updateAdmin(actor: AuthenticatedUser, adminId: string, dto
     return toAdminView(admin);
   } catch (error) {
     await client.query("rollback");
+    if ((error as { code?: string }).code === "23505") {
+      throw new HttpError(409, "Пользователь с такими данными уже существует");
+    }
     throw error;
   } finally {
     client.release();

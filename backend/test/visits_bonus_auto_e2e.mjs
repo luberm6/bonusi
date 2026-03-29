@@ -1,9 +1,10 @@
 import pg from "pg";
 
 const { Pool } = pg;
-const dbUrl = process.env.DATABASE_URL ?? "postgresql://localhost:55432/bonusi_dev";
+const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
 const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
 const pool = new Pool({ connectionString: dbUrl });
+const BONUS_SETTINGS_LOCK_KEY = "e2e_bonus_settings_global";
 
 async function request(path, { method = "GET", token, body, forwardedFor } = {}) {
   const headers = { "content-type": "application/json" };
@@ -61,8 +62,11 @@ async function createClient(superAccess, suffix, label) {
 async function run() {
   const report = [];
   const suffix = Date.now();
+  const lockClient = await pool.connect();
 
-  const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.80.0.1");
+  try {
+    await lockClient.query("select pg_advisory_lock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
+    const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.80.0.1");
 
   const branch = await request("/branches", {
     method: "POST",
@@ -177,7 +181,11 @@ async function run() {
   assert(auditRows.rows[0].cnt >= 2, `expected bonus.accrual.auto audit rows, got ${auditRows.rows[0].cnt}`);
   report.push(`audit_bonus_auto=${auditRows.rows[0].cnt}`);
 
-  console.log(report.join("\n"));
+    console.log(report.join("\n"));
+  } finally {
+    await lockClient.query("select pg_advisory_unlock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
+    lockClient.release();
+  }
 }
 
 run()

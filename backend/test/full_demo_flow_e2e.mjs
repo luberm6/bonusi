@@ -2,9 +2,10 @@ import { randomUUID } from "crypto";
 import pg from "pg";
 
 const { Pool } = pg;
-const dbUrl = process.env.DATABASE_URL ?? "postgresql://localhost:55432/bonusi_dev";
+const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
 const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
 const pool = new Pool({ connectionString: dbUrl });
+const BONUS_SETTINGS_LOCK_KEY = "e2e_bonus_settings_global";
 
 async function request(path, { method = "GET", token, body, forwardedFor } = {}) {
   const headers = { "content-type": "application/json" };
@@ -46,15 +47,19 @@ async function login(email, password, ip, deviceName) {
 async function run() {
   const report = [];
   const suffix = Date.now();
+  const lockClient = await pool.connect();
 
-  const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.60.0.1", "Demo Flow Super");
-  const bonusSettings = await request("/bonus-settings", {
-    method: "PUT",
-    token: superAccess,
-    body: { accrualMode: "percentage", percentageValue: 5, fixedValue: null }
-  });
-  assert(bonusSettings.status === 200, `bonus settings update failed: ${bonusSettings.status}`);
-  report.push(`bonus_settings_percentage=${bonusSettings.status}`);
+  try {
+    await lockClient.query("select pg_advisory_lock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
+
+    const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.60.0.1", "Demo Flow Super");
+    const bonusSettings = await request("/bonus-settings", {
+      method: "PUT",
+      token: superAccess,
+      body: { accrualMode: "percentage", percentageValue: 5, fixedValue: null }
+    });
+    assert(bonusSettings.status === 200, `bonus settings update failed: ${bonusSettings.status}`);
+    report.push(`bonus_settings_percentage=${bonusSettings.status}`);
 
   const adminEmail = `demo-admin-${suffix}@example.com`;
   const clientEmail = `demo-client-${suffix}@example.com`;
@@ -230,7 +235,11 @@ async function run() {
     `audit_ok=user.create:${audit["user.create"] ?? 0},service.create:${audit["service.create"] ?? 0},visit.create:${audit["visit.create"] ?? 0},bonus.accrual:${audit["bonus.accrual"] ?? 0},bonus.accrual.auto:${audit["bonus.accrual.auto"] ?? 0}`
   );
 
-  console.log(report.join("\n"));
+    console.log(report.join("\n"));
+  } finally {
+    await lockClient.query("select pg_advisory_unlock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
+    lockClient.release();
+  }
 }
 
 run()

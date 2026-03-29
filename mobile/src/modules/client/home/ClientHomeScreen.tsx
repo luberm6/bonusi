@@ -128,9 +128,9 @@ async function requestJson<T>(path: string, token: string, init?: RequestInit): 
     }
   });
   const text = await response.text();
-  const json = text ? (JSON.parse(text) as T & { message?: string }) : ({} as T & { message?: string });
+  const json = text ? (JSON.parse(text) as T & { message?: string; error?: string }) : ({} as T & { message?: string; error?: string });
   if (!response.ok) {
-    throw new Error(json.message || `Request failed (${response.status})`);
+    throw new Error(json.message || json.error || `Request failed (${response.status})`);
   }
   return json as T;
 }

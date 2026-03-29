@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Linking,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -122,16 +123,24 @@ function AnonymousView(props: { onOpenLogin: () => void }) {
   );
 }
 
-function AdminFallbackView(props: { session: AuthSession; onLogout: () => void }) {
+function StaffAccessView(props: { session: AuthSession; onLogout: () => void }) {
   const navigation = useMemo(() => resolveNavigationAfterLogin(props.session), [props.session]);
+  const openWebWorkspace = async () => {
+    fireHaptic("impactLight");
+    await Linking.openURL(mobileEnv.webAppUrl);
+  };
+
   return (
     <View style={styles.centeredShell}>
       <GlassCard elevated animated style={styles.splashCard}>
         <Text style={styles.brandMark}>CRS</Text>
-        <Text style={styles.splashTitle}>Мобильный shell готов</Text>
-        <Text style={styles.splashSubtitle}>Роль: {props.session.role}</Text>
-        <Text style={styles.splashSubtitle}>Базовый маршрут: {navigation.defaultPath}</Text>
+        <Text style={styles.splashTitle}>Рабочее пространство команды</Text>
+        <Text style={styles.splashSubtitle}>
+          Для роли {props.session.role} основной операционный контур доступен в web-кабинете.
+        </Text>
+        <Text style={styles.splashSubtitle}>Рекомендуемый маршрут: {navigation.defaultPath}</Text>
         <View style={styles.splashActions}>
+          <AppButton label="Открыть web-кабинет" onPress={() => void openWebWorkspace()} haptic="impactLight" />
           <AppButton label="Выйти" variant="secondary" onPress={props.onLogout} haptic="selection" />
         </View>
       </GlassCard>
@@ -330,9 +339,9 @@ export default function App() {
       });
 
       const text = await response.text();
-      const payload = text ? (JSON.parse(text) as LoginResponse & { message?: string }) : null;
+      const payload = text ? (JSON.parse(text) as LoginResponse & { message?: string; error?: string }) : null;
       if (!response.ok || !payload?.accessToken || !payload.user?.id || !payload.user?.role) {
-        throw new Error(payload?.message || "Не удалось выполнить вход");
+        throw new Error(payload?.message || payload?.error || "Не удалось выполнить вход");
       }
 
       const nextSession: AuthSession = {
@@ -403,7 +412,7 @@ export default function App() {
       ) : session.role === "client" ? (
         <ClientHomeScreen session={session} accessToken={accessToken || session.token} onLogout={() => void handleLogout()} />
       ) : (
-        <AdminFallbackView session={session} onLogout={() => void handleLogout()} />
+        <StaffAccessView session={session} onLogout={() => void handleLogout()} />
       )}
     </SafeAreaView>
   );

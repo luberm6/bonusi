@@ -13,8 +13,6 @@ type Props = {
   compact?: boolean;
 };
 
-// NOTE: This is a thin UI wrapper. In real app, replace the placeholders
-// with @maplibre/maplibre-react-native MapView + Camera + PointAnnotation.
 export function MapLibreMap(props: Props) {
   const { branches, compact, editableMarker } = props;
   return (

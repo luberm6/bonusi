@@ -53,7 +53,7 @@ export async function apiLogin({ email, password }) {
   });
   const data = await parseJson(response);
   if (!response.ok) {
-    throw new Error(data.message || `Login failed (${response.status})`);
+    throw new Error(data.message || data.error || `Login failed (${response.status})`);
   }
   return data;
 }
@@ -134,7 +134,7 @@ export async function authFetchJson(path, { method = "GET", body, accessToken } 
 
   if (initialResponse.status !== 401) {
     const initialData = await parseJson(initialResponse);
-    if (!initialResponse.ok) throw new Error(initialData.message || `Request failed (${initialResponse.status})`);
+    if (!initialResponse.ok) throw new Error(initialData.message || initialData.error || `Request failed (${initialResponse.status})`);
     return initialData;
   }
 
@@ -151,7 +151,7 @@ export async function authFetchJson(path, { method = "GET", body, accessToken } 
     body: body ? JSON.stringify(body) : undefined
   });
   const retryData = await parseJson(retryResponse);
-  if (!retryResponse.ok) throw new Error(retryData.message || `Request failed (${retryResponse.status})`);
+  if (!retryResponse.ok) throw new Error(retryData.message || retryData.error || `Request failed (${retryResponse.status})`);
   return retryData;
 }
 

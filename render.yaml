@@ -30,7 +30,7 @@ services:
       - key: TRUST_PROXY
         value: true
       - key: CORS_ORIGIN
-        value: "*"
+        value: https://autoservice-web.onrender.com,http://localhost:3000,http://127.0.0.1:3100
       - key: FILES_ENABLED
         value: false
       - key: PUSH_ENABLED

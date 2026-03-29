@@ -3,7 +3,7 @@ import pg from "pg";
 import { io as ioClient } from "socket.io-client";
 
 const { Pool } = pg;
-const dbUrl = process.env.DATABASE_URL ?? "postgresql://localhost:55432/bonusi_dev";
+const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
 const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
 const wsBase = process.env.WS_BASE_URL ?? "http://127.0.0.1:4010";
 const filesEnabled = process.env.FILES_ENABLED === "true";

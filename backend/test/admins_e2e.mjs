@@ -27,6 +27,7 @@ function assert(condition, message) {
 async function run() {
   const report = [];
   const suffix = Date.now();
+  const uniquePhone = `+1${String(suffix).slice(-10)}${String(Math.floor(Math.random() * 1000)).padStart(3, "0")}`;
 
   const superLogin = await request("/auth/login", {
     method: "POST",
@@ -49,7 +50,7 @@ async function run() {
       email: createEmail,
       password: "Passw0rd123",
       fullName: "Управляемый администратор",
-      phone: "+15550000001"
+      phone: uniquePhone
     }
   });
   assert(createAdmin.status === 201, `super create admin failed: ${createAdmin.status}`);
