@@ -23,6 +23,7 @@ import { GlassCard } from "../../../shared/ui/GlassCard";
 type ClientHomeProps = {
   session: AuthSession;
   accessToken: string;
+  onLogout: () => void;
 };
 
 type ScreenKey = "home" | "booking" | "visits" | "bonus-history" | "cashback" | "chat";
@@ -704,6 +705,16 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             <Text style={styles.brandTitle}>Centr Radius Service</Text>
             <Text style={styles.brandSubtitle}>Премиальный сервис для ежедневного сопровождения автомобиля</Text>
           </View>
+          <AppButton
+            label="Выйти"
+            variant="ghost"
+            onPress={() => {
+              fireHaptic("selection");
+              props.onLogout();
+            }}
+            style={styles.logoutButton}
+            haptic="selection"
+          />
         </GlassCard>
 
         <View style={styles.contactRow}>
@@ -1200,6 +1211,10 @@ const styles = StyleSheet.create({
   },
   brandMeta: {
     flex: 1
+  },
+  logoutButton: {
+    minHeight: 42,
+    paddingHorizontal: 14
   },
   brandTitle: {
     fontSize: 19,

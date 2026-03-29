@@ -401,7 +401,7 @@ export default function App() {
           <AnonymousView onOpenLogin={() => setShowLogin(true)} />
         )
       ) : session.role === "client" ? (
-        <ClientHomeScreen session={session} accessToken={accessToken || session.token} />
+        <ClientHomeScreen session={session} accessToken={accessToken || session.token} onLogout={() => void handleLogout()} />
       ) : (
         <AdminFallbackView session={session} onLogout={() => void handleLogout()} />
       )}
