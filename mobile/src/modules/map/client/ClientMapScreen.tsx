@@ -31,11 +31,20 @@ export function ClientMapScreen(props: Props) {
     <View style={styles.screen}>
       <MapLibreMap branches={vm.state.branches} onBranchPress={vm.actions.selectBranch} />
       <GlassCard style={styles.metaCard}>
-        <StatusBadge status={vm.state.source === "network" ? "success" : "warning"} label={`Source: ${vm.state.source}`} />
+        <StatusBadge
+          status={vm.state.source === "network" ? "success" : "warning"}
+          label={`Источник: ${vm.state.source === "network" ? "сеть" : "кеш"}`}
+        />
         {vm.state.tilePack ? (
           <StatusBadge
             status={vm.state.tilePack.status === "ready" ? "success" : vm.state.tilePack.status === "failed" ? "error" : "warning"}
-            label={`Tiles: ${vm.state.tilePack.status}`}
+            label={`Плитки: ${
+              vm.state.tilePack.status === "ready"
+                ? "готовы"
+                : vm.state.tilePack.status === "failed"
+                  ? "ошибка"
+                  : "загружаются"
+            }`}
           />
         ) : null}
         {vm.state.error ? <Text style={styles.error}>{vm.state.error}</Text> : null}

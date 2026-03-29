@@ -29,7 +29,7 @@ export function AdminBranchesListScreen(props: Props) {
         setBranches(rows);
       } catch (e) {
         if (!mounted) return;
-        setError(e instanceof Error ? e.message : "Failed to load branches");
+        setError(e instanceof Error ? e.message : "Не удалось загрузить филиалы");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -43,7 +43,7 @@ export function AdminBranchesListScreen(props: Props) {
 
   return (
     <View style={styles.screen}>
-      <AppButton label="Create branch" onPress={props.onCreateBranch} />
+      <AppButton label="Создать филиал" onPress={props.onCreateBranch} />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         data={branches}
@@ -53,7 +53,7 @@ export function AdminBranchesListScreen(props: Props) {
             <GlassCard style={styles.row}>
               <View style={styles.rowHeader}>
                 <Text style={styles.name}>{item.name}</Text>
-                <StatusBadge status={item.isActive ? "success" : "warning"} label={item.isActive ? "Active" : "Inactive"} />
+                <StatusBadge status={item.isActive ? "success" : "warning"} label={item.isActive ? "Активен" : "Неактивен"} />
               </View>
               <Text style={styles.meta}>{item.address}</Text>
               <Text style={styles.meta}>

@@ -16,12 +16,12 @@ export function ClientMapCard(props: Props) {
   return (
     <GlassCard style={styles.card} elevated animated>
       <View style={styles.header}>
-        <Text style={styles.title}>Service Branches</Text>
-        <AppButton label="Open map" variant="ghost" onPress={props.onOpenFullMap} style={styles.headerAction} />
+        <Text style={styles.title}>Филиалы сервиса</Text>
+        <AppButton label="Открыть карту" variant="ghost" onPress={props.onOpenFullMap} style={styles.headerAction} />
       </View>
       <MapLibreMap compact branches={props.branches} onBranchPress={props.onSelectBranch} />
       <Pressable onPress={props.onOpenFullMap} hitSlop={8}>
-        <Text style={styles.hint}>Tap marker to open branch details</Text>
+        <Text style={styles.hint}>Нажмите на маркер, чтобы открыть детали филиала</Text>
       </Pressable>
     </GlassCard>
   );

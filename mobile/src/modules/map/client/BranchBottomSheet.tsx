@@ -75,19 +75,19 @@ export function BranchBottomSheet(props: Props) {
         <View style={styles.handle} />
         <Text style={styles.title}>{branch.name}</Text>
         <Text style={styles.address}>{branch.address}</Text>
-        {branch.phone ? <Text style={styles.meta}>Phone: {branch.phone}</Text> : null}
+        {branch.phone ? <Text style={styles.meta}>Телефон: {branch.phone}</Text> : null}
         {branch.description ? <Text style={styles.meta}>{branch.description}</Text> : null}
         <View style={styles.actions}>
-          <AppButton label="Route" onPress={() => props.onRoutePress(branch)} style={styles.actionButton} haptic="impactLight" />
+          <AppButton label="Маршрут" onPress={() => props.onRoutePress(branch)} style={styles.actionButton} haptic="impactLight" />
           <AppButton
-            label="Call"
+            label="Позвонить"
             variant="secondary"
             onPress={() => props.onCallPress(branch)}
             style={styles.actionButton}
             haptic="impactLight"
           />
           <AppButton
-            label="Write"
+            label="Написать"
             variant="secondary"
             onPress={() => props.onChatPress(branch)}
             style={styles.actionButton}

@@ -35,7 +35,7 @@ export class BranchesApi {
       method: "GET",
       headers: this.authHeaders()
     });
-    if (!res.ok) throw new Error(`Failed to fetch branches: ${res.status}`);
+    if (!res.ok) throw new Error(`Не удалось загрузить филиалы: ${res.status}`);
     const data = (await res.json()) as Record<string, unknown>[];
     return data.map(toBranch);
   }
@@ -46,7 +46,7 @@ export class BranchesApi {
       headers: this.authHeaders(),
       body: JSON.stringify({ address })
     });
-    if (!res.ok) throw new Error(`Failed to geocode: ${res.status}`);
+    if (!res.ok) throw new Error(`Не удалось определить координаты: ${res.status}`);
     return (await res.json()) as GeocodeResult;
   }
 
@@ -56,7 +56,7 @@ export class BranchesApi {
       headers: this.authHeaders(),
       body: JSON.stringify(input)
     });
-    if (!res.ok) throw new Error(`Failed to create branch: ${res.status}`);
+    if (!res.ok) throw new Error(`Не удалось создать филиал: ${res.status}`);
     return toBranch((await res.json()) as Record<string, unknown>);
   }
 
@@ -66,7 +66,7 @@ export class BranchesApi {
       headers: this.authHeaders(),
       body: JSON.stringify(patch)
     });
-    if (!res.ok) throw new Error(`Failed to update branch: ${res.status}`);
+    if (!res.ok) throw new Error(`Не удалось обновить филиал: ${res.status}`);
     return toBranch((await res.json()) as Record<string, unknown>);
   }
 }

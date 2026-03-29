@@ -49,7 +49,7 @@ export function useClientMapViewModel(mapDataService: MapDataService) {
         setState((s) => ({
           ...s,
           loading: false,
-          error: error instanceof Error ? error.message : "Failed to load branches"
+          error: error instanceof Error ? error.message : "Не удалось загрузить филиалы"
         }));
       }
     })();

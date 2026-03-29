@@ -219,7 +219,11 @@ async function run() {
   console.log(report.join("\n"));
 }
 
-run().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+run()
+  .catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  })
+  .finally(() => {
+    process.exit(process.exitCode ?? 0);
+  });

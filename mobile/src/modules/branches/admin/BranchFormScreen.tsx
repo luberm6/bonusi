@@ -34,7 +34,7 @@ export function BranchFormScreen(props: Props) {
         lng: geo.lng
       }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to geocode");
+      setError(e instanceof Error ? e.message : "Не удалось определить координаты");
     }
   }
 
@@ -44,21 +44,21 @@ export function BranchFormScreen(props: Props) {
       const saved = await vm.save(state, props.initialBranch);
       props.onSaved(saved);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save branch");
+      setError(e instanceof Error ? e.message : "Не удалось сохранить филиал");
     }
   }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <GlassCard style={styles.card} elevated animated>
-        <Text style={styles.sectionTitle}>Branch details</Text>
-        <AppInput label="Name" value={state.name} onChangeText={(v) => setState((s) => ({ ...s, name: v }))} />
-        <AppInput label="Address" value={state.address} onChangeText={(v) => setState((s) => ({ ...s, address: v }))} />
-        <AppButton label="Find on map" variant="secondary" onPress={onFindOnMap} />
+        <Text style={styles.sectionTitle}>Данные филиала</Text>
+        <AppInput label="Название" value={state.name} onChangeText={(v) => setState((s) => ({ ...s, name: v }))} />
+        <AppInput label="Адрес" value={state.address} onChangeText={(v) => setState((s) => ({ ...s, address: v }))} />
+        <AppButton label="Найти на карте" variant="secondary" onPress={onFindOnMap} />
       </GlassCard>
 
       <GlassCard style={styles.card} elevated>
-        <Text style={styles.sectionTitle}>Map placement</Text>
+        <Text style={styles.sectionTitle}>Точка на карте</Text>
         <MapLibreMap
           branches={[]}
           editableMarker={marker}
@@ -66,16 +66,16 @@ export function BranchFormScreen(props: Props) {
         />
         <Text style={styles.coords}>
           {state.lat !== null && state.lng !== null
-            ? `Coordinates: ${state.lat.toFixed(6)}, ${state.lng.toFixed(6)}`
-            : "Coordinates: not selected"}
+            ? `Координаты: ${state.lat.toFixed(6)}, ${state.lng.toFixed(6)}`
+            : "Координаты не выбраны"}
         </Text>
       </GlassCard>
 
       <GlassCard style={styles.card} elevated>
-        <Text style={styles.sectionTitle}>Contacts</Text>
-        <AppInput label="Phone" value={state.phone} onChangeText={(v) => setState((s) => ({ ...s, phone: v }))} />
+        <Text style={styles.sectionTitle}>Контакты</Text>
+        <AppInput label="Телефон" value={state.phone} onChangeText={(v) => setState((s) => ({ ...s, phone: v }))} />
         <AppInput
-          label="Description"
+          label="Описание"
           multiline
           numberOfLines={4}
           style={styles.textarea}
@@ -83,11 +83,11 @@ export function BranchFormScreen(props: Props) {
           onChangeText={(v) => setState((s) => ({ ...s, description: v }))}
         />
         <View style={styles.switchRow}>
-          <Text style={styles.label}>Active</Text>
+          <Text style={styles.label}>Активен</Text>
           <Switch value={state.isActive} onValueChange={(v) => setState((s) => ({ ...s, isActive: v }))} />
         </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <AppButton label="Save branch" onPress={onSave} />
+        <AppButton label="Сохранить филиал" onPress={onSave} />
       </GlassCard>
     </ScrollView>
   );

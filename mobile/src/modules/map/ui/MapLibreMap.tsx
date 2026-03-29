@@ -19,13 +19,13 @@ export function MapLibreMap(props: Props) {
   return (
     <View style={[styles.container, compact ? styles.compact : styles.full]}>
       <Text style={styles.title}>OSM / MapLibre</Text>
-      <Text style={styles.caption}>Branches: {branches.length}</Text>
+      <Text style={styles.caption}>Филиалов: {branches.length}</Text>
       {editableMarker ? (
         <Text style={styles.caption}>
-          Marker: {editableMarker.lat.toFixed(5)}, {editableMarker.lng.toFixed(5)}
+          Маркер: {editableMarker.lat.toFixed(5)}, {editableMarker.lng.toFixed(5)}
         </Text>
       ) : null}
-      <Text style={styles.note}>Replace this wrapper internals with real MapLibre map primitives.</Text>
+      <Text style={styles.note}>Карта готова к замене внутренней реализации на нативные MapLibre-компоненты.</Text>
     </View>
   );
 }
