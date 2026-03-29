@@ -1,4 +1,4 @@
-const baseUrl = "http://127.0.0.1:4010/api/v1";
+const baseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
 
 async function request(path, { method = "GET", body, token, forwardedFor } = {}) {
   const headers = { "content-type": "application/json" };

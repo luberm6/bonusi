@@ -47,12 +47,22 @@ async function run() {
   const suffix = Date.now();
 
   const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.40.0.1");
-  const clientAccess = await login("client@example.com", "Passw0rd123", "10.40.0.2");
+  const bonusClientEmail = `bonus-client-${suffix}@example.com`;
+  const createClient = await request("/users", {
+    method: "POST",
+    token: superAccess,
+    body: {
+      email: bonusClientEmail,
+      password: "Passw0rd123",
+      role: "client",
+      fullName: "Bonus Client"
+    }
+  });
+  assert(createClient.status === 201, `client create failed: ${createClient.status}`);
+  const clientId = createClient.json.id;
+  report.push(`bonus_client_create=${createClient.status}`);
 
-  const users = await request("/users", { token: superAccess });
-  const client = users.json.find((u) => u.email === "client@example.com");
-  assert(client?.id, "client user missing");
-  const clientId = client.id;
+  const clientAccess = await login(bonusClientEmail, "Passw0rd123", "10.40.0.2");
 
   const branch = await request("/branches", {
     method: "POST",
@@ -175,8 +185,9 @@ async function run() {
 run()
   .catch((error) => {
     console.error(error);
-    process.exit(1);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await pool.end();
+    process.exit(process.exitCode ?? 0);
   });

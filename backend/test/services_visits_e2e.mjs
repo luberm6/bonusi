@@ -52,6 +52,16 @@ async function run() {
 
   const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.30.0.1");
 
+  const visitClientEmail = `visit-client-${suffix}@example.com`;
+  const createClient = await request("/users", {
+    method: "POST",
+    token: superAccess,
+    body: { email: visitClientEmail, password: "Passw0rd123", role: "client", fullName: "Visit Client" }
+  });
+  assert(createClient.status === 201, `create client failed: ${createClient.status}`);
+  const clientId = createClient.json.id;
+  report.push(`create_client=${createClient.status}`);
+
   const newAdminEmail = `visit-admin-${suffix}@example.com`;
   const createAdmin = await request("/users", {
     method: "POST",
@@ -62,12 +72,6 @@ async function run() {
   report.push(`create_admin=${createAdmin.status}`);
 
   const adminAccess = await login(newAdminEmail, "Passw0rd123", "10.30.0.2");
-
-  const usersList = await request("/users", { token: superAccess });
-  assert(usersList.status === 200, `users list failed: ${usersList.status}`);
-  const client = usersList.json.find((u) => u.email === "client@example.com");
-  assert(client?.id, "client@example.com not found");
-  const clientId = client.id;
 
   const branch = await request("/branches", {
     method: "POST",
@@ -213,8 +217,9 @@ async function run() {
 run()
   .catch((error) => {
     console.error(error);
-    process.exit(1);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await pool.end();
+    process.exit(process.exitCode ?? 0);
   });
