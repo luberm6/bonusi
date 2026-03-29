@@ -125,7 +125,7 @@ async function requestJson<T>(path: string, token: string, init?: RequestInit): 
 function ScreenHeader(props: { title: string; onBack: () => void }) {
   return (
     <View style={styles.screenHeader}>
-      <Pressable onPress={props.onBack} style={styles.backButton}>
+      <Pressable onPress={props.onBack} style={({ pressed }) => [styles.backButton, pressed && styles.pressedNav]}>
         <Text style={styles.backButtonLabel}>Назад</Text>
       </Pressable>
       <Text style={styles.screenTitle}>{props.title}</Text>
@@ -145,9 +145,10 @@ function EmptyState(props: { title: string; description: string }) {
 
 function SkeletonBlock(props: { style?: object }) {
   const opacity = useRef(new Animated.Value(0.45)).current;
+  const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const animation = Animated.loop(
+    const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
           toValue: 0.92,
@@ -163,11 +164,35 @@ function SkeletonBlock(props: { style?: object }) {
         })
       ])
     );
-    animation.start();
-    return () => animation.stop();
-  }, [opacity]);
+    const shimmerAnimation = Animated.loop(
+      Animated.timing(shimmer, {
+        toValue: 1,
+        duration: 1400,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true
+      })
+    );
+    pulseAnimation.start();
+    shimmerAnimation.start();
+    return () => {
+      pulseAnimation.stop();
+      shimmerAnimation.stop();
+    };
+  }, [opacity, shimmer]);
 
-  return <Animated.View style={[styles.skeletonBlock, props.style, { opacity }]} />;
+  const shimmerTranslate = shimmer.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-180, 180]
+  });
+
+  return (
+    <Animated.View style={[styles.skeletonBlock, props.style, { opacity }]}>
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.skeletonShimmer, { transform: [{ translateX: shimmerTranslate }] }]}
+      />
+    </Animated.View>
+  );
 }
 
 function HomeSkeleton() {
@@ -225,6 +250,21 @@ function ChatSkeleton() {
         <SkeletonBlock style={styles.chatButtonSkeleton} />
       </View>
     </GlassCard>
+  );
+}
+
+function ListSkeleton(props: { rows?: number }) {
+  return (
+    <View style={styles.skeletonWrap}>
+      {Array.from({ length: props.rows ?? 3 }).map((_, index) => (
+        <GlassCard key={index} elevated style={styles.listCard}>
+          <SkeletonBlock style={styles.listTitleSkeleton} />
+          <SkeletonBlock style={styles.listSubtitleSkeleton} />
+          <SkeletonBlock style={styles.listValueSkeleton} />
+          <SkeletonBlock style={styles.listHintSkeleton} />
+        </GlassCard>
+      ))}
+    </View>
   );
 }
 
@@ -301,8 +341,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const [me, setMe] = useState<UserMe | null>(null);
   const [bonusBalance, setBonusBalance] = useState<number>(0);
   const [visits, setVisits] = useState<VisitRow[] | null>(null);
+  const [visitsLoading, setVisitsLoading] = useState(false);
   const [bonusHistory, setBonusHistory] = useState<BonusHistoryRow[] | null>(null);
+  const [bonusHistoryLoading, setBonusHistoryLoading] = useState(false);
   const [branches, setBranches] = useState<BranchRow[] | null>(null);
+  const [branchesLoading, setBranchesLoading] = useState(false);
   const [conversations, setConversations] = useState<ConversationRow[] | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageRow[] | null>(null);
@@ -310,7 +353,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [submittingMessage, setSubmittingMessage] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const chatScrollRef = useRef<ScrollView | null>(null);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const toastTranslateY = useRef(new Animated.Value(-12)).current;
 
   const clientName = useMemo(() => {
     const raw = me?.fullName?.trim();
@@ -352,28 +398,101 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     return () => clearTimeout(timer);
   }, [messages, screen]);
 
+  useEffect(() => {
+    if (!toast) return;
+    toastOpacity.setValue(0);
+    toastTranslateY.setValue(-12);
+    const show = Animated.parallel([
+      Animated.timing(toastOpacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      }),
+      Animated.timing(toastTranslateY, {
+        toValue: 0,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      })
+    ]);
+    const hide = Animated.parallel([
+      Animated.timing(toastOpacity, {
+        toValue: 0,
+        duration: 180,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true
+      }),
+      Animated.timing(toastTranslateY, {
+        toValue: -10,
+        duration: 180,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true
+      })
+    ]);
+
+    show.start();
+    const timer = setTimeout(() => {
+      hide.start(() => setToast(null));
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [toast, toastOpacity, toastTranslateY]);
+
   async function ensureVisitsLoaded() {
     if (visits) return;
-    const rows = await requestJson<VisitRow[]>(
-      `/visits?clientId=${encodeURIComponent(props.session.userId)}`,
-      props.accessToken
-    );
-    setVisits(rows);
+    setVisitsLoading(true);
+    try {
+      const rows = await requestJson<VisitRow[]>(
+        `/visits?clientId=${encodeURIComponent(props.session.userId)}`,
+        props.accessToken
+      );
+      setVisits(rows);
+    } catch (error) {
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Не удалось загрузить визиты"
+      });
+      setVisits([]);
+    } finally {
+      setVisitsLoading(false);
+    }
   }
 
   async function ensureBonusHistoryLoaded() {
     if (bonusHistory) return;
-    const rows = await requestJson<BonusHistoryRow[]>(
-      `/bonuses/history?client_id=${encodeURIComponent(props.session.userId)}`,
-      props.accessToken
-    );
-    setBonusHistory(rows);
+    setBonusHistoryLoading(true);
+    try {
+      const rows = await requestJson<BonusHistoryRow[]>(
+        `/bonuses/history?client_id=${encodeURIComponent(props.session.userId)}`,
+        props.accessToken
+      );
+      setBonusHistory(rows);
+    } catch (error) {
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Не удалось загрузить историю бонусов"
+      });
+      setBonusHistory([]);
+    } finally {
+      setBonusHistoryLoading(false);
+    }
   }
 
   async function ensureBranchesLoaded() {
     if (branches) return;
-    const rows = await requestJson<BranchRow[]>("/branches", props.accessToken);
-    setBranches(rows.filter((branch) => branch.isActive));
+    setBranchesLoading(true);
+    try {
+      const rows = await requestJson<BranchRow[]>("/branches", props.accessToken);
+      setBranches(rows.filter((branch) => branch.isActive));
+    } catch (error) {
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Не удалось загрузить филиалы"
+      });
+      setBranches([]);
+    } finally {
+      setBranchesLoading(false);
+    }
   }
 
   async function ensureChatLoaded() {
@@ -396,6 +515,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       }
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "Не удалось загрузить чат");
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Чат временно недоступен"
+      });
     } finally {
       setChatLoading(false);
     }
@@ -413,6 +536,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       setMessages(rows);
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "Не удалось загрузить сообщения");
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Не удалось открыть сообщения"
+      });
     } finally {
       setChatLoading(false);
     }
@@ -435,9 +562,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         }
       );
       setMessageText("");
+      setToast({ type: "success", message: "Сообщение отправлено" });
       await openConversation(activeConversationId);
     } catch (error) {
       setChatError(error instanceof Error ? error.message : "Не удалось отправить сообщение");
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Не удалось отправить сообщение"
+      });
     } finally {
       setSubmittingMessage(false);
     }
@@ -551,7 +683,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     return (
       <>
         <ScreenHeader title="История посещений" onBack={() => setScreen("home")} />
-        {!visits?.length ? (
+        {visitsLoading && !visits ? (
+          <ListSkeleton rows={3} />
+        ) : !visits?.length ? (
           <EmptyState title="Пусто" description="Как только появятся визиты, они отобразятся здесь." />
         ) : (
           visits.map((visit) => (
@@ -573,7 +707,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     return (
       <>
         <ScreenHeader title="История начислений" onBack={() => setScreen("home")} />
-        {!bonusHistory?.length ? (
+        {bonusHistoryLoading && !bonusHistory ? (
+          <ListSkeleton rows={3} />
+        ) : !bonusHistory?.length ? (
           <EmptyState title="Пусто" description="История бонусов появится после первой операции." />
         ) : (
           bonusHistory.map((row) => (
@@ -611,7 +747,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     return (
       <>
         <ScreenHeader title="Записаться" onBack={() => setScreen("home")} />
-        {!branches?.length ? (
+        {branchesLoading && !branches ? (
+          <ListSkeleton rows={2} />
+        ) : !branches?.length ? (
           <EmptyState title="Нет доступных филиалов" description="Когда филиалы станут доступны, они появятся здесь." />
         ) : (
           branches.map((branch) => (
@@ -720,6 +858,18 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
   return (
     <View style={styles.root}>
+      {toast ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.toast,
+            toast.type === "success" ? styles.toastSuccess : styles.toastError,
+            { opacity: toastOpacity, transform: [{ translateY: toastTranslateY }] }
+          ]}
+        >
+          <Text style={styles.toastText}>{toast.message}</Text>
+        </Animated.View>
+      ) : null}
       <ScrollView contentContainerStyle={styles.content}>
         <MotionScreen motionKey={screen}>
           {screen === "home" && renderHome()}
@@ -747,8 +897,16 @@ const styles = StyleSheet.create({
     gap: 16
   },
   skeletonBlock: {
+    overflow: "hidden",
     borderRadius: 18,
     backgroundColor: "rgba(255,255,255,0.78)"
+  },
+  skeletonShimmer: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 96,
+    backgroundColor: "rgba(255,255,255,0.24)"
   },
   brandSkeletonLogo: {
     width: 74,
@@ -825,6 +983,29 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 52,
     borderRadius: 16
+  },
+  listTitleSkeleton: {
+    width: "54%",
+    height: 20,
+    borderRadius: 10
+  },
+  listSubtitleSkeleton: {
+    width: "70%",
+    height: 14,
+    borderRadius: 10,
+    marginTop: 8
+  },
+  listValueSkeleton: {
+    width: "38%",
+    height: 24,
+    borderRadius: 10,
+    marginTop: 14
+  },
+  listHintSkeleton: {
+    width: "88%",
+    height: 14,
+    borderRadius: 10,
+    marginTop: 10
   },
   loaderWrap: {
     paddingVertical: 32,
@@ -1055,6 +1236,10 @@ const styles = StyleSheet.create({
   backButton: {
     minWidth: 74
   },
+  pressedNav: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9
+  },
   backButtonPlaceholder: {
     width: 74
   },
@@ -1234,5 +1419,32 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     minHeight: 52
+  },
+  toast: {
+    position: "absolute",
+    top: 18,
+    left: 18,
+    right: 18,
+    zIndex: 20,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8
+  },
+  toastSuccess: {
+    backgroundColor: "rgba(22, 163, 74, 0.94)"
+  },
+  toastError: {
+    backgroundColor: "rgba(220, 38, 38, 0.94)"
+  },
+  toastText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center"
   }
 });
