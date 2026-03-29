@@ -56,14 +56,10 @@ async function run() {
     return;
   }
 
-  await pool.query(
-    `update public.users
-     set role = 'super_admin',
-         is_active = true
-     where id = $1`,
-    [user.id]
+  console.error(
+    "[bootstrap-super-admin] A user with SUPER_ADMIN_EMAIL already exists but does not have super_admin role. Refusing automatic promotion."
   );
-  console.log(`[bootstrap-super-admin] Existing user promoted to super_admin (id=${user.id})`);
+  process.exit(1);
 }
 
 run()

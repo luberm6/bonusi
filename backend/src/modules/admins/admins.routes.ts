@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authGuard } from "../../common/guards/auth.guard.js";
+import { requireRoles } from "../../common/guards/role.guard.js";
 import { asyncHandler } from "../../common/http/async-handler.js";
 import { parseAdminId, parseCreateAdminDto, parseUpdateAdminDto } from "./admins.dto.js";
 import { createAdmin, deactivateAdmin, listAdmins, updateAdmin } from "./admins.service.js";
@@ -16,6 +17,7 @@ function getParamId(value: string | string[] | undefined): string {
 adminsRouter.get(
   "/admins",
   authGuard,
+  requireRoles("super_admin"),
   asyncHandler(async (req, res) => {
     const payload = await listAdmins(req.authUser!);
     res.json(payload);
@@ -25,6 +27,7 @@ adminsRouter.get(
 adminsRouter.post(
   "/admins",
   authGuard,
+  requireRoles("super_admin"),
   asyncHandler(async (req, res) => {
     const dto = parseCreateAdminDto(req.body);
     const payload = await createAdmin(req.authUser!, dto);
@@ -35,6 +38,7 @@ adminsRouter.post(
 adminsRouter.patch(
   "/admins/:id",
   authGuard,
+  requireRoles("super_admin"),
   asyncHandler(async (req, res) => {
     const adminId = parseAdminId(getParamId(req.params.id));
     const dto = parseUpdateAdminDto(req.body);
@@ -46,6 +50,7 @@ adminsRouter.patch(
 adminsRouter.delete(
   "/admins/:id",
   authGuard,
+  requireRoles("super_admin"),
   asyncHandler(async (req, res) => {
     const adminId = parseAdminId(getParamId(req.params.id));
     const payload = await deactivateAdmin(req.authUser!, adminId);
