@@ -1,25 +1,13 @@
 import type { NextFunction, Request, Response } from "express";
 import { HttpError } from "./error.js";
+import { toPgHttpError } from "./pg-error.js";
 
 function normalizeDatabaseError(err: unknown) {
-  const candidate = err as { code?: string; constraint?: string };
-  if (candidate?.code !== "23505") {
-    return null;
-  }
-
-  const byConstraint: Record<string, string> = {
-    uq_users_phone: "Пользователь с таким телефоном уже существует",
-    uq_services_name: "Услуга с таким названием уже существует",
-    uq_devices_push_token: "Устройство с таким push token уже зарегистрировано",
-    messages_client_msg_dedupe: "Сообщение с таким client_message_id уже существует",
-    message_templates_unique_title_per_admin: "Шаблон с таким названием уже существует",
-    conversations_unique_pair: "Диалог для этой пары уже существует",
-    uq_bonus_transactions_auto_accrual_per_visit: "Автоматическое начисление для этого визита уже существует"
-  };
-
+  const normalized = toPgHttpError(err);
+  if (!normalized) return null;
   return {
-    statusCode: 409,
-    message: byConstraint[candidate.constraint ?? ""] ?? "Запись с такими данными уже существует"
+    statusCode: normalized.statusCode,
+    message: normalized.message
   };
 }
 

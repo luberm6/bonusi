@@ -17,7 +17,7 @@ export function MapLibreMap(props: Props) {
   const { branches, compact, editableMarker } = props;
   return (
     <View style={[styles.container, compact ? styles.compact : styles.full]}>
-      <Text style={styles.title}>OSM / MapLibre</Text>
+      <Text style={styles.title}>{ru.map.screenTitle}</Text>
       <Text style={styles.caption}>{ru.map.mapCount}: {branches.length}</Text>
       {editableMarker ? (
         <Text style={styles.caption}>

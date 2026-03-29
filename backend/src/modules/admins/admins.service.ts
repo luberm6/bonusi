@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import { pool } from "../../common/db/pool.js";
 import { HttpError } from "../../common/http/error.js";
+import { toPgHttpError } from "../../common/http/pg-error.js";
 import { hashPassword } from "../../common/security/password.js";
 import type { AuthenticatedUser } from "../../common/types/auth.js";
 import { logAudit } from "../audit/audit.service.js";
@@ -99,9 +100,8 @@ export async function createAdmin(actor: AuthenticatedUser, dto: CreateAdminDto)
     return toAdminView(admin);
   } catch (error) {
     await client.query("rollback");
-    if ((error as { code?: string }).code === "23505") {
-      throw new HttpError(409, "Пользователь с такими данными уже существует");
-    }
+    const normalized = toPgHttpError(error);
+    if (normalized) throw normalized;
     throw error;
   } finally {
     client.release();
@@ -168,9 +168,8 @@ export async function updateAdmin(actor: AuthenticatedUser, adminId: string, dto
     return toAdminView(admin);
   } catch (error) {
     await client.query("rollback");
-    if ((error as { code?: string }).code === "23505") {
-      throw new HttpError(409, "Пользователь с такими данными уже существует");
-    }
+    const normalized = toPgHttpError(error);
+    if (normalized) throw normalized;
     throw error;
   } finally {
     client.release();

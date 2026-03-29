@@ -1,55 +1,13 @@
-import pg from "pg";
+import { apiBase, assert, createTestPool, login, request, withAdvisoryLock } from "./helpers/runtime.mjs";
 
-const { Pool } = pg;
-const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
-const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
-const pool = new Pool({ connectionString: dbUrl });
+const pool = createTestPool();
 const BONUS_SETTINGS_LOCK_KEY = "e2e_bonus_settings_global";
-
-async function request(path, { method = "GET", token, body, forwardedFor } = {}) {
-  const headers = { "content-type": "application/json" };
-  if (token) headers.authorization = `Bearer ${token}`;
-  if (forwardedFor) headers["x-forwarded-for"] = forwardedFor;
-  const response = await fetch(`${apiBase}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
-  const text = await response.text();
-  let json;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = { raw: text };
-  }
-  return { status: response.status, json };
-}
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
-
-async function login(email, password, ip, deviceName) {
-  const res = await request("/auth/login", {
-    method: "POST",
-    forwardedFor: ip,
-    body: {
-      email,
-      password,
-      device: { platform: "web", deviceName, appVersion: "1.0.0" }
-    }
-  });
-  assert(res.status === 200, `login failed for ${email}: ${res.status}`);
-  return res.json.accessToken;
-}
 
 async function run() {
   const report = [];
   const suffix = Date.now();
-  const lockClient = await pool.connect();
 
-  try {
-    await lockClient.query("select pg_advisory_lock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
+  await withAdvisoryLock(pool, BONUS_SETTINGS_LOCK_KEY, async () => {
     const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.70.0.1", "Bonus Settings Super");
 
   const adminEmail = `bonus-settings-admin-${suffix}@example.com`;
@@ -171,12 +129,9 @@ async function run() {
   const auditCount = auditRows.rows[0]?.cnt ?? 0;
   assert(auditCount >= 2, `missing bonus_settings.update audit, got ${auditCount}`);
   report.push(`audit_bonus_settings_update=${auditCount}`);
+  });
 
-    console.log(report.join("\n"));
-  } finally {
-    await lockClient.query("select pg_advisory_unlock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
-    lockClient.release();
-  }
+  console.log(report.join("\n"));
 }
 
 run()

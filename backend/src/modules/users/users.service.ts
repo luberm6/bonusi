@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { pool } from "../../common/db/pool.js";
 import { HttpError } from "../../common/http/error.js";
+import { toPgHttpError } from "../../common/http/pg-error.js";
 import { hashPassword } from "../../common/security/password.js";
 import type { AuthenticatedUser, UserRole } from "../../common/types/auth.js";
 import { logAudit } from "../audit/audit.service.js";
@@ -148,6 +149,8 @@ export async function createUser(actor: AuthenticatedUser, dto: CreateUserDto) {
     return toUserView(user);
   } catch (error) {
     await client.query("rollback");
+    const normalized = toPgHttpError(error);
+    if (normalized) throw normalized;
     throw error;
   } finally {
     client.release();
@@ -230,6 +233,8 @@ export async function updateUser(actor: AuthenticatedUser, userId: string, dto: 
     return toUserView(user);
   } catch (error) {
     await client.query("rollback");
+    const normalized = toPgHttpError(error);
+    if (normalized) throw normalized;
     throw error;
   } finally {
     client.release();

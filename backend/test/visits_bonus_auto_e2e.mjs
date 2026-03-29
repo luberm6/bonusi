@@ -1,47 +1,7 @@
-import pg from "pg";
+import { assert, createTestPool, login, request, withAdvisoryLock } from "./helpers/runtime.mjs";
 
-const { Pool } = pg;
-const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
-const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
-const pool = new Pool({ connectionString: dbUrl });
+const pool = createTestPool();
 const BONUS_SETTINGS_LOCK_KEY = "e2e_bonus_settings_global";
-
-async function request(path, { method = "GET", token, body, forwardedFor } = {}) {
-  const headers = { "content-type": "application/json" };
-  if (token) headers.authorization = `Bearer ${token}`;
-  if (forwardedFor) headers["x-forwarded-for"] = forwardedFor;
-  const response = await fetch(`${apiBase}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined
-  });
-  const text = await response.text();
-  let json;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = { raw: text };
-  }
-  return { status: response.status, json };
-}
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
-
-async function login(email, password, ip) {
-  const res = await request("/auth/login", {
-    method: "POST",
-    forwardedFor: ip,
-    body: {
-      email,
-      password,
-      device: { platform: "web", deviceName: "Visits Auto Bonus E2E", appVersion: "1.0.0" }
-    }
-  });
-  assert(res.status === 200, `login failed for ${email}: ${res.status}`);
-  return res.json.accessToken;
-}
 
 async function createClient(superAccess, suffix, label) {
   const email = `auto-bonus-${label}-${suffix}@example.com`;
@@ -62,11 +22,9 @@ async function createClient(superAccess, suffix, label) {
 async function run() {
   const report = [];
   const suffix = Date.now();
-  const lockClient = await pool.connect();
 
-  try {
-    await lockClient.query("select pg_advisory_lock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
-    const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.80.0.1");
+  await withAdvisoryLock(pool, BONUS_SETTINGS_LOCK_KEY, async () => {
+    const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.80.0.1", "Visits Auto Bonus E2E");
 
   const branch = await request("/branches", {
     method: "POST",
@@ -180,12 +138,9 @@ async function run() {
   );
   assert(auditRows.rows[0].cnt >= 2, `expected bonus.accrual.auto audit rows, got ${auditRows.rows[0].cnt}`);
   report.push(`audit_bonus_auto=${auditRows.rows[0].cnt}`);
+  });
 
-    console.log(report.join("\n"));
-  } finally {
-    await lockClient.query("select pg_advisory_unlock(hashtext($1))", [BONUS_SETTINGS_LOCK_KEY]);
-    lockClient.release();
-  }
+  console.log(report.join("\n"));
 }
 
 run()
