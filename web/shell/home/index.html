@@ -3,70 +3,594 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Autoservice | Личный кабинет</title>
+    <title>Autoservice | CRS Client</title>
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
   <body>
     <main class="page">
-      <section class="shell">
-        <header class="glass card nav">
-          <div>
-            <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Личный кабинет</h1>
-            <p id="who" class="subtitle"></p>
-          </div>
-          <div class="nav-links">
-            <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
-          </div>
-        </header>
-
-        <div class="spacer-16"></div>
-        <section class="grid">
-          <article class="glass kpi">
-            <h3>Бонусный баланс</h3>
-            <p id="kpi-bonus">—</p>
-          </article>
-          <article class="glass kpi">
-            <h3>Последний визит</h3>
-            <p id="kpi-last-visit">—</p>
-          </article>
-          <article class="glass kpi">
-            <h3>Статус аккаунта</h3>
-            <p><span class="badge">Активный</span></p>
-          </article>
-        </section>
-
+      <section class="shell client-shell">
+        <div id="app" class="client-stack"></div>
       </section>
     </main>
 
     <script type="module">
       import { guard, bindLogout, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+
       const session = guard(["client"]);
+
       if (session) {
-        document.getElementById("who").textContent = `${session.email} (${session.role})`;
         startSessionAutoRefresh();
-        bindLogout("logout-btn");
 
-        const [bonusRes, visitsRes] = await Promise.allSettled([
-          authFetchJson(`/bonuses/balance?clientId=${session.userId}`),
-          authFetchJson(`/visits?clientId=${session.userId}`)
-        ]);
+        const app = document.getElementById("app");
+        const CONTACT_LINKS = [
+          { key: "vk", label: "VK", url: "https://vk.com" },
+          { key: "ig", label: "IG", url: "https://instagram.com" },
+          { key: "tg", label: "TG", url: "https://t.me" },
+          { key: "mail", label: "@", url: "mailto:info@centr-radius-service.ru" },
+          { key: "phone", label: "PH", url: "tel:+78000000000" }
+        ];
 
-        if (bonusRes.status === "fulfilled") {
-          const b = bonusRes.value;
-          document.getElementById("kpi-bonus").textContent =
-            typeof b.balance === "number" ? `${b.balance} ₽` : "—";
+        let screen = "home";
+        let me = null;
+        let bonusBalance = 0;
+        let homeLoading = true;
+        let homeError = null;
+        let visits = null;
+        let visitsLoading = false;
+        let bonusHistory = null;
+        let bonusHistoryLoading = false;
+        let branches = null;
+        let branchesLoading = false;
+        let conversations = null;
+        let messages = null;
+        let activeConversationId = null;
+        let chatLoading = false;
+        let chatError = null;
+        let sendingMessage = false;
+
+        function escapeHtml(value) {
+          return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+          })[char]);
         }
 
-        if (visitsRes.status === "fulfilled" && Array.isArray(visitsRes.value) && visitsRes.value.length > 0) {
-          const visits = visitsRes.value;
-          visits.sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate));
-          const d = new Date(visits[0].visitDate);
-          document.getElementById("kpi-last-visit").textContent =
-            d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
-        } else {
-          document.getElementById("kpi-last-visit").textContent = "Визитов пока нет";
+        function money(value) {
+          return typeof value === "number" && Number.isFinite(value)
+            ? `${value.toFixed(2)} ₽`
+            : "Сумма уточняется";
         }
+
+        function formatDate(value) {
+          const date = new Date(value);
+          return Number.isNaN(date.getTime()) ? "Дата уточняется" : date.toLocaleDateString("ru-RU");
+        }
+
+        function formatDateTime(value) {
+          const date = new Date(value);
+          return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("ru-RU");
+        }
+
+        function formatTime(value) {
+          const date = new Date(value);
+          return Number.isNaN(date.getTime())
+            ? ""
+            : date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function randomId() {
+          if (typeof globalThis.crypto?.randomUUID === "function") {
+            return globalThis.crypto.randomUUID();
+          }
+          return `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+
+        function clientName() {
+          const value = me?.fullName?.trim();
+          return value && value.length > 0 ? value : session.email;
+        }
+
+        function workHoursText(value) {
+          if (!value || typeof value !== "object") return "";
+          return typeof value.text === "string" ? value.text : "";
+        }
+
+        function activeConversation() {
+          return conversations?.find((conversation) => conversation.id === activeConversationId) ?? null;
+        }
+
+        function unreadBadgeMarkup() {
+          const total = Array.isArray(conversations)
+            ? conversations.reduce((sum, conversation) => sum + Number(conversation.unreadCount || 0), 0)
+            : 0;
+          return total > 0 ? `<span class="client-chat-badge">${total}</span>` : `<span class="client-chat-badge">→</span>`;
+        }
+
+        function renderHeader() {
+          return `
+            <header class="glass card client-home-header">
+              <div>
+                <h1 class="title" style="font-size: 22px; margin-bottom: 4px;">Личный кабинет CRS</h1>
+                <p class="subtitle">${escapeHtml(session.email)}</p>
+              </div>
+              <div class="client-home-header-actions">
+                ${screen !== "home" ? '<button class="btn btn-secondary" type="button" data-action="go-home">На главную</button>' : ""}
+                <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
+              </div>
+            </header>
+          `;
+        }
+
+        function renderBrand() {
+          return `
+            <section class="glass card client-brand-card">
+              <p class="client-brand-logo">CRS</p>
+              <div>
+                <h2 class="client-brand-title">Centr Radius Service</h2>
+                <p class="client-brand-subtitle">Премиальный сервис для ежедневного сопровождения автомобиля</p>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderContacts() {
+          return `
+            <section class="client-contact-row">
+              ${CONTACT_LINKS.map(
+                (item) => `
+                  <a class="client-contact-link" href="${item.url}" target="_blank" rel="noreferrer">${item.label}</a>
+                `
+              ).join("")}
+            </section>
+          `;
+        }
+
+        function renderHero() {
+          return `
+            <section class="glass client-hero-card">
+              <div class="client-hero-frame">
+                <img class="client-hero-image" src="/assets/client-hero-car.png" alt="Автомобиль CRS" />
+                <div class="client-hero-shadow"></div>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderActions() {
+          return `
+            <section class="client-action-grid">
+              <button class="client-action-tile" type="button" data-action="open-booking">
+                Записаться
+                <span>Филиалы, контакты и быстрый маршрут</span>
+              </button>
+              <button class="client-action-tile" type="button" data-action="open-visits">
+                История посещений
+                <span>Все визиты и суммы в одном месте</span>
+              </button>
+              <button class="client-action-tile" type="button" data-action="open-bonus-history">
+                История начислений
+                <span>Начисления и списания по бонусному счёту</span>
+              </button>
+              <button class="client-action-tile" type="button" data-action="open-cashback">
+                Система кешбека
+                <span>Текущий баланс и правила использования</span>
+              </button>
+            </section>
+          `;
+        }
+
+        function renderChatCta() {
+          return `
+            <button class="client-chat-cta" type="button" data-action="open-chat">
+              <div>
+                <p class="client-chat-title">ЧАТ</p>
+                <p class="client-chat-subtitle">Быстрая связь с администратором сервиса</p>
+              </div>
+              ${unreadBadgeMarkup()}
+            </button>
+          `;
+        }
+
+        function renderBonusCard() {
+          return `
+            <section class="glass card client-bonus-card">
+              <div class="client-bonus-circle">
+                <p class="client-bonus-value">${escapeHtml(bonusBalance)}</p>
+                <p class="client-bonus-caption">бонусов</p>
+              </div>
+              <div>
+                <h2 class="client-user-name">${escapeHtml(clientName())}</h2>
+                <p class="client-user-email">${escapeHtml(me?.email ?? session.email)}</p>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderEmpty(title, description) {
+          return `
+            <section class="glass card client-empty">
+              <h3>${escapeHtml(title)}</h3>
+              <p>${escapeHtml(description)}</p>
+            </section>
+          `;
+        }
+
+        function renderLoading(text) {
+          return `<section class="glass card client-loading">${escapeHtml(text)}</section>`;
+        }
+
+        function renderHomeScreen() {
+          if (homeLoading) return renderLoading("Загружаем главный экран...");
+          if (homeError) return renderEmpty("Экран недоступен", homeError);
+          return `
+            ${renderBrand()}
+            ${renderContacts()}
+            ${renderActions()}
+            ${renderHero()}
+            ${renderChatCta()}
+            ${renderBonusCard()}
+          `;
+        }
+
+        function renderVisitsScreen() {
+          if (visitsLoading && !visits) return renderLoading("Загружаем историю посещений...");
+          if (!visits?.length) {
+            return renderEmpty("История посещений пуста", "Как только появятся визиты, они отобразятся здесь.");
+          }
+          return `
+            <section class="client-screen">
+              <div class="client-section-header">
+                <h2 class="client-section-title">История посещений</h2>
+              </div>
+              <div class="client-list">
+                ${visits.map((visit) => `
+                  <article class="glass card client-list-card">
+                    <h3 class="client-list-title">${escapeHtml(formatDate(visit.visitDate))}</h3>
+                    <p class="client-list-subtitle">${escapeHtml(visit.branchName || "Филиал автосервиса")}</p>
+                    <p class="client-list-value">${escapeHtml(money(visit.finalAmount))}</p>
+                    ${visit.comment ? `<p class="client-list-hint">${escapeHtml(visit.comment)}</p>` : ""}
+                  </article>
+                `).join("")}
+              </div>
+            </section>
+          `;
+        }
+
+        function renderBonusHistoryScreen() {
+          if (bonusHistoryLoading && !bonusHistory) return renderLoading("Загружаем историю бонусов...");
+          if (!bonusHistory?.length) {
+            return renderEmpty("История начислений пуста", "История бонусов появится после первой операции.");
+          }
+          return `
+            <section class="client-screen">
+              <div class="client-section-header">
+                <h2 class="client-section-title">История начислений</h2>
+              </div>
+              <div class="client-list">
+                ${bonusHistory.map((row) => `
+                  <article class="glass card client-list-card">
+                    <h3 class="client-list-title">${row.type === "accrual" ? "Начисление" : "Списание"}</h3>
+                    <p class="client-list-value">${escapeHtml(`${row.amount} бонусов`)}</p>
+                    <p class="client-list-subtitle">${escapeHtml(formatDateTime(row.createdAt))}</p>
+                    ${row.comment ? `<p class="client-list-hint">${escapeHtml(row.comment)}</p>` : ""}
+                  </article>
+                `).join("")}
+              </div>
+            </section>
+          `;
+        }
+
+        function renderCashbackScreen() {
+          return `
+            <section class="client-screen">
+              <div class="client-section-header">
+                <h2 class="client-section-title">Система кешбека</h2>
+              </div>
+              <article class="glass card client-list-card">
+                <h3 class="client-list-title">Текущий бонусный баланс</h3>
+                <p class="client-list-value">${escapeHtml(`${bonusBalance} бонусов`)}</p>
+                <p class="client-list-hint">Бонусы накапливаются внутри сервиса и доступны для использования в следующих визитах.</p>
+                <p class="client-list-hint">Операций в истории: ${escapeHtml(String(bonusHistory?.length ?? 0))}</p>
+              </article>
+            </section>
+          `;
+        }
+
+        function renderBookingScreen() {
+          if (branchesLoading && !branches) return renderLoading("Загружаем филиалы...");
+          if (!branches?.length) {
+            return renderEmpty("Нет доступных филиалов", "Когда филиалы станут доступны, они появятся здесь.");
+          }
+          return `
+            <section class="client-screen">
+              <div class="client-section-header">
+                <h2 class="client-section-title">Записаться</h2>
+              </div>
+              <div class="client-list">
+                ${branches.map((branch) => `
+                  <article class="glass card client-list-card">
+                    <h3 class="client-list-title">${escapeHtml(branch.name)}</h3>
+                    <p class="client-list-subtitle">${escapeHtml(branch.address)}</p>
+                    ${branch.phone ? `<p class="client-list-hint">Телефон: ${escapeHtml(branch.phone)}</p>` : ""}
+                    ${workHoursText(branch.workHours) ? `<p class="client-list-hint">График: ${escapeHtml(workHoursText(branch.workHours))}</p>` : ""}
+                    <div class="client-card-actions">
+                      ${branch.phone ? `<a class="btn btn-secondary" href="tel:${escapeHtml(branch.phone)}">Позвонить</a>` : ""}
+                      <button class="btn btn-secondary" type="button" data-action="open-chat">Написать в чат</button>
+                      <a class="btn btn-primary" target="_blank" rel="noreferrer" href="https://maps.apple.com/?ll=${encodeURIComponent(branch.lat)},${encodeURIComponent(branch.lng)}&q=${encodeURIComponent(branch.name)}">Маршрут</a>
+                    </div>
+                  </article>
+                `).join("")}
+              </div>
+            </section>
+          `;
+        }
+
+        function renderChatScreen() {
+          if (chatLoading && !messages) return renderLoading("Загружаем диалог...");
+          if (chatError) return renderEmpty("Чат недоступен", chatError);
+          if (!conversations?.length || !activeConversationId) {
+            return renderEmpty("Диалогов пока нет", "Как только администратор откроет диалог, он появится здесь.");
+          }
+
+          const tabs = conversations.map((conversation) => `
+            <button
+              class="client-chat-tab ${conversation.id === activeConversationId ? "is-active" : ""}"
+              type="button"
+              data-conversation-id="${conversation.id}"
+            >
+              Чат${conversation.unreadCount > 0 ? ` (${conversation.unreadCount})` : ""}
+            </button>
+          `).join("");
+
+          const messageMarkup = (messages ?? []).map((message) => {
+            const mine = message.senderId === session.userId;
+            return `
+              <article class="client-message ${mine ? "mine" : "other"}">
+                <p class="client-message-text">${escapeHtml(message.text || "")}</p>
+                <p class="client-message-meta">${escapeHtml(formatTime(message.createdAt))}</p>
+              </article>
+            `;
+          }).join("");
+
+          return `
+            <section class="client-screen">
+              <div class="client-section-header">
+                <h2 class="client-section-title">Чат</h2>
+              </div>
+              <div class="client-chat-tabs">${tabs}</div>
+              <section class="glass card client-chat-panel">
+                <div class="client-messages">
+                  ${messageMarkup || '<div class="client-loading">Сообщений пока нет. Начните диалог первым.</div>'}
+                </div>
+                <div class="client-chat-composer">
+                  <textarea id="chat-message-input" class="input client-chat-input" placeholder="Напишите сообщение"></textarea>
+                  <button class="btn btn-primary" type="button" id="chat-send-btn" ${sendingMessage ? "disabled" : ""}>
+                    ${sendingMessage ? "Отправка..." : "Отправить"}
+                  </button>
+                </div>
+              </section>
+            </section>
+          `;
+        }
+
+        function renderCurrentScreen() {
+          if (screen === "visits") return renderVisitsScreen();
+          if (screen === "bonus-history") return renderBonusHistoryScreen();
+          if (screen === "cashback") return renderCashbackScreen();
+          if (screen === "booking") return renderBookingScreen();
+          if (screen === "chat") return renderChatScreen();
+          return renderHomeScreen();
+        }
+
+        function renderApp() {
+          app.innerHTML = `
+            ${renderHeader()}
+            ${renderCurrentScreen()}
+          `;
+
+          bindLogout("logout-btn");
+          app.querySelector('[data-action="go-home"]')?.addEventListener("click", () => {
+            screen = "home";
+            renderApp();
+          });
+
+          app.querySelectorAll('[data-action="open-booking"]').forEach((element) => {
+            element.addEventListener("click", async () => {
+              await ensureBranchesLoaded();
+              screen = "booking";
+              renderApp();
+            });
+          });
+
+          app.querySelectorAll('[data-action="open-visits"]').forEach((element) => {
+            element.addEventListener("click", async () => {
+              await ensureVisitsLoaded();
+              screen = "visits";
+              renderApp();
+            });
+          });
+
+          app.querySelectorAll('[data-action="open-bonus-history"]').forEach((element) => {
+            element.addEventListener("click", async () => {
+              await ensureBonusHistoryLoaded();
+              screen = "bonus-history";
+              renderApp();
+            });
+          });
+
+          app.querySelectorAll('[data-action="open-cashback"]').forEach((element) => {
+            element.addEventListener("click", async () => {
+              await ensureBonusHistoryLoaded();
+              screen = "cashback";
+              renderApp();
+            });
+          });
+
+          app.querySelectorAll('[data-action="open-chat"]').forEach((element) => {
+            element.addEventListener("click", async () => {
+              await ensureChatLoaded();
+              screen = "chat";
+              renderApp();
+            });
+          });
+
+          app.querySelectorAll("[data-conversation-id]").forEach((element) => {
+            element.addEventListener("click", async () => {
+              const conversationId = element.getAttribute("data-conversation-id");
+              if (!conversationId || conversationId === activeConversationId) return;
+              await openConversation(conversationId);
+              renderApp();
+            });
+          });
+
+          const sendButton = document.getElementById("chat-send-btn");
+          const messageInput = document.getElementById("chat-message-input");
+          if (sendButton && messageInput) {
+            sendButton.addEventListener("click", async () => {
+              await sendMessage();
+            });
+            messageInput.addEventListener("keydown", async (event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                await sendMessage();
+              }
+            });
+          }
+        }
+
+        async function loadHome() {
+          homeLoading = true;
+          homeError = null;
+          renderApp();
+          try {
+            const [mePayload, bonusPayload] = await Promise.all([
+              authFetchJson("/users/me"),
+              authFetchJson(`/bonuses/balance?client_id=${encodeURIComponent(session.userId)}`)
+            ]);
+            me = mePayload;
+            bonusBalance = typeof bonusPayload.balance === "number" ? bonusPayload.balance : 0;
+          } catch (error) {
+            homeError = error instanceof Error ? error.message : "Не удалось загрузить данные клиента.";
+          } finally {
+            homeLoading = false;
+            renderApp();
+          }
+        }
+
+        async function ensureVisitsLoaded() {
+          if (visits || visitsLoading) return;
+          visitsLoading = true;
+          renderApp();
+          try {
+            visits = await authFetchJson(`/visits?clientId=${encodeURIComponent(session.userId)}`);
+          } catch (error) {
+            visits = [];
+            homeError = homeError || (error instanceof Error ? error.message : "Не удалось загрузить визиты.");
+          } finally {
+            visitsLoading = false;
+          }
+        }
+
+        async function ensureBonusHistoryLoaded() {
+          if (bonusHistory || bonusHistoryLoading) return;
+          bonusHistoryLoading = true;
+          renderApp();
+          try {
+            bonusHistory = await authFetchJson(`/bonuses/history?client_id=${encodeURIComponent(session.userId)}`);
+          } catch (error) {
+            bonusHistory = [];
+            homeError = homeError || (error instanceof Error ? error.message : "Не удалось загрузить бонусы.");
+          } finally {
+            bonusHistoryLoading = false;
+          }
+        }
+
+        async function ensureBranchesLoaded() {
+          if (branches || branchesLoading) return;
+          branchesLoading = true;
+          renderApp();
+          try {
+            const payload = await authFetchJson("/branches");
+            branches = Array.isArray(payload) ? payload.filter((branch) => branch.isActive !== false) : [];
+          } catch (error) {
+            branches = [];
+            homeError = homeError || (error instanceof Error ? error.message : "Не удалось загрузить филиалы.");
+          } finally {
+            branchesLoading = false;
+          }
+        }
+
+        async function ensureChatLoaded() {
+          if (conversations || chatLoading) return;
+          chatLoading = true;
+          chatError = null;
+          renderApp();
+          try {
+            conversations = await authFetchJson("/chat/conversations");
+            if (conversations.length > 0) {
+              await openConversation(conversations[0].id);
+            } else {
+              activeConversationId = null;
+              messages = [];
+            }
+          } catch (error) {
+            chatError = error instanceof Error ? error.message : "Не удалось загрузить чат.";
+          } finally {
+            chatLoading = false;
+          }
+        }
+
+        async function openConversation(conversationId) {
+          activeConversationId = conversationId;
+          chatLoading = true;
+          chatError = null;
+          renderApp();
+          try {
+            messages = await authFetchJson(`/chat/conversations/${encodeURIComponent(conversationId)}/messages`);
+          } catch (error) {
+            chatError = error instanceof Error ? error.message : "Не удалось открыть диалог.";
+          } finally {
+            chatLoading = false;
+          }
+        }
+
+        async function refreshConversations() {
+          conversations = await authFetchJson("/chat/conversations");
+          if (!activeConversationId && conversations.length > 0) {
+            activeConversationId = conversations[0].id;
+          }
+        }
+
+        async function sendMessage() {
+          const input = document.getElementById("chat-message-input");
+          const text = input?.value?.trim() ?? "";
+          if (!text || !activeConversationId || sendingMessage) return;
+          sendingMessage = true;
+          renderApp();
+          try {
+            await authFetchJson(`/chat/conversations/${encodeURIComponent(activeConversationId)}/messages`, {
+              method: "POST",
+              body: {
+                clientMessageId: randomId(),
+                text
+              }
+            });
+            await refreshConversations();
+            await openConversation(activeConversationId);
+          } catch (error) {
+            chatError = error instanceof Error ? error.message : "Не удалось отправить сообщение.";
+          } finally {
+            sendingMessage = false;
+            renderApp();
+          }
+        }
+
+        renderApp();
+        void loadHome();
       }
     </script>
   </body>
