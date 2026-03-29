@@ -16,3 +16,12 @@ export function readAccessTokenFromBridge(): string {
   return globalThis.__AUTOSERVICE_ACCESS_TOKEN__ ?? globalThis.__AUTOSERVICE_AUTH_SESSION__?.token ?? "";
 }
 
+export function writeSessionToBridge(session: AuthSession | null, accessToken?: string) {
+  globalThis.__AUTOSERVICE_AUTH_SESSION__ = session ?? undefined;
+  globalThis.__AUTOSERVICE_ACCESS_TOKEN__ = accessToken ?? session?.token ?? undefined;
+}
+
+export function clearSessionBridge() {
+  globalThis.__AUTOSERVICE_AUTH_SESSION__ = undefined;
+  globalThis.__AUTOSERVICE_ACCESS_TOKEN__ = undefined;
+}
