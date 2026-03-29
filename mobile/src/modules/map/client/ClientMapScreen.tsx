@@ -1,6 +1,7 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
+import { ru } from "../../../shared/i18n/ru";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
 import { BranchBottomSheet } from "./BranchBottomSheet";
@@ -33,17 +34,17 @@ export function ClientMapScreen(props: Props) {
       <GlassCard style={styles.metaCard}>
         <StatusBadge
           status={vm.state.source === "network" ? "success" : "warning"}
-          label={`Источник: ${vm.state.source === "network" ? "сеть" : "кеш"}`}
+          label={`${ru.map.sourceLabel}: ${vm.state.source === "network" ? ru.map.sourceNetwork : ru.map.sourceCache}`}
         />
         {vm.state.tilePack ? (
           <StatusBadge
             status={vm.state.tilePack.status === "ready" ? "success" : vm.state.tilePack.status === "failed" ? "error" : "warning"}
-            label={`Плитки: ${
+            label={`${ru.map.tilesLabel}: ${
               vm.state.tilePack.status === "ready"
-                ? "готовы"
+                ? ru.map.tilesReady
                 : vm.state.tilePack.status === "failed"
-                  ? "ошибка"
-                  : "загружаются"
+                  ? ru.map.tilesFailed
+                  : ru.map.tilesLoading
             }`}
           />
         ) : null}

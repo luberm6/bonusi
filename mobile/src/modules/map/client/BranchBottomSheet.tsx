@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, PanResponder, StyleSheet, Text, View } from "react-native";
 import type { BranchMapItem } from "../../../shared/types/map";
 import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
+import { ru } from "../../../shared/i18n/ru";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { fireHaptic } from "../../../shared/native/haptics";
@@ -75,19 +76,19 @@ export function BranchBottomSheet(props: Props) {
         <View style={styles.handle} />
         <Text style={styles.title}>{branch.name}</Text>
         <Text style={styles.address}>{branch.address}</Text>
-        {branch.phone ? <Text style={styles.meta}>Телефон: {branch.phone}</Text> : null}
+        {branch.phone ? <Text style={styles.meta}>{ru.map.phoneLabel}: {branch.phone}</Text> : null}
         {branch.description ? <Text style={styles.meta}>{branch.description}</Text> : null}
         <View style={styles.actions}>
-          <AppButton label="Маршрут" onPress={() => props.onRoutePress(branch)} style={styles.actionButton} haptic="impactLight" />
+          <AppButton label={ru.map.route} onPress={() => props.onRoutePress(branch)} style={styles.actionButton} haptic="impactLight" />
           <AppButton
-            label="Позвонить"
+            label={ru.map.call}
             variant="secondary"
             onPress={() => props.onCallPress(branch)}
             style={styles.actionButton}
             haptic="impactLight"
           />
           <AppButton
-            label="Написать"
+            label={ru.map.write}
             variant="secondary"
             onPress={() => props.onChatPress(branch)}
             style={styles.actionButton}

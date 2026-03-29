@@ -1,0 +1,49 @@
+export const ru = {
+  map: {
+    branchesTitle: "Филиалы",
+    openMap: "Открыть карту",
+    tapMarkerHint: "Нажмите на маркер, чтобы открыть детали филиала",
+    sourceLabel: "Источник",
+    sourceNetwork: "сеть",
+    sourceCache: "кеш",
+    tilesLabel: "Плитки",
+    tilesReady: "готовы",
+    tilesFailed: "ошибка",
+    tilesLoading: "загружаются",
+    phoneLabel: "Телефон",
+    route: "Маршрут",
+    call: "Позвонить",
+    write: "Написать",
+    mapCount: "Филиалов",
+    markerLabel: "Маркер",
+    mapNote: "Карта готова к замене внутренней реализации на нативные MapLibre-компоненты."
+  },
+  navigation: {
+    buildRouteTitle: "Построить маршрут",
+    chooseNavigator: "Выберите навигатор",
+    cancel: "Отмена"
+  },
+  branchAdmin: {
+    detailsTitle: "Данные филиала",
+    mapPlacementTitle: "Точка на карте",
+    contactsTitle: "Контакты",
+    name: "Название",
+    address: "Адрес",
+    phone: "Телефон",
+    description: "Описание",
+    active: "Активен",
+    createBranch: "Создать филиал",
+    saveBranch: "Сохранить филиал",
+    findOnMap: "Найти на карте",
+    coordinates: "Координаты",
+    coordinatesMissing: "Координаты не выбраны",
+    branchLoadFailed: "Не удалось загрузить филиалы",
+    geocodeFailed: "Не удалось определить координаты",
+    saveFailed: "Не удалось сохранить филиал",
+    activeStatus: "Активен",
+    inactiveStatus: "Неактивен",
+    coordinatesRequired: "Координаты обязательны",
+    nameRequired: "Название обязательно",
+    addressRequired: "Адрес обязателен"
+  }
+} as const;

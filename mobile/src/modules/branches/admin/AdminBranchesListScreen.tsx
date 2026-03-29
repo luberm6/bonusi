@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import type { BranchMapItem } from "../../../shared/types/map";
 import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
+import { ru } from "../../../shared/i18n/ru";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 import { StatusBadge } from "../../../shared/ui/StatusBadge";
@@ -29,7 +30,7 @@ export function AdminBranchesListScreen(props: Props) {
         setBranches(rows);
       } catch (e) {
         if (!mounted) return;
-        setError(e instanceof Error ? e.message : "Не удалось загрузить филиалы");
+        setError(e instanceof Error ? e.message : ru.branchAdmin.branchLoadFailed);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -43,7 +44,7 @@ export function AdminBranchesListScreen(props: Props) {
 
   return (
     <View style={styles.screen}>
-      <AppButton label="Создать филиал" onPress={props.onCreateBranch} />
+      <AppButton label={ru.branchAdmin.createBranch} onPress={props.onCreateBranch} />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         data={branches}
@@ -53,7 +54,10 @@ export function AdminBranchesListScreen(props: Props) {
             <GlassCard style={styles.row}>
               <View style={styles.rowHeader}>
                 <Text style={styles.name}>{item.name}</Text>
-                <StatusBadge status={item.isActive ? "success" : "warning"} label={item.isActive ? "Активен" : "Неактивен"} />
+                <StatusBadge
+                  status={item.isActive ? "success" : "warning"}
+                  label={item.isActive ? ru.branchAdmin.activeStatus : ru.branchAdmin.inactiveStatus}
+                />
               </View>
               <Text style={styles.meta}>{item.address}</Text>
               <Text style={styles.meta}>

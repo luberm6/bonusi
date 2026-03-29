@@ -1,4 +1,5 @@
 import { Alert, Linking, Platform } from "react-native";
+import { ru } from "../i18n/ru";
 import type { NavigatorApp, NavigatorPicker, UrlLauncher } from "./navigation-handoff";
 
 export class ReactNativeUrlLauncher implements UrlLauncher {
@@ -23,14 +24,14 @@ export class AlertNavigatorPicker implements NavigatorPicker {
     if (!options.length) return null;
     return new Promise((resolve) => {
       Alert.alert(
-        "Построить маршрут",
-        "Выберите навигатор",
+        ru.navigation.buildRouteTitle,
+        ru.navigation.chooseNavigator,
         [
           ...options.map((o) => ({
             text: o.label,
             onPress: () => resolve(o.app)
           })),
-          { text: "Отмена", style: "cancel", onPress: () => resolve(null) }
+          { text: ru.navigation.cancel, style: "cancel", onPress: () => resolve(null) }
         ],
         { cancelable: true, onDismiss: () => resolve(null) }
       );
@@ -44,7 +45,7 @@ export class WebPromptNavigatorPicker implements NavigatorPicker {
     if (!options.length) return null;
     if (options.length === 1) return options[0].app;
     const labels = options.map((o, i) => `${i + 1}. ${o.label}`).join("\n");
-    const answer = window.prompt(`Выберите навигатор:\n${labels}`, "1");
+    const answer = window.prompt(`${ru.navigation.chooseNavigator}:\n${labels}`, "1");
     if (!answer) return null;
     const idx = Number(answer) - 1;
     return options[idx]?.app ?? null;

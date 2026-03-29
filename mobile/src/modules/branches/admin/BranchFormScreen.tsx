@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import type { BranchMapItem } from "../../../shared/types/map";
 import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
+import { ru } from "../../../shared/i18n/ru";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { AppInput } from "../../../shared/ui/AppInput";
 import { GlassCard } from "../../../shared/ui/GlassCard";
@@ -34,7 +35,7 @@ export function BranchFormScreen(props: Props) {
         lng: geo.lng
       }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Не удалось определить координаты");
+      setError(e instanceof Error ? e.message : ru.branchAdmin.geocodeFailed);
     }
   }
 
@@ -44,21 +45,21 @@ export function BranchFormScreen(props: Props) {
       const saved = await vm.save(state, props.initialBranch);
       props.onSaved(saved);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Не удалось сохранить филиал");
+      setError(e instanceof Error ? e.message : ru.branchAdmin.saveFailed);
     }
   }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <GlassCard style={styles.card} elevated animated>
-        <Text style={styles.sectionTitle}>Данные филиала</Text>
-        <AppInput label="Название" value={state.name} onChangeText={(v) => setState((s) => ({ ...s, name: v }))} />
-        <AppInput label="Адрес" value={state.address} onChangeText={(v) => setState((s) => ({ ...s, address: v }))} />
-        <AppButton label="Найти на карте" variant="secondary" onPress={onFindOnMap} />
+        <Text style={styles.sectionTitle}>{ru.branchAdmin.detailsTitle}</Text>
+        <AppInput label={ru.branchAdmin.name} value={state.name} onChangeText={(v) => setState((s) => ({ ...s, name: v }))} />
+        <AppInput label={ru.branchAdmin.address} value={state.address} onChangeText={(v) => setState((s) => ({ ...s, address: v }))} />
+        <AppButton label={ru.branchAdmin.findOnMap} variant="secondary" onPress={onFindOnMap} />
       </GlassCard>
 
       <GlassCard style={styles.card} elevated>
-        <Text style={styles.sectionTitle}>Точка на карте</Text>
+        <Text style={styles.sectionTitle}>{ru.branchAdmin.mapPlacementTitle}</Text>
         <MapLibreMap
           branches={[]}
           editableMarker={marker}
@@ -66,16 +67,16 @@ export function BranchFormScreen(props: Props) {
         />
         <Text style={styles.coords}>
           {state.lat !== null && state.lng !== null
-            ? `Координаты: ${state.lat.toFixed(6)}, ${state.lng.toFixed(6)}`
-            : "Координаты не выбраны"}
+            ? `${ru.branchAdmin.coordinates}: ${state.lat.toFixed(6)}, ${state.lng.toFixed(6)}`
+            : ru.branchAdmin.coordinatesMissing}
         </Text>
       </GlassCard>
 
       <GlassCard style={styles.card} elevated>
-        <Text style={styles.sectionTitle}>Контакты</Text>
-        <AppInput label="Телефон" value={state.phone} onChangeText={(v) => setState((s) => ({ ...s, phone: v }))} />
+        <Text style={styles.sectionTitle}>{ru.branchAdmin.contactsTitle}</Text>
+        <AppInput label={ru.branchAdmin.phone} value={state.phone} onChangeText={(v) => setState((s) => ({ ...s, phone: v }))} />
         <AppInput
-          label="Описание"
+          label={ru.branchAdmin.description}
           multiline
           numberOfLines={4}
           style={styles.textarea}
@@ -83,11 +84,11 @@ export function BranchFormScreen(props: Props) {
           onChangeText={(v) => setState((s) => ({ ...s, description: v }))}
         />
         <View style={styles.switchRow}>
-          <Text style={styles.label}>Активен</Text>
+          <Text style={styles.label}>{ru.branchAdmin.active}</Text>
           <Switch value={state.isActive} onValueChange={(v) => setState((s) => ({ ...s, isActive: v }))} />
         </View>
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        <AppButton label="Сохранить филиал" onPress={onSave} />
+        <AppButton label={ru.branchAdmin.saveBranch} onPress={onSave} />
       </GlassCard>
     </ScrollView>
   );

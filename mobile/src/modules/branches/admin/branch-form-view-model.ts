@@ -1,5 +1,6 @@
 import type { BranchMapItem } from "../../../shared/types/map";
 import { BranchesApi } from "../../../shared/api/branches-api";
+import { ru } from "../../../shared/i18n/ru";
 
 export type BranchFormState = {
   name: string;
@@ -56,10 +57,10 @@ export class BranchFormViewModel {
 
   async save(state: BranchFormState, existing?: BranchMapItem): Promise<BranchMapItem> {
     if (state.lat === null || state.lng === null) {
-      throw new Error("Coordinates are required");
+      throw new Error(ru.branchAdmin.coordinatesRequired);
     }
-    if (!state.name.trim()) throw new Error("Name is required");
-    if (!state.address.trim()) throw new Error("Address is required");
+    if (!state.name.trim()) throw new Error(ru.branchAdmin.nameRequired);
+    if (!state.address.trim()) throw new Error(ru.branchAdmin.addressRequired);
 
     const payload = {
       name: state.name.trim(),

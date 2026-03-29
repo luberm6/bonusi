@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { BranchMapItem } from "../../../shared/types/map";
 import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
+import { ru } from "../../../shared/i18n/ru";
 
 type Props = {
   branches: BranchMapItem[];
@@ -19,13 +20,13 @@ export function MapLibreMap(props: Props) {
   return (
     <View style={[styles.container, compact ? styles.compact : styles.full]}>
       <Text style={styles.title}>OSM / MapLibre</Text>
-      <Text style={styles.caption}>Филиалов: {branches.length}</Text>
+      <Text style={styles.caption}>{ru.map.mapCount}: {branches.length}</Text>
       {editableMarker ? (
         <Text style={styles.caption}>
-          Маркер: {editableMarker.lat.toFixed(5)}, {editableMarker.lng.toFixed(5)}
+          {ru.map.markerLabel}: {editableMarker.lat.toFixed(5)}, {editableMarker.lng.toFixed(5)}
         </Text>
       ) : null}
-      <Text style={styles.note}>Карта готова к замене внутренней реализации на нативные MapLibre-компоненты.</Text>
+      <Text style={styles.note}>{ru.map.mapNote}</Text>
     </View>
   );
 }
