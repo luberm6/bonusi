@@ -48,6 +48,13 @@ async function run() {
   const suffix = Date.now();
 
   const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.60.0.1", "Demo Flow Super");
+  const bonusSettings = await request("/bonus-settings", {
+    method: "PUT",
+    token: superAccess,
+    body: { accrualMode: "percentage", percentageValue: 5, fixedValue: null }
+  });
+  assert(bonusSettings.status === 200, `bonus settings update failed: ${bonusSettings.status}`);
+  report.push(`bonus_settings_percentage=${bonusSettings.status}`);
 
   const adminEmail = `demo-admin-${suffix}@example.com`;
   const clientEmail = `demo-client-${suffix}@example.com`;
@@ -128,6 +135,7 @@ async function run() {
   });
   assert(visitCreate.status === 201, `visit create failed: ${visitCreate.status}`);
   const visitId = visitCreate.json.id;
+  assert(visitCreate.json.bonusAccrualAmount === 6, `expected auto bonus accrual 6, got ${visitCreate.json.bonusAccrualAmount}`);
   report.push(`visit_create=${visitCreate.status}`);
 
   const accrual = await request("/bonuses/accrual", {
@@ -141,14 +149,14 @@ async function run() {
     }
   });
   assert(accrual.status === 201, `bonus accrual failed: ${accrual.status}`);
-  assert(Math.abs(accrual.json.balance - 100) < 0.001, `expected bonus balance 100, got ${accrual.json.balance}`);
+  assert(Math.abs(accrual.json.balance - 106) < 0.001, `expected bonus balance 106, got ${accrual.json.balance}`);
   report.push(`bonus_accrual=${accrual.status}`);
 
   const clientAccess = await login(clientEmail, "Passw0rd123", "10.60.0.3", "Demo Flow Client");
 
   const clientBalance = await request("/bonuses/balance", { token: clientAccess });
   assert(clientBalance.status === 200, `client balance failed: ${clientBalance.status}`);
-  assert(Math.abs(clientBalance.json.balance - 100) < 0.001, `client sees wrong balance ${clientBalance.json.balance}`);
+  assert(Math.abs(clientBalance.json.balance - 106) < 0.001, `client sees wrong balance ${clientBalance.json.balance}`);
   report.push(`client_balance=${clientBalance.status}`);
 
   const clientVisits = await request("/visits", { token: clientAccess });
@@ -206,7 +214,7 @@ async function run() {
      where created_at > now() - interval '20 minutes'
        and (
         entity_id = any($1::text[])
-         or action in ('service.create', 'visit.create', 'bonus.accrual')
+         or action in ('service.create', 'visit.create', 'bonus.accrual', 'bonus.accrual.auto')
        )
      group by action
      order by action`,
@@ -217,8 +225,9 @@ async function run() {
   assert((audit["service.create"] ?? 0) >= 1, "missing service.create audit in full flow");
   assert((audit["visit.create"] ?? 0) >= 1, "missing visit.create audit in full flow");
   assert((audit["bonus.accrual"] ?? 0) >= 1, "missing bonus.accrual audit in full flow");
+  assert((audit["bonus.accrual.auto"] ?? 0) >= 1, "missing bonus.accrual.auto audit in full flow");
   report.push(
-    `audit_ok=user.create:${audit["user.create"] ?? 0},service.create:${audit["service.create"] ?? 0},visit.create:${audit["visit.create"] ?? 0},bonus.accrual:${audit["bonus.accrual"] ?? 0}`
+    `audit_ok=user.create:${audit["user.create"] ?? 0},service.create:${audit["service.create"] ?? 0},visit.create:${audit["visit.create"] ?? 0},bonus.accrual:${audit["bonus.accrual"] ?? 0},bonus.accrual.auto:${audit["bonus.accrual.auto"] ?? 0}`
   );
 
   console.log(report.join("\n"));

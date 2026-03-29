@@ -51,6 +51,13 @@ async function run() {
   const suffix = Date.now();
 
   const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.30.0.1");
+  const bonusSettings = await request("/bonus-settings", {
+    method: "PUT",
+    token: superAccess,
+    body: { accrualMode: "percentage", percentageValue: 5, fixedValue: null }
+  });
+  assert(bonusSettings.status === 200, `bonus settings update failed: ${bonusSettings.status}`);
+  report.push(`bonus_settings_percentage=${bonusSettings.status}`);
 
   const visitClientEmail = `visit-client-${suffix}@example.com`;
   const createClient = await request("/users", {
@@ -149,6 +156,7 @@ async function run() {
   assert(Math.abs(visit.totalAmount - 275) < 0.001, `totalAmount expected 275, got ${visit.totalAmount}`);
   assert(Math.abs(visit.finalAmount - 250) < 0.001, `finalAmount expected 250, got ${visit.finalAmount}`);
   assert(Math.abs(visit.discountAmount - 25) < 0.001, `discountAmount expected 25, got ${visit.discountAmount}`);
+  assert(visit.bonusAccrualAmount === 12, `bonusAccrualAmount expected 12, got ${visit.bonusAccrualAmount}`);
   report.push(`visit_amounts_ok=true`);
 
   const snapshotNames = visit.services.map((s) => s.serviceNameSnapshot);
@@ -196,10 +204,22 @@ async function run() {
   assert(badDiscount.status === 400, `discount guard should fail with 400, got ${badDiscount.status}`);
   report.push(`visit_discount_guard=${badDiscount.status}`);
 
+  const bonusBalance = await request(`/bonuses/balance?client_id=${clientId}`, { token: superAccess });
+  assert(bonusBalance.status === 200, `bonus balance failed: ${bonusBalance.status}`);
+  assert(Math.abs(bonusBalance.json.balance - 12) < 0.001, `expected auto bonus balance 12, got ${bonusBalance.json.balance}`);
+
+  const bonusHistory = await request(`/bonuses/history?client_id=${clientId}`, { token: superAccess });
+  assert(bonusHistory.status === 200, `bonus history failed: ${bonusHistory.status}`);
+  assert(
+    bonusHistory.json.some((tx) => tx.type === "accrual" && tx.isAuto === true && Number(tx.amount) === 12 && tx.visitId === visit.id),
+    "auto accrual history entry missing"
+  );
+  report.push(`visit_auto_bonus_ok=true`);
+
   const auditRows = await pool.query(
     `select action, count(*)::int as cnt
      from public.audit_logs
-     where action in ('service.create','service.update','visit.create')
+     where action in ('service.create','service.update','visit.create','bonus.accrual.auto')
        and created_at > now() - interval '20 minutes'
      group by action order by action`
   );
@@ -207,8 +227,9 @@ async function run() {
   assert((audit["service.create"] ?? 0) >= 2, "missing service.create audit");
   assert((audit["service.update"] ?? 0) >= 1, "missing service.update audit");
   assert((audit["visit.create"] ?? 0) >= 1, "missing visit.create audit");
+  assert((audit["bonus.accrual.auto"] ?? 0) >= 1, "missing bonus.accrual.auto audit");
   report.push(
-    `audit_service_create=${audit["service.create"] ?? 0},audit_service_update=${audit["service.update"] ?? 0},audit_visit_create=${audit["visit.create"] ?? 0}`
+    `audit_service_create=${audit["service.create"] ?? 0},audit_service_update=${audit["service.update"] ?? 0},audit_visit_create=${audit["visit.create"] ?? 0},audit_bonus_auto=${audit["bonus.accrual.auto"] ?? 0}`
   );
 
   console.log(report.join("\n"));

@@ -2,6 +2,8 @@ import type { PoolClient } from "pg";
 import { pool } from "../../common/db/pool.js";
 import { HttpError } from "../../common/http/error.js";
 import type { AuthenticatedUser } from "../../common/types/auth.js";
+import { getActiveBonusSettings, calculateAccrualBonus } from "../bonus-settings/bonus-settings.service.js";
+import { insertBonusTx } from "../bonuses/bonuses.service.js";
 import { logAudit } from "../audit/audit.service.js";
 import type { CreateVisitDto, VisitsFilterDto } from "./visits.dto.js";
 
@@ -129,6 +131,7 @@ export async function createVisit(actor: AuthenticatedUser, dto: CreateVisitDto)
       [dto.clientId, actor.id, dto.branchId, dto.visitDate, totalAmount, discountAmount, finalAmount, dto.comment ?? null]
     );
     const visit = insertedVisit.rows[0] as VisitRow;
+    const bonusSettings = await getActiveBonusSettings(client);
 
     for (const item of preparedItems) {
       await client.query(
@@ -137,6 +140,34 @@ export async function createVisit(actor: AuthenticatedUser, dto: CreateVisitDto)
          values ($1, $2, $3, $4, $5)`,
         [visit.id, item.serviceId, item.serviceNameSnapshot, item.price, item.quantity]
       );
+    }
+
+    const bonusAccrualAmount = calculateAccrualBonus(finalAmount, bonusSettings);
+    if (bonusAccrualAmount > 0) {
+      const autoAccrual = await insertBonusTx(client, {
+        clientId: dto.clientId,
+        adminId: actor.id,
+        visitId: visit.id,
+        type: "accrual",
+        amount: bonusAccrualAmount,
+        comment: `Автоматическое начисление за визит #${visit.id.slice(0, 8)}`,
+        isAuto: true
+      });
+
+      await logAudit({
+        actorUserId: actor.id,
+        action: "bonus.accrual.auto",
+        entityType: "bonus_transactions",
+        entityId: autoAccrual.id,
+        payload: {
+          clientId: dto.clientId,
+          visitId: visit.id,
+          amount: bonusAccrualAmount,
+          finalAmount,
+          settings: bonusSettings
+        },
+        client
+      });
     }
 
     await logAudit({
@@ -156,9 +187,12 @@ export async function createVisit(actor: AuthenticatedUser, dto: CreateVisitDto)
     });
 
     await client.query("commit");
-    return await getVisitById(actor, visit.id);
+    return { ...(await getVisitById(actor, visit.id)), bonusAccrualAmount };
   } catch (error) {
     await client.query("rollback");
+    if ((error as { code?: string }).code === "23505") {
+      throw new HttpError(409, "Automatic bonus accrual was already created for this visit");
+    }
     throw error;
   } finally {
     client.release();

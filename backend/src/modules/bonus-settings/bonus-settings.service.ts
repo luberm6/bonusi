@@ -70,6 +70,11 @@ export async function getBonusSettings(actor: AuthenticatedUser) {
   return toView(row);
 }
 
+export async function getActiveBonusSettings(client?: PoolClient) {
+  const row = await getActiveRow(client);
+  return toView(row);
+}
+
 export async function updateBonusSettings(actor: AuthenticatedUser, dto: BonusSettingsDto) {
   assertManagePermission(actor);
   const client = await pool.connect();

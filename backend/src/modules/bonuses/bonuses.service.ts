@@ -13,6 +13,7 @@ type BonusRow = {
   type: "accrual" | "writeoff";
   amount: string;
   comment: string | null;
+  is_auto: boolean;
   created_at: Date;
 };
 
@@ -25,6 +26,7 @@ function toBonusView(row: BonusRow) {
     type: row.type,
     amount: Number(row.amount),
     comment: row.comment,
+    isAuto: row.is_auto,
     createdAt: row.created_at
   };
 }
@@ -80,7 +82,7 @@ async function getBalanceInternal(client: PoolClient, clientId: string): Promise
   return Number(result.rows[0].balance);
 }
 
-async function insertBonusTx(
+export async function insertBonusTx(
   client: PoolClient,
   input: {
     clientId: string;
@@ -89,14 +91,23 @@ async function insertBonusTx(
     type: "accrual" | "writeoff";
     amount: number;
     comment?: string | null;
+    isAuto?: boolean;
   }
 ) {
   const inserted = await client.query(
     `insert into public.bonus_transactions
-     (client_id, admin_id, visit_id, type, amount, comment)
-     values ($1, $2, $3, $4, $5, $6)
-     returning id, client_id, admin_id, visit_id, type, amount, comment, created_at`,
-    [input.clientId, input.adminId, input.visitId ?? null, input.type, input.amount, input.comment ?? null]
+     (client_id, admin_id, visit_id, type, amount, comment, is_auto)
+     values ($1, $2, $3, $4, $5, $6, $7)
+     returning id, client_id, admin_id, visit_id, type, amount, comment, is_auto, created_at`,
+    [
+      input.clientId,
+      input.adminId,
+      input.visitId ?? null,
+      input.type,
+      input.amount,
+      input.comment ?? null,
+      input.isAuto ?? false
+    ]
   );
   return inserted.rows[0] as BonusRow;
 }
@@ -231,7 +242,7 @@ export async function getHistory(actor: AuthenticatedUser, clientId: string) {
     clientCanView(actor, clientId);
   }
   const result = await pool.query(
-    `select id, client_id, admin_id, visit_id, type, amount, comment, created_at
+    `select id, client_id, admin_id, visit_id, type, amount, comment, is_auto, created_at
      from public.bonus_transactions
      where client_id = $1
      order by created_at desc, id desc`,

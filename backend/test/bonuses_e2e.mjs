@@ -47,6 +47,13 @@ async function run() {
   const suffix = Date.now();
 
   const superAccess = await login("superadmin@example.com", "Passw0rd123", "10.40.0.1");
+  const bonusSettings = await request("/bonus-settings", {
+    method: "PUT",
+    token: superAccess,
+    body: { accrualMode: "percentage", percentageValue: 5, fixedValue: null }
+  });
+  assert(bonusSettings.status === 200, `bonus settings update failed: ${bonusSettings.status}`);
+  report.push(`bonus_settings_percentage=${bonusSettings.status}`);
   const bonusClientEmail = `bonus-client-${suffix}@example.com`;
   const createClient = await request("/users", {
     method: "POST",
@@ -113,7 +120,7 @@ async function run() {
     }
   });
   assert(accrual.status === 201, `accrual failed: ${accrual.status}`);
-  assert(Math.abs(accrual.json.balance - 100) < 0.001, `balance after accrual expected 100 got ${accrual.json.balance}`);
+  assert(Math.abs(accrual.json.balance - 106) < 0.001, `balance after accrual expected 106 got ${accrual.json.balance}`);
   report.push(`bonus_accrual=${accrual.status}`);
 
   const writeoff = await request("/bonuses/writeoff", {
@@ -127,7 +134,7 @@ async function run() {
     }
   });
   assert(writeoff.status === 201, `writeoff failed: ${writeoff.status}`);
-  assert(Math.abs(writeoff.json.balance - 70) < 0.001, `balance after writeoff expected 70 got ${writeoff.json.balance}`);
+  assert(Math.abs(writeoff.json.balance - 76) < 0.001, `balance after writeoff expected 76 got ${writeoff.json.balance}`);
   report.push(`bonus_writeoff=${writeoff.status}`);
 
   const overWriteoff = await request("/bonuses/writeoff", {
@@ -144,14 +151,15 @@ async function run() {
 
   const balance = await request(`/bonuses/balance?client_id=${clientId}`, { token: superAccess });
   assert(balance.status === 200, `balance endpoint failed: ${balance.status}`);
-  assert(Math.abs(balance.json.balance - 70) < 0.001, `balance endpoint expected 70 got ${balance.json.balance}`);
+  assert(Math.abs(balance.json.balance - 76) < 0.001, `balance endpoint expected 76 got ${balance.json.balance}`);
   report.push(`bonus_balance=${balance.status}`);
 
   const history = await request(`/bonuses/history?client_id=${clientId}`, { token: superAccess });
   assert(history.status === 200, `history failed: ${history.status}`);
   const hasAccrual = history.json.some((tx) => tx.type === "accrual" && Number(tx.amount) === 100);
   const hasWriteoff = history.json.some((tx) => tx.type === "writeoff" && Number(tx.amount) === 30);
-  assert(hasAccrual && hasWriteoff, "history does not include expected operations");
+  const hasAutoAccrual = history.json.some((tx) => tx.type === "accrual" && tx.isAuto === true && Number(tx.amount) === 6);
+  assert(hasAccrual && hasWriteoff && hasAutoAccrual, "history does not include expected operations");
   report.push(`bonus_history=${history.status}`);
 
   const clientBalanceOwn = await request("/bonuses/balance", { token: clientAccess });
