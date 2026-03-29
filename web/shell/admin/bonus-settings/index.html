@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autoservice | Настройки бонусов</title>
+    <script src="/assets/config.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <style>
+      .bonus-settings-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+      .bonus-settings-note { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+      .bonus-settings-mode {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .bonus-mode-card {
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 18px;
+        padding: 16px;
+        background: rgba(255,255,255,0.7);
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+      }
+      .bonus-mode-card:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(15,23,42,0.08); }
+      .bonus-mode-card.is-active {
+        border-color: rgba(37, 99, 235, 0.32);
+        box-shadow: 0 18px 34px rgba(37, 99, 235, 0.1);
+        background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(240,247,255,0.78));
+      }
+      .bonus-mode-title { margin: 0 0 6px; font-size: 17px; font-weight: 700; }
+      .bonus-mode-text { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+      .bonus-settings-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .bonus-settings-kpi {
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(248,250,252,0.8);
+        border: 1px solid rgba(148,163,184,0.16);
+      }
+      .bonus-settings-kpi-label { margin: 0 0 6px; color: var(--muted); font-size: 13px; font-weight: 700; text-transform: uppercase; }
+      .bonus-settings-kpi-value { margin: 0; font-size: 28px; font-weight: 800; }
+      .bonus-settings-feedback { min-height: 22px; font-size: 14px; margin: 0; }
+      @media (max-width: 860px) {
+        .bonus-settings-grid,
+        .bonus-settings-mode { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell workspace-shell">
+        <header class="glass card nav workspace-header">
+          <div class="workspace-header-copy">
+            <p class="workspace-eyebrow">Правила начисления</p>
+            <h1 class="workspace-title">Настройки бонусов</h1>
+            <p class="subtitle">Автоматическое начисление считается при создании визита от суммы после скидок.</p>
+          </div>
+          <div class="nav-links">
+            <a class="link" href="/admin/dashboard/">← Дашборд</a>
+          </div>
+        </header>
+
+        <div class="spacer-16"></div>
+        <section class="workspace-panel" id="page-state">
+          <div class="workspace-state">
+            <div class="workspace-state-copy">
+              <p class="workspace-state-title">Загружаем настройки начисления</p>
+              <p class="workspace-state-text">Проверяем активную схему и подготавливаем форму редактирования.</p>
+            </div>
+            <span class="badge badge-soft">Бонусы</span>
+          </div>
+        </section>
+
+        <div class="spacer-16"></div>
+        <section class="workspace-panel">
+          <div class="bonus-settings-grid">
+            <form id="bonus-settings-form" class="workspace-panel workspace-panel-compact" style="background: rgba(255,255,255,0.52);">
+              <div class="workspace-toolbar">
+                <div>
+                  <h2 class="workspace-section-title">Активная схема</h2>
+                  <p class="workspace-section-meta">Выберите один режим и сохраните новую актуальную схему начисления.</p>
+                </div>
+                <span class="badge badge-soft" id="current-badge">—</span>
+              </div>
+
+              <div class="spacer-16"></div>
+              <div class="bonus-settings-mode">
+                <button type="button" class="bonus-mode-card" id="mode-percentage">
+                  <p class="bonus-mode-title">Процент от визита</p>
+                  <p class="bonus-mode-text">Бонусы считаются как процент от итоговой суммы визита после скидок.</p>
+                </button>
+                <button type="button" class="bonus-mode-card" id="mode-fixed">
+                  <p class="bonus-mode-title">Фикс за визит</p>
+                  <p class="bonus-mode-text">Клиент получает одинаковое количество бонусов за каждый созданный визит.</p>
+                </button>
+              </div>
+
+              <div class="spacer-16"></div>
+              <div class="workspace-form-grid">
+                <div class="workspace-field" id="field-percentage">
+                  <label for="percentage-value">Процент начисления</label>
+                  <input class="input" type="number" id="percentage-value" min="0.01" step="0.01" placeholder="Например, 5" />
+                </div>
+                <div class="workspace-field" id="field-fixed">
+                  <label for="fixed-value">Фиксированное количество бонусов</label>
+                  <input class="input" type="number" id="fixed-value" min="1" step="1" placeholder="Например, 100" />
+                </div>
+              </div>
+
+              <div class="spacer-16"></div>
+              <p class="bonus-settings-feedback error" id="error-msg"></p>
+              <p class="bonus-settings-feedback success" id="success-msg"></p>
+              <button class="btn btn-primary" type="submit" id="save-btn">Сохранить</button>
+            </form>
+
+            <aside class="workspace-panel workspace-panel-compact bonus-settings-summary" style="background: rgba(255,255,255,0.52);">
+              <div class="bonus-settings-kpi">
+                <p class="bonus-settings-kpi-label">Текущий режим</p>
+                <p class="bonus-settings-kpi-value" id="summary-mode">—</p>
+              </div>
+              <div class="bonus-settings-kpi">
+                <p class="bonus-settings-kpi-label">Текущее значение</p>
+                <p class="bonus-settings-kpi-value" id="summary-value">—</p>
+              </div>
+              <p class="bonus-settings-note">
+                Начисление создаётся автоматически при оформлении визита. Если итоговая сумма визита равна нулю, бонусы не начисляются.
+              </p>
+              <p class="bonus-settings-note">
+                Окончательный расчёт всё равно делает backend, поэтому админский интерфейс показывает только наглядную схему и ожидаемый результат.
+              </p>
+            </aside>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script type="module">
+      import { guard, startSessionAutoRefresh, authFetchJson } from "/assets/app.js";
+
+      const session = guard(["admin", "super_admin"]);
+      if (session) {
+        startSessionAutoRefresh();
+
+        const pageState = document.getElementById("page-state");
+        const currentBadge = document.getElementById("current-badge");
+        const summaryMode = document.getElementById("summary-mode");
+        const summaryValue = document.getElementById("summary-value");
+        const percentageField = document.getElementById("field-percentage");
+        const fixedField = document.getElementById("field-fixed");
+        const percentageInput = document.getElementById("percentage-value");
+        const fixedInput = document.getElementById("fixed-value");
+        const saveBtn = document.getElementById("save-btn");
+        const errorMsg = document.getElementById("error-msg");
+        const successMsg = document.getElementById("success-msg");
+        const modePercentage = document.getElementById("mode-percentage");
+        const modeFixed = document.getElementById("mode-fixed");
+
+        let currentMode = "percentage";
+
+        function renderState(tone, title, text, badge = "Бонусы") {
+          pageState.innerHTML = `
+            <div class="workspace-state" data-tone="${tone}">
+              <div class="workspace-state-copy">
+                <p class="workspace-state-title">${title}</p>
+                <p class="workspace-state-text">${text}</p>
+              </div>
+              <span class="badge ${tone === "error" ? "badge-danger" : tone === "success" ? "" : "badge-soft"}">${badge}</span>
+            </div>
+          `;
+        }
+
+        function modeLabel(mode) {
+          return mode === "fixed" ? "Фикс за визит" : "Процент от визита";
+        }
+
+        function valueLabel(mode) {
+          if (mode === "fixed") {
+            const value = Number(fixedInput.value || 0);
+            return value > 0 ? `${value} бонусов` : "Укажите значение";
+          }
+          const value = Number(percentageInput.value || 0);
+          return value > 0 ? `${value.toFixed(2)} %` : "Укажите значение";
+        }
+
+        function syncModeUi() {
+          modePercentage.classList.toggle("is-active", currentMode === "percentage");
+          modeFixed.classList.toggle("is-active", currentMode === "fixed");
+          percentageField.style.display = currentMode === "percentage" ? "" : "none";
+          fixedField.style.display = currentMode === "fixed" ? "" : "none";
+          currentBadge.textContent = modeLabel(currentMode);
+          summaryMode.textContent = modeLabel(currentMode);
+          summaryValue.textContent = valueLabel(currentMode);
+        }
+
+        function applySettings(settings) {
+          currentMode = settings.accrualMode;
+          percentageInput.value = settings.percentageValue ?? "";
+          fixedInput.value = settings.fixedValue ?? "";
+          syncModeUi();
+        }
+
+        async function loadSettings() {
+          renderState("default", "Загружаем активную схему", "Проверяем текущий режим начисления бонусов.");
+          try {
+            const settings = await authFetchJson("/bonus-settings");
+            applySettings(settings);
+            renderState("success", "Настройки актуальны", "Текущая схема начисления загружена и готова к редактированию.", "Готово");
+          } catch (error) {
+            renderState("error", "Не удалось загрузить настройки", error instanceof Error ? error.message : "Попробуйте ещё раз чуть позже.", "Ошибка");
+            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось загрузить настройки.";
+          }
+        }
+
+        function validateForm() {
+          if (currentMode === "percentage") {
+            const percentageValue = Number(percentageInput.value);
+            if (!Number.isFinite(percentageValue) || percentageValue <= 0) {
+              throw new Error("Укажите процент начисления больше нуля.");
+            }
+          } else {
+            const fixedValue = Number(fixedInput.value);
+            if (!Number.isFinite(fixedValue) || fixedValue <= 0) {
+              throw new Error("Укажите фиксированное количество бонусов больше нуля.");
+            }
+          }
+        }
+
+        modePercentage.addEventListener("click", () => {
+          currentMode = "percentage";
+          syncModeUi();
+        });
+        modeFixed.addEventListener("click", () => {
+          currentMode = "fixed";
+          syncModeUi();
+        });
+        percentageInput.addEventListener("input", syncModeUi);
+        fixedInput.addEventListener("input", syncModeUi);
+
+        document.getElementById("bonus-settings-form").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          errorMsg.textContent = "";
+          successMsg.textContent = "";
+
+          try {
+            validateForm();
+          } catch (error) {
+            errorMsg.textContent = error.message;
+            return;
+          }
+
+          saveBtn.disabled = true;
+          try {
+            const payload = await authFetchJson("/bonus-settings", {
+              method: "PUT",
+              body: {
+                accrualMode: currentMode,
+                percentageValue: currentMode === "percentage" ? Number(percentageInput.value) : null,
+                fixedValue: currentMode === "fixed" ? Number(fixedInput.value) : null
+              }
+            });
+            applySettings(payload);
+            successMsg.textContent = "Настройки начисления сохранены.";
+            renderState("success", "Схема обновлена", "Новые правила будут применяться ко всем следующим визитам.", "Сохранено");
+          } catch (error) {
+            errorMsg.textContent = error instanceof Error ? error.message : "Не удалось сохранить настройки.";
+            renderState("error", "Сохранение не выполнено", "Проверьте введённые значения и попробуйте ещё раз.", "Ошибка");
+          } finally {
+            saveBtn.disabled = false;
+          }
+        });
+
+        syncModeUi();
+        void loadSettings();
+      }
+    </script>
+  </body>
+</html>

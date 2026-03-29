@@ -10,6 +10,43 @@
       select.input { appearance: auto; }
       #error-msg { color: #dc2626; font-size: 14px; min-height: 20px; }
       #success-msg { color: #16a34a; font-size: 15px; font-weight: 600; min-height: 20px; }
+      .visit-bonus-preview {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 16px;
+      }
+      .visit-bonus-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .visit-bonus-kpi {
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(248,250,252,0.82);
+        border: 1px solid rgba(148,163,184,0.16);
+      }
+      .visit-bonus-kpi-label {
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .visit-bonus-kpi-value {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 800;
+      }
+      .visit-bonus-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      @media (max-width: 860px) {
+        .visit-bonus-preview { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
@@ -61,6 +98,10 @@
                 <label for="visit-comment">Комментарий</label>
                 <input class="input" type="text" id="visit-comment" placeholder="Необязательно" />
               </div>
+              <div class="workspace-field">
+                <label for="visit-discount">Скидка</label>
+                <input class="input" type="number" id="visit-discount" min="0" step="0.01" value="0" placeholder="0.00" />
+              </div>
             </div>
 
             <div class="spacer-16"></div>
@@ -91,6 +132,34 @@
             </div>
 
             <div class="spacer-16"></div>
+            <section class="workspace-panel workspace-panel-compact" style="background: rgba(255,255,255,0.52);">
+              <div class="workspace-toolbar">
+                <div>
+                  <h2 class="workspace-section-title">Начисление бонусов</h2>
+                  <p class="workspace-section-meta">Предпросмотр строится по текущей активной схеме. Окончательный расчёт выполняет backend.</p>
+                </div>
+                <a class="link" href="/admin/bonus-settings/">Открыть настройки</a>
+              </div>
+              <div class="spacer-16"></div>
+              <div class="visit-bonus-preview">
+                <div class="visit-bonus-summary">
+                  <div class="visit-bonus-kpi">
+                    <p class="visit-bonus-kpi-label">Режим начисления</p>
+                    <p class="visit-bonus-kpi-value" id="bonus-mode-label">Загружаем...</p>
+                  </div>
+                  <div class="visit-bonus-kpi">
+                    <p class="visit-bonus-kpi-label">Будет автоматически начислено</p>
+                    <p class="visit-bonus-kpi-value" id="bonus-preview-value">0 бонусов</p>
+                  </div>
+                </div>
+                <div class="visit-bonus-summary">
+                  <p class="visit-bonus-note" id="bonus-preview-text">Готовим схему начисления и расчёт по текущему составу визита.</p>
+                  <p class="visit-bonus-note" id="visit-amounts-text">Итог визита появится после выбора услуг.</p>
+                </div>
+              </div>
+            </section>
+
+            <div class="spacer-16"></div>
             <p id="error-msg"></p>
             <p id="success-msg"></p>
             <button type="submit" class="btn btn-primary" id="submit-btn">Создать визит</button>
@@ -118,17 +187,66 @@
             `;
           };
           const selectedServices = []; // [{serviceId, name, quantity}]
+          const servicesCatalog = new Map();
+          let bonusSettings = null;
           let servicesLoaded = false;
+
+        function formatMoney(value) {
+          return `${Number(value).toFixed(2)} ₽`;
+        }
+
+        function modeLabel(mode) {
+          return mode === "fixed" ? "Фикс за визит" : "Процент от визита";
+        }
+
+        function calculateBonusPreview(finalAmount) {
+          if (!bonusSettings) return 0;
+          if (finalAmount <= 0) return 0;
+          if (bonusSettings.accrualMode === "fixed") {
+            return Math.max(0, Math.floor(Number(bonusSettings.fixedValue || 0)));
+          }
+          return Math.max(0, Math.floor(finalAmount * Number(bonusSettings.percentageValue || 0) / 100));
+        }
+
+        function refreshBonusPreview() {
+          const bonusModeLabel = document.getElementById("bonus-mode-label");
+          const bonusPreviewValue = document.getElementById("bonus-preview-value");
+          const bonusPreviewText = document.getElementById("bonus-preview-text");
+          const visitAmountsText = document.getElementById("visit-amounts-text");
+          const rawTotal = selectedServices.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+          const discountRaw = Number(document.getElementById("visit-discount").value || 0);
+          const discount = Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0;
+          const totalAmount = Number(rawTotal.toFixed(2));
+          const finalAmount = Math.max(0, Number((totalAmount - discount).toFixed(2)));
+          const previewBonus = calculateBonusPreview(finalAmount);
+
+          if (!bonusSettings) {
+            bonusModeLabel.textContent = "Настройки загружаются";
+            bonusPreviewValue.textContent = "0 бонусов";
+            bonusPreviewText.textContent = "Как только схема начисления загрузится, здесь появится итоговый предпросмотр.";
+            visitAmountsText.textContent = "Итог визита появится после выбора услуг.";
+            return;
+          }
+
+          bonusModeLabel.textContent = modeLabel(bonusSettings.accrualMode);
+          bonusPreviewValue.textContent = `${previewBonus} бонусов`;
+          bonusPreviewText.textContent =
+            bonusSettings.accrualMode === "fixed"
+              ? `За визит будет начислено фиксированное количество: ${Number(bonusSettings.fixedValue)} бонусов.`
+              : `За визит будет начислено ${Number(bonusSettings.percentageValue).toFixed(2)} % от итоговой суммы после скидки.`;
+          visitAmountsText.textContent = `Сумма услуг: ${formatMoney(totalAmount)} · Скидка: ${formatMoney(discount)} · Итог после скидки: ${formatMoney(finalAmount)}`;
+        }
 
         async function loadData() {
           renderState("default", "Загружаем справочники", "Подтягиваем клиентов, филиалы и список активных услуг.");
-          const [usersRes, branchesRes, servicesRes] = await Promise.allSettled([
+          const [usersRes, branchesRes, servicesRes, bonusSettingsRes] = await Promise.allSettled([
             authFetchJson("/users"),
             authFetchJson("/branches"),
-            authFetchJson("/services")
+            authFetchJson("/services"),
+            authFetchJson("/bonus-settings")
           ]);
 
-          if (usersRes.status === "rejected" || branchesRes.status === "rejected" || servicesRes.status === "rejected") {
+          if (usersRes.status === "rejected" || branchesRes.status === "rejected" || servicesRes.status === "rejected" || bonusSettingsRes.status === "rejected") {
             renderState("error", "Справочники загружены частично", "Часть данных сейчас недоступна. Проверьте backend и права доступа.", "Частичная ошибка");
           } else {
             renderState("success", "Справочники готовы", "Можно оформлять визит и добавлять услуги в состав.", "Готово");
@@ -137,13 +255,14 @@
           const users = usersRes.status === "fulfilled" ? usersRes.value : [];
           const branches = branchesRes.status === "fulfilled" ? branchesRes.value : [];
           const services = servicesRes.status === "fulfilled" ? servicesRes.value : [];
+          bonusSettings = bonusSettingsRes.status === "fulfilled" ? bonusSettingsRes.value : null;
 
           const selClient = document.getElementById("sel-client");
           selClient.innerHTML = '<option value="">— Выберите клиента —</option>';
           for (const u of users.filter(u => u.role === "client")) {
             const opt = document.createElement("option");
             opt.value = u.id;
-            opt.textContent = u.name || u.email;
+            opt.textContent = u.fullName || u.email;
             selClient.appendChild(opt);
           }
 
@@ -159,15 +278,18 @@
           const selSvc = document.getElementById("add-svc-id");
           selSvc.innerHTML = '<option value="">— Выберите услугу —</option>';
           for (const s of services.filter(s => s.isActive)) {
+            servicesCatalog.set(s.id, s);
             const opt = document.createElement("option");
             opt.value = s.id;
             opt.dataset.name = s.name;
+            opt.dataset.basePrice = String(s.basePrice);
             opt.textContent = `${s.name} — ${Number(s.basePrice).toFixed(2)} ₽`;
             selSvc.appendChild(opt);
           }
 
           servicesLoaded = true;
           document.getElementById("add-svc-btn").disabled = !services.length;
+          refreshBonusPreview();
         }
 
         function renderServicesTable() {
@@ -178,6 +300,7 @@
           if (selectedServices.length === 0) {
             table.style.display = "none";
             noSvc.style.display = "";
+            refreshBonusPreview();
             return;
           }
           table.style.display = "";
@@ -198,6 +321,7 @@
               renderServicesTable();
             });
           });
+          refreshBonusPreview();
         }
 
         document.getElementById("add-svc-btn").addEventListener("click", () => {
@@ -210,11 +334,18 @@
             existing.quantity += qty;
           } else {
             const opt = sel.options[sel.selectedIndex];
-            selectedServices.push({ serviceId: sel.value, name: opt.dataset.name, quantity: qty });
+            selectedServices.push({
+              serviceId: sel.value,
+              name: opt.dataset.name,
+              quantity: qty,
+              price: Number(opt.dataset.basePrice || 0)
+            });
           }
           document.getElementById("add-svc-qty").value = "1";
           renderServicesTable();
         });
+
+        document.getElementById("visit-discount").addEventListener("input", refreshBonusPreview);
 
         document.getElementById("visit-form").addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -231,6 +362,8 @@
 
           const dateVal = document.getElementById("visit-date").value;
           const comment = document.getElementById("visit-comment").value.trim();
+          const discountRaw = Number(document.getElementById("visit-discount").value || 0);
+          const discountAmount = Number.isFinite(discountRaw) ? Math.max(0, discountRaw) : 0;
           const submitBtn = document.getElementById("submit-btn");
           submitBtn.disabled = true;
 
@@ -238,16 +371,22 @@
             const body = {
               clientId,
               branchId,
+              discountAmount,
               services: selectedServices.map(s => ({ serviceId: s.serviceId, quantity: s.quantity }))
             };
             if (dateVal) body.visitDate = dateVal;
             if (comment) body.comment = comment;
 
             const result = await authFetchJson("/visits", { method: "POST", body });
-            suc.textContent = `Визит создан (ID: ${result.id})`;
+            const bonusText = typeof result.bonusAccrualAmount === "number"
+              ? ` Клиенту автоматически начислено ${result.bonusAccrualAmount} бонусов.`
+              : "";
+            suc.textContent = `Визит создан (ID: ${result.id}).${bonusText}`;
             selectedServices.length = 0;
+            document.getElementById("visit-discount").value = "0";
             renderServicesTable();
             e.target.reset();
+            refreshBonusPreview();
           } catch (ex) {
             err.textContent = ex.message || "Не удалось создать визит";
           } finally {
