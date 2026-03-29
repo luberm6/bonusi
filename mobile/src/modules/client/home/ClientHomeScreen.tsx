@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
+  Animated,
+  Easing,
   Image,
   Linking,
   Pressable,
@@ -142,6 +143,157 @@ function EmptyState(props: { title: string; description: string }) {
   );
 }
 
+function SkeletonBlock(props: { style?: object }) {
+  const opacity = useRef(new Animated.Value(0.45)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.92,
+          duration: 820,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.45,
+          duration: 820,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
+        })
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
+
+  return <Animated.View style={[styles.skeletonBlock, props.style, { opacity }]} />;
+}
+
+function HomeSkeleton() {
+  return (
+    <View style={styles.skeletonWrap}>
+      <GlassCard elevated animated style={styles.brandCard}>
+        <SkeletonBlock style={styles.brandSkeletonLogo} />
+        <View style={styles.brandMeta}>
+          <SkeletonBlock style={styles.skeletonTitleLine} />
+          <SkeletonBlock style={styles.skeletonSubtitleLine} />
+        </View>
+      </GlassCard>
+
+      <View style={styles.contactRow}>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <SkeletonBlock key={index} style={styles.contactSkeleton} />
+        ))}
+      </View>
+
+      <GlassCard elevated animated style={styles.actionGridCard}>
+        <View style={styles.actionGrid}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonBlock key={index} style={styles.actionSkeleton} />
+          ))}
+        </View>
+      </GlassCard>
+
+      <GlassCard elevated animated style={styles.heroCard}>
+        <SkeletonBlock style={styles.heroSkeleton} />
+      </GlassCard>
+
+      <SkeletonBlock style={styles.chatSkeleton} />
+
+      <GlassCard elevated animated style={styles.bonusCard}>
+        <SkeletonBlock style={styles.bonusCircleSkeleton} />
+        <View style={styles.bonusMeta}>
+          <SkeletonBlock style={styles.bonusNameSkeleton} />
+          <SkeletonBlock style={styles.bonusMailSkeleton} />
+        </View>
+      </GlassCard>
+    </View>
+  );
+}
+
+function ChatSkeleton() {
+  return (
+    <GlassCard elevated style={styles.chatPanel}>
+      <View style={styles.messagesList}>
+        <SkeletonBlock style={styles.messageSkeletonLeft} />
+        <SkeletonBlock style={styles.messageSkeletonRight} />
+        <SkeletonBlock style={styles.messageSkeletonLeftWide} />
+      </View>
+      <View style={styles.chatComposer}>
+        <SkeletonBlock style={styles.chatInputSkeleton} />
+        <SkeletonBlock style={styles.chatButtonSkeleton} />
+      </View>
+    </GlassCard>
+  );
+}
+
+function MotionScreen(props: { motionKey: string; children: React.ReactNode }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(12)).current;
+
+  useEffect(() => {
+    opacity.setValue(0);
+    translateY.setValue(12);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 240,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 240,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [opacity, props.motionKey, translateY]);
+
+  return <Animated.View style={{ opacity, transform: [{ translateY }] }}>{props.children}</Animated.View>;
+}
+
+function AnimatedMessageBubble(props: { mine: boolean; text: string; createdAt: string }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(8)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [opacity, translateY]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.messageBubble,
+        props.mine ? styles.messageMine : styles.messageOther,
+        { opacity, transform: [{ translateY }] }
+      ]}
+    >
+      <Text style={[styles.messageText, props.mine && styles.messageTextMine]}>{props.text}</Text>
+      <Text style={[styles.messageMeta, props.mine && styles.messageMetaMine]}>
+        {new Date(props.createdAt).toLocaleTimeString("ru-RU", {
+          hour: "2-digit",
+          minute: "2-digit"
+        })}
+      </Text>
+    </Animated.View>
+  );
+}
+
 export function ClientHomeScreen(props: ClientHomeProps) {
   const [screen, setScreen] = useState<ScreenKey>("home");
   const [loadingHome, setLoadingHome] = useState(true);
@@ -158,6 +310,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [submittingMessage, setSubmittingMessage] = useState(false);
+  const chatScrollRef = useRef<ScrollView | null>(null);
 
   const clientName = useMemo(() => {
     const raw = me?.fullName?.trim();
@@ -190,6 +343,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       mounted = false;
     };
   }, [props.accessToken, props.session.userId]);
+
+  useEffect(() => {
+    if (screen !== "chat" || !messages) return;
+    const timer = setTimeout(() => {
+      chatScrollRef.current?.scrollToEnd({ animated: true });
+    }, 90);
+    return () => clearTimeout(timer);
+  }, [messages, screen]);
 
   async function ensureVisitsLoaded() {
     if (visits) return;
@@ -294,12 +455,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
   function renderHome() {
     if (loadingHome) {
-      return (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator color={mobileTokens.color.primaryAlt} />
-          <Text style={styles.loaderText}>Загружаем главный экран...</Text>
-        </View>
-      );
+      return <HomeSkeleton />;
     }
 
     if (homeError) {
@@ -318,7 +474,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
         <View style={styles.contactRow}>
           {CONTACT_LINKS.map((item) => (
-            <Pressable key={item.key} onPress={() => openLink(item.url)} style={styles.contactIcon}>
+            <Pressable
+              key={item.key}
+              onPress={() => openLink(item.url)}
+              style={({ pressed }) => [styles.contactIcon, pressed && styles.pressedSurface]}
+            >
               <Text style={styles.contactIconLabel}>{item.label}</Text>
             </Pressable>
           ))}
@@ -326,20 +486,26 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
         <GlassCard elevated animated style={styles.actionGridCard}>
           <View style={styles.actionGrid}>
-            <Pressable style={styles.actionTile} onPress={() => void ensureBranchesLoaded().then(() => setScreen("booking"))}>
+            <Pressable
+              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
+              onPress={() => void ensureBranchesLoaded().then(() => setScreen("booking"))}
+            >
               <Text style={styles.actionTileLabel}>Записаться</Text>
             </Pressable>
-            <Pressable style={styles.actionTile} onPress={() => void ensureVisitsLoaded().then(() => setScreen("visits"))}>
+            <Pressable
+              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
+              onPress={() => void ensureVisitsLoaded().then(() => setScreen("visits"))}
+            >
               <Text style={styles.actionTileLabel}>История посещений</Text>
             </Pressable>
             <Pressable
-              style={styles.actionTile}
+              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
               onPress={() => void ensureBonusHistoryLoaded().then(() => setScreen("bonus-history"))}
             >
               <Text style={styles.actionTileLabel}>История начислений</Text>
             </Pressable>
             <Pressable
-              style={styles.actionTile}
+              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
               onPress={() => void ensureBonusHistoryLoaded().then(() => setScreen("cashback"))}
             >
               <Text style={styles.actionTileLabel}>Система кешбека</Text>
@@ -352,7 +518,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         </GlassCard>
 
         <Pressable
-          style={styles.chatCta}
+          style={({ pressed }) => [styles.chatCta, pressed && styles.pressedCta]}
           onPress={() => {
             void ensureChatLoaded();
             setScreen("chat");
@@ -478,10 +644,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       <>
         <ScreenHeader title="Чат" onBack={() => setScreen("home")} />
         {chatLoading ? (
-          <View style={styles.loaderWrap}>
-            <ActivityIndicator color={mobileTokens.color.primaryAlt} />
-            <Text style={styles.loaderText}>Загружаем диалог...</Text>
-          </View>
+          <ChatSkeleton />
         ) : chatError ? (
           <EmptyState title="Чат недоступен" description={chatError} />
         ) : !conversations?.length || !activeConversationId ? (
@@ -493,9 +656,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 <Pressable
                   key={conversation.id}
                   onPress={() => void openConversation(conversation.id)}
-                  style={[
+                  style={({ pressed }) => [
                     styles.conversationTab,
-                    conversation.id === activeConversationId && styles.conversationTabActive
+                    conversation.id === activeConversationId && styles.conversationTabActive,
+                    pressed && styles.pressedTab
                   ]}
                 >
                   <Text
@@ -511,19 +675,16 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             </ScrollView>
 
             <GlassCard elevated style={styles.chatPanel}>
-              <ScrollView contentContainerStyle={styles.messagesList}>
+              <ScrollView ref={chatScrollRef} contentContainerStyle={styles.messagesList}>
                 {(messages ?? []).map((message) => {
                   const mine = message.senderId === props.session.userId;
                   return (
-                    <View key={message.id} style={[styles.messageBubble, mine ? styles.messageMine : styles.messageOther]}>
-                      <Text style={[styles.messageText, mine && styles.messageTextMine]}>{message.text || ""}</Text>
-                      <Text style={[styles.messageMeta, mine && styles.messageMetaMine]}>
-                        {new Date(message.createdAt).toLocaleTimeString("ru-RU", {
-                          hour: "2-digit",
-                          minute: "2-digit"
-                        })}
-                      </Text>
-                    </View>
+                    <AnimatedMessageBubble
+                      key={message.id}
+                      mine={mine}
+                      text={message.text || ""}
+                      createdAt={message.createdAt}
+                    />
                   );
                 })}
               </ScrollView>
@@ -537,6 +698,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                   multiline
                   style={styles.chatInput}
                 />
+                {messageText.trim().length > 0 ? <Text style={styles.typingFeel}>Печатаем сообщение...</Text> : null}
                 <AppButton
                   label={submittingMessage ? "Отправка..." : "Отправить"}
                   onPress={() => void sendMessage()}
@@ -554,12 +716,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.content}>
-        {screen === "home" && renderHome()}
-        {screen === "visits" && renderVisits()}
-        {screen === "bonus-history" && renderBonusHistory()}
-        {screen === "cashback" && renderCashback()}
-        {screen === "booking" && renderBooking()}
-        {screen === "chat" && renderChat()}
+        <MotionScreen motionKey={screen}>
+          {screen === "home" && renderHome()}
+          {screen === "visits" && renderVisits()}
+          {screen === "bonus-history" && renderBonusHistory()}
+          {screen === "cashback" && renderCashback()}
+          {screen === "booking" && renderBooking()}
+          {screen === "chat" && renderChat()}
+        </MotionScreen>
       </ScrollView>
     </View>
   );
@@ -573,6 +737,89 @@ const styles = StyleSheet.create({
   content: {
     padding: 18,
     gap: 16
+  },
+  skeletonWrap: {
+    gap: 16
+  },
+  skeletonBlock: {
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.78)"
+  },
+  brandSkeletonLogo: {
+    width: 74,
+    height: 58,
+    borderRadius: 20
+  },
+  skeletonTitleLine: {
+    height: 20,
+    width: "74%",
+    borderRadius: 10
+  },
+  skeletonSubtitleLine: {
+    height: 14,
+    width: "92%",
+    borderRadius: 10,
+    marginTop: 8
+  },
+  contactSkeleton: {
+    width: 54,
+    height: 54,
+    borderRadius: 18
+  },
+  actionSkeleton: {
+    width: "48%",
+    minHeight: 78,
+    borderRadius: 18
+  },
+  heroSkeleton: {
+    width: "100%",
+    height: 220,
+    borderRadius: 0
+  },
+  chatSkeleton: {
+    minHeight: 114,
+    borderRadius: 22
+  },
+  bonusCircleSkeleton: {
+    width: 132,
+    height: 132,
+    borderRadius: 66
+  },
+  bonusNameSkeleton: {
+    height: 30,
+    width: "92%",
+    borderRadius: 14
+  },
+  bonusMailSkeleton: {
+    height: 16,
+    width: "70%",
+    borderRadius: 10
+  },
+  messageSkeletonLeft: {
+    width: "58%",
+    height: 64,
+    borderRadius: 18
+  },
+  messageSkeletonRight: {
+    width: "46%",
+    height: 54,
+    borderRadius: 18,
+    alignSelf: "flex-end"
+  },
+  messageSkeletonLeftWide: {
+    width: "68%",
+    height: 62,
+    borderRadius: 18
+  },
+  chatInputSkeleton: {
+    width: "100%",
+    minHeight: 92,
+    borderRadius: 20
+  },
+  chatButtonSkeleton: {
+    width: "100%",
+    height: 52,
+    borderRadius: 16
   },
   loaderWrap: {
     paddingVertical: 32,
@@ -625,6 +872,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     ...mobileTokens.shadow.soft
   },
+  pressedSurface: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.92
+  },
   contactIconLabel: {
     color: "#FFFFFF",
     fontSize: 15,
@@ -647,7 +898,12 @@ const styles = StyleSheet.create({
     borderColor: "rgba(15, 23, 42, 0.08)",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 14
+    paddingHorizontal: 14,
+    ...mobileTokens.shadow.soft
+  },
+  pressedTile: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.96
   },
   actionTileLabel: {
     textAlign: "center",
@@ -658,7 +914,8 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     overflow: "hidden",
-    backgroundColor: "#D9DDE4"
+    backgroundColor: "#D9DDE4",
+    shadowOpacity: 0.14
   },
   heroImage: {
     width: "100%",
@@ -671,6 +928,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 24,
     ...mobileTokens.shadow.glass
+  },
+  pressedCta: {
+    transform: [{ scale: 0.985 }],
+    opacity: 0.97
   },
   chatCtaLabel: {
     color: "#FFFFFF",
@@ -829,6 +1090,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft
   },
+  pressedTab: {
+    transform: [{ scale: 0.98 }]
+  },
   conversationTabActive: {
     backgroundColor: "#111827"
   },
@@ -880,6 +1144,12 @@ const styles = StyleSheet.create({
   chatComposer: {
     marginTop: 12,
     gap: 10
+  },
+  typingFeel: {
+    marginTop: -2,
+    fontSize: 12,
+    color: mobileTokens.color.textSecondary,
+    letterSpacing: 0.2
   },
   chatInput: {
     minHeight: 92,

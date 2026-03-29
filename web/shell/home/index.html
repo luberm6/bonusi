@@ -48,6 +48,7 @@
         let chatLoading = false;
         let chatError = null;
         let sendingMessage = false;
+        let messageDraft = "";
 
         function escapeHtml(value) {
           return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -220,19 +221,57 @@
         }
 
         function renderLoading(text) {
-          return `<section class="glass card client-loading">${escapeHtml(text)}</section>`;
+          return `
+            <section class="glass card client-skeleton-card client-fade" aria-label="${escapeHtml(text)}">
+              <div class="client-skeleton-grid">
+                <div class="client-skeleton-line is-short"></div>
+                <div class="client-skeleton-line is-medium"></div>
+                <div class="client-skeleton-block"></div>
+              </div>
+            </section>
+          `;
+        }
+
+        function renderHomeSkeleton() {
+          return `
+            <section class="client-screen client-fade">
+              <section class="glass card client-skeleton-card">
+                <div class="client-skeleton-grid">
+                  <div class="client-skeleton-line is-short"></div>
+                  <div class="client-skeleton-line is-medium"></div>
+                </div>
+              </section>
+              <section class="client-contact-row">
+                ${Array.from({ length: 5 }).map(() => '<div class="client-skeleton-block" style="min-height:58px;border-radius:18px;"></div>').join("")}
+              </section>
+              <section class="client-action-grid">
+                ${Array.from({ length: 4 }).map(() => '<div class="client-skeleton-block"></div>').join("")}
+              </section>
+              <section class="glass client-hero-card"><div class="client-skeleton-block" style="min-height:270px;border-radius:0;"></div></section>
+              <div class="client-skeleton-chat client-skeleton-block"></div>
+              <section class="glass card client-bonus-card">
+                <div class="client-skeleton-circle"></div>
+                <div class="client-skeleton-grid">
+                  <div class="client-skeleton-line is-medium"></div>
+                  <div class="client-skeleton-line is-short"></div>
+                </div>
+              </section>
+            </section>
+          `;
         }
 
         function renderHomeScreen() {
-          if (homeLoading) return renderLoading("Загружаем главный экран...");
+          if (homeLoading) return renderHomeSkeleton();
           if (homeError) return renderEmpty("Экран недоступен", homeError);
           return `
-            ${renderBrand()}
-            ${renderContacts()}
-            ${renderActions()}
-            ${renderHero()}
-            ${renderChatCta()}
-            ${renderBonusCard()}
+            <section class="client-screen client-fade">
+              ${renderBrand()}
+              ${renderContacts()}
+              ${renderActions()}
+              ${renderHero()}
+              ${renderChatCta()}
+              ${renderBonusCard()}
+            </section>
           `;
         }
 
@@ -242,7 +281,7 @@
             return renderEmpty("История посещений пуста", "Как только появятся визиты, они отобразятся здесь.");
           }
           return `
-            <section class="client-screen">
+            <section class="client-screen client-fade">
               <div class="client-section-header">
                 <h2 class="client-section-title">История посещений</h2>
               </div>
@@ -266,7 +305,7 @@
             return renderEmpty("История начислений пуста", "История бонусов появится после первой операции.");
           }
           return `
-            <section class="client-screen">
+            <section class="client-screen client-fade">
               <div class="client-section-header">
                 <h2 class="client-section-title">История начислений</h2>
               </div>
@@ -286,7 +325,7 @@
 
         function renderCashbackScreen() {
           return `
-            <section class="client-screen">
+            <section class="client-screen client-fade">
               <div class="client-section-header">
                 <h2 class="client-section-title">Система кешбека</h2>
               </div>
@@ -306,7 +345,7 @@
             return renderEmpty("Нет доступных филиалов", "Когда филиалы станут доступны, они появятся здесь.");
           }
           return `
-            <section class="client-screen">
+            <section class="client-screen client-fade">
               <div class="client-section-header">
                 <h2 class="client-section-title">Записаться</h2>
               </div>
@@ -357,17 +396,18 @@
           }).join("");
 
           return `
-            <section class="client-screen">
+            <section class="client-screen client-fade">
               <div class="client-section-header">
                 <h2 class="client-section-title">Чат</h2>
               </div>
               <div class="client-chat-tabs">${tabs}</div>
               <section class="glass card client-chat-panel">
-                <div class="client-messages">
+                <div class="client-messages" id="client-chat-messages">
                   ${messageMarkup || '<div class="client-loading">Сообщений пока нет. Начните диалог первым.</div>'}
                 </div>
                 <div class="client-chat-composer">
-                  <textarea id="chat-message-input" class="input client-chat-input" placeholder="Напишите сообщение"></textarea>
+                  <textarea id="chat-message-input" class="input client-chat-input" placeholder="Напишите сообщение">${escapeHtml(messageDraft)}</textarea>
+                  <p class="client-chat-feel">${messageDraft.trim().length > 0 ? "Печатаем сообщение..." : ""}</p>
                   <button class="btn btn-primary" type="button" id="chat-send-btn" ${sendingMessage ? "disabled" : ""}>
                     ${sendingMessage ? "Отправка..." : "Отправить"}
                   </button>
@@ -449,9 +489,20 @@
 
           const sendButton = document.getElementById("chat-send-btn");
           const messageInput = document.getElementById("chat-message-input");
+          const messagesContainer = document.getElementById("client-chat-messages");
+          if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }
           if (sendButton && messageInput) {
             sendButton.addEventListener("click", async () => {
               await sendMessage();
+            });
+            messageInput.addEventListener("input", () => {
+              messageDraft = messageInput.value;
+              const feel = document.querySelector(".client-chat-feel");
+              if (feel) {
+                feel.textContent = messageDraft.trim().length > 0 ? "Печатаем сообщение..." : "";
+              }
             });
             messageInput.addEventListener("keydown", async (event) => {
               if (event.key === "Enter" && !event.shiftKey) {
@@ -566,8 +617,7 @@
         }
 
         async function sendMessage() {
-          const input = document.getElementById("chat-message-input");
-          const text = input?.value?.trim() ?? "";
+          const text = messageDraft.trim();
           if (!text || !activeConversationId || sendingMessage) return;
           sendingMessage = true;
           renderApp();
@@ -579,6 +629,7 @@
                 text
               }
             });
+            messageDraft = "";
             await refreshConversations();
             await openConversation(activeConversationId);
           } catch (error) {
