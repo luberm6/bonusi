@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ClientHomeScreen } from "../../modules/client/home/ClientHomeScreen";
 import type { AuthSession } from "../navigation/role-navigation-resolver";
@@ -166,3 +167,9 @@ export function MobileRootShell() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1
+  }
+});
