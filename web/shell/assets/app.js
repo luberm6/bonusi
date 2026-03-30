@@ -1,7 +1,66 @@
 const SESSION_KEY = "autoservice_web_session";
-const DEFAULT_API_BASE = globalThis.__AUTOSERVICE_API_BASE__ || "http://127.0.0.1:4000/api/v1";
 const REFRESH_AHEAD_SECONDS = 90;
 let refreshInFlight = null;
+
+function normalizeApiBase(base) {
+  if (!base || typeof base !== "string") return null;
+  let value = base.trim();
+  if (!value) return null;
+  if (!value.startsWith("http://") && !value.startsWith("https://")) {
+    value = `https://${value}`;
+  }
+  if (!value.endsWith("/api/v1")) {
+    value = `${value.replace(/\/+$/, "")}/api/v1`;
+  }
+  return value;
+}
+
+function isLoopbackTarget(base) {
+  try {
+    const url = new URL(base);
+    return ["127.0.0.1", "localhost", "0.0.0.0"].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isLocalBrowserHost(hostname) {
+  return ["127.0.0.1", "localhost", "0.0.0.0"].includes(hostname);
+}
+
+function deriveRenderApiBase() {
+  if (typeof window === "undefined") return null;
+  const host = window.location.hostname;
+  if (!host || isLocalBrowserHost(host) || !host.endsWith(".onrender.com")) return null;
+
+  if (host.includes("-web.")) {
+    return `https://${host.replace("-web.", "-backend.")}/api/v1`;
+  }
+
+  if (!host.includes("-backend.")) {
+    const parts = host.split(".");
+    if (parts.length > 2) {
+      parts[0] = `${parts[0]}-backend`;
+      return `https://${parts.join(".")}/api/v1`;
+    }
+  }
+
+  return `https://${host}/api/v1`;
+}
+
+function resolveApiBase() {
+  const configured = normalizeApiBase(globalThis.__AUTOSERVICE_API_BASE__);
+  if (configured) {
+    const browserHost = typeof window === "undefined" ? "localhost" : window.location.hostname;
+    if (!isLoopbackTarget(configured) || isLocalBrowserHost(browserHost)) {
+      return configured;
+    }
+  }
+
+  return deriveRenderApiBase() || "http://127.0.0.1:4000/api/v1";
+}
+
+const DEFAULT_API_BASE = resolveApiBase();
 
 export const featureFlags = {
   filesEnabled: Boolean(globalThis.__AUTOSERVICE_FILES_ENABLED__),
