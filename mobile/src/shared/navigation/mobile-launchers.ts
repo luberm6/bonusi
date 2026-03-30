@@ -1,5 +1,6 @@
 import { Alert, Linking, Platform } from "react-native";
 import { ru } from "../i18n/ru";
+import { safeOpenExternalUrl } from "../native/open-url";
 import type { NavigatorApp, NavigatorPicker, UrlLauncher } from "./navigation-handoff";
 
 export class ReactNativeUrlLauncher implements UrlLauncher {
@@ -15,7 +16,13 @@ export class ReactNativeUrlLauncher implements UrlLauncher {
   }
 
   async openURL(url: string): Promise<void> {
-    await Linking.openURL(url);
+    const opened = await safeOpenExternalUrl(url, {
+      failureTitle: ru.navigation.buildRouteTitle,
+      failureMessage: "Не удалось открыть навигатор. Попробуйте выбрать другой вариант."
+    });
+    if (!opened) {
+      throw new Error("navigation-launch-failed");
+    }
   }
 }
 

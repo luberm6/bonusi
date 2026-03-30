@@ -17,6 +17,7 @@ import { resolveNavigationAfterLogin } from "../navigation/role-navigation-resol
 import { mobileEnv } from "../../shared/config/mobile-env";
 import { mobileTokens, mobileTypography } from "../../shared/design/tokens";
 import { fireHaptic } from "../../shared/native/haptics";
+import { safeOpenExternalUrl } from "../../shared/native/open-url";
 import { AppButton } from "../../shared/ui/AppButton";
 import { AppInput } from "../../shared/ui/AppInput";
 import { GlassCard } from "../../shared/ui/GlassCard";
@@ -77,7 +78,10 @@ export function StaffAccessView(props: { session: AuthSession; onLogout: () => v
   const navigation = useMemo(() => resolveNavigationAfterLogin(props.session), [props.session]);
   const openWebWorkspace = async () => {
     fireHaptic("impactLight");
-    await Linking.openURL(mobileEnv.webAppUrl);
+    await safeOpenExternalUrl(mobileEnv.webAppUrl, {
+      failureTitle: "Не удалось открыть рабочий кабинет",
+      failureMessage: "Проверьте подключение и попробуйте ещё раз."
+    });
   };
 
   return (

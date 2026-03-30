@@ -17,6 +17,7 @@ import type { AuthSession } from "../../../app/navigation/role-navigation-resolv
 import { mobileEnv } from "../../../shared/config/mobile-env";
 import { mobileTokens } from "../../../shared/design/tokens";
 import { fireHaptic, type HapticIntent } from "../../../shared/native/haptics";
+import { safeOpenExternalUrl } from "../../../shared/native/open-url";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { GlassCard } from "../../../shared/ui/GlassCard";
 
@@ -690,13 +691,19 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   }
 
   function openLink(url: string) {
-    void Linking.openURL(url);
+    void safeOpenExternalUrl(url, {
+      failureTitle: "Не удалось открыть действие",
+      failureMessage: "Попробуйте ещё раз чуть позже."
+    });
   }
 
   function openBranchRoute(branch: BranchRow) {
     const label = encodeURIComponent(branch.name);
     const url = `https://maps.apple.com/?ll=${branch.lat},${branch.lng}&q=${label}`;
-    void Linking.openURL(url);
+    void safeOpenExternalUrl(url, {
+      failureTitle: "Не удалось открыть маршрут",
+      failureMessage: "Проверьте доступность карт и попробуйте ещё раз."
+    });
   }
 
   function renderHome() {
