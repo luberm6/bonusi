@@ -43,13 +43,13 @@
 ### B) From database/service links
 
 - `DATABASE_URL` (`fromDatabase.connectionString`)
-- `PUBLIC_API_BASE` (`fromService.envVarKey=RENDER_EXTERNAL_URL` for backend; build script appends `/api/v1`)
+- `PUBLIC_API_BASE` (`https://autoservice-backend-atyj.onrender.com/api/v1` for production static web)
 - `CORS_ORIGIN` (`fromService.envVarKey=RENDER_EXTERNAL_URL` for web; backend normalizes it to a valid origin)
 
 Important:
 
-- Do not override `PUBLIC_API_BASE` manually in the Render UI for `autoservice-web`.
-- Keep it linked via `fromService.envVarKey=RENDER_EXTERNAL_URL`, otherwise the static shell can point to Render's private hostname instead of the public backend URL.
+- `PUBLIC_API_BASE` is intentionally pinned to the current production backend URL for `autoservice-web`.
+- Do not override it manually unless the backend public Render URL changes.
 
 ### C) Defaults / safe automatic values
 

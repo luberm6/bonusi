@@ -1,5 +1,6 @@
 const SESSION_KEY = "autoservice_web_session";
 const REFRESH_AHEAD_SECONDS = 90;
+const RENDER_BACKEND_API_BASE = "https://autoservice-backend-atyj.onrender.com/api/v1";
 let refreshInFlight = null;
 
 function normalizeApiBase(base) {
@@ -40,19 +41,15 @@ function deriveRenderApiBase() {
   const host = window.location.hostname;
   if (!host || isLocalBrowserHost(host) || !host.endsWith(".onrender.com")) return null;
 
+  if (host === "autoservice-web.onrender.com") {
+    return RENDER_BACKEND_API_BASE;
+  }
+
   if (host.includes("-web.")) {
-    return `https://${host.replace("-web.", "-backend.")}/api/v1`;
+    return RENDER_BACKEND_API_BASE;
   }
 
-  if (!host.includes("-backend.")) {
-    const parts = host.split(".");
-    if (parts.length > 2) {
-      parts[0] = `${parts[0]}-backend`;
-      return `https://${parts.join(".")}/api/v1`;
-    }
-  }
-
-  return `https://${host}/api/v1`;
+  return null;
 }
 
 function resolveApiBase() {

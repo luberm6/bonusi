@@ -82,10 +82,7 @@ services:
     envVars:
       # Keep this linked to the backend service host. Do not override manually in Render UI.
       - key: PUBLIC_API_BASE
-        fromService:
-          type: web
-          name: autoservice-backend
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://autoservice-backend-atyj.onrender.com/api/v1
 
 databases:
   - name: autoservice-postgres
