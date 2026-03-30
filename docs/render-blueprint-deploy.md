@@ -43,13 +43,13 @@
 ### B) From database/service links
 
 - `DATABASE_URL` (`fromDatabase.connectionString`)
-- `PUBLIC_API_BASE` (`fromService.host` for backend; build script adds `https://` and appends `/api/v1`)
-- `CORS_ORIGIN` (`fromService.host` for web; backend normalizes it to a valid origin)
+- `PUBLIC_API_BASE` (`fromService.envVarKey=RENDER_EXTERNAL_URL` for backend; build script appends `/api/v1`)
+- `CORS_ORIGIN` (`fromService.envVarKey=RENDER_EXTERNAL_URL` for web; backend normalizes it to a valid origin)
 
 Important:
 
 - Do not override `PUBLIC_API_BASE` manually in the Render UI for `autoservice-web`.
-- Keep it linked via `fromService.host`, otherwise the static shell can point to the wrong backend hostname.
+- Keep it linked via `fromService.envVarKey=RENDER_EXTERNAL_URL`, otherwise the static shell can point to Render's private hostname instead of the public backend URL.
 
 ### C) Defaults / safe automatic values
 

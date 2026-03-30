@@ -33,7 +33,7 @@ services:
         fromService:
           type: web
           name: autoservice-web
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
       - key: CORS_EXTRA_ORIGINS
         value: ""
       - key: FILES_ENABLED
@@ -85,7 +85,7 @@ services:
         fromService:
           type: web
           name: autoservice-backend
-          property: host
+          envVarKey: RENDER_EXTERNAL_URL
 
 databases:
   - name: autoservice-postgres
