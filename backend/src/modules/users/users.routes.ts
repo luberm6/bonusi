@@ -1,13 +1,15 @@
 import { Router } from "express";
 import { authGuard } from "../../common/guards/auth.guard.js";
+import { requireRoles } from "../../common/guards/role.guard.js";
 import { asyncHandler } from "../../common/http/async-handler.js";
-import { parseCreateUserDto, parseUpdateUserDto, parseUserId } from "./users.dto.js";
+import { parseCreateUserDto, parseResetUserPasswordDto, parseUpdateUserDto, parseUserId } from "./users.dto.js";
 import {
   createUser,
   deactivateUser,
   getCurrentUser,
   getUserById,
   listUsers,
+  resetUserPassword,
   updateUser
 } from "./users.service.js";
 
@@ -75,6 +77,18 @@ usersRouter.patch(
   asyncHandler(async (req, res) => {
     const userId = parseUserId(getParamId(req.params.id));
     const payload = await deactivateUser(req.authUser!, userId);
+    res.json(payload);
+  })
+);
+
+usersRouter.post(
+  "/users/:id/reset-password",
+  authGuard,
+  requireRoles("admin", "super_admin"),
+  asyncHandler(async (req, res) => {
+    const userId = parseUserId(getParamId(req.params.id));
+    const dto = parseResetUserPasswordDto(req.body);
+    const payload = await resetUserPassword(req.authUser!, userId, dto);
     res.json(payload);
   })
 );

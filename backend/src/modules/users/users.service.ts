@@ -5,7 +5,7 @@ import { toPgHttpError } from "../../common/http/pg-error.js";
 import { hashPassword } from "../../common/security/password.js";
 import type { AuthenticatedUser, UserRole } from "../../common/types/auth.js";
 import { logAudit } from "../audit/audit.service.js";
-import type { CreateUserDto, UpdateUserDto } from "./users.dto.js";
+import type { CreateUserDto, ResetUserPasswordDto, UpdateUserDto } from "./users.dto.js";
 
 type UserRow = {
   id: string;
@@ -113,6 +113,18 @@ function validateUpdatePermissions(actor: AuthenticatedUser, target: UserRow, dt
     if (dto.role !== undefined) {
       throw new HttpError(403, "admin cannot change roles");
     }
+  }
+}
+
+function validatePasswordResetPermissions(actor: AuthenticatedUser, target: UserRow) {
+  if (actor.role === "client") {
+    throw new HttpError(403, "client cannot reset passwords");
+  }
+  if (target.role !== "client") {
+    throw new HttpError(403, "Можно менять пароль только клиентским аккаунтам");
+  }
+  if (actor.role === "admin" && target.role !== "client") {
+    throw new HttpError(403, "admin cannot reset this password");
   }
 }
 
@@ -277,6 +289,42 @@ export async function deactivateUser(actor: AuthenticatedUser, userId: string) {
     return { success: true, alreadyDeactivated: !target.is_active, userId };
   } catch (error) {
     await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function resetUserPassword(actor: AuthenticatedUser, userId: string, dto: ResetUserPasswordDto) {
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const target = await getUserRowById(userId, client);
+    validatePasswordResetPermissions(actor, target);
+
+    const passwordHash = await hashPassword(dto.newPassword);
+    await client.query("update public.users set password_hash = $1, updated_at = now() where id = $2", [passwordHash, userId]);
+    await client.query("update public.refresh_tokens set revoked_at = now() where user_id = $1 and revoked_at is null", [userId]);
+    await client.query("update public.devices set is_active = false where user_id = $1", [userId]);
+
+    await logAudit({
+      actorUserId: actor.id,
+      action: "client.password.reset",
+      entityType: "users",
+      entityId: userId,
+      payload: {
+        targetRole: target.role,
+        targetEmail: target.email
+      },
+      client
+    });
+
+    await client.query("commit");
+    return { success: true, userId };
+  } catch (error) {
+    await client.query("rollback");
+    const normalized = toPgHttpError(error);
+    if (normalized) throw normalized;
     throw error;
   } finally {
     client.release();

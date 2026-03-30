@@ -25,6 +25,11 @@ export type UpdateUserDto = {
   notes?: string | null;
 };
 
+export type ResetUserPasswordDto = {
+  newPassword: string;
+  confirmPassword: string;
+};
+
 const CREATABLE_ROLES: UserRole[] = ["admin", "client"];
 const UPDATABLE_ROLES: UserRole[] = ["admin", "client"];
 
@@ -152,4 +157,27 @@ export function parseUpdateUserDto(body: unknown): UpdateUserDto {
     throw new HttpError(400, "No fields to update");
   }
   return dto;
+}
+
+export function parseResetUserPasswordDto(body: unknown): ResetUserPasswordDto {
+  if (!body || typeof body !== "object") {
+    throw new HttpError(400, "Тело запроса обязательно");
+  }
+
+  const input = body as Record<string, unknown>;
+  const newPassword = asTrimmedString(input.new_password, "new_password");
+  const confirmPassword = asTrimmedString(input.confirm_password, "confirm_password");
+
+  if (newPassword.length < 8 || newPassword.length > 128) {
+    throw new HttpError(400, "Пароль должен содержать от 8 до 128 символов");
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new HttpError(400, "Пароли не совпадают");
+  }
+
+  return {
+    newPassword,
+    confirmPassword
+  };
 }
