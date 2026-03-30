@@ -16,6 +16,36 @@ import { servicesRouter } from "./modules/services/services.routes.js";
 import { usersRouter } from "./modules/users/users.routes.js";
 import { visitsRouter } from "./modules/visits/visits.routes.js";
 
+function isTrustedRenderPair(origin: string, requestHost: string | undefined) {
+  if (!origin || !requestHost) return false;
+
+  try {
+    const originUrl = new URL(origin);
+    const originHost = originUrl.host;
+    const backendHost = requestHost.trim().toLowerCase();
+
+    if (!originHost.endsWith(".onrender.com") || !backendHost.endsWith(".onrender.com")) {
+      return false;
+    }
+
+    if (originHost === backendHost) {
+      return true;
+    }
+
+    if (backendHost.includes("-backend.")) {
+      return originHost === backendHost.replace("-backend.", "-web.");
+    }
+
+    if (backendHost.includes("-api.")) {
+      return originHost === backendHost.replace("-api.", "-web.");
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function buildApp() {
   const app = express();
   const trustProxyValue = env.trustProxy === "false" ? false : env.trustProxy === "true" ? true : env.trustProxy;
@@ -31,7 +61,7 @@ export function buildApp() {
   });
 
   app.use(helmet());
-  app.use(
+  app.use((req, res, next) => {
     cors({
       origin(origin, callback) {
         if (env.corsOrigins.includes("*")) {
@@ -46,11 +76,15 @@ export function buildApp() {
           callback(null, true);
           return;
         }
+        if (isTrustedRenderPair(origin, req.get("host"))) {
+          callback(null, true);
+          return;
+        }
         callback(new Error(`CORS origin denied: ${origin}`));
       },
       credentials: true
-    })
-  );
+    })(req, res, next);
+  });
   app.use(express.json({ limit: "30mb" }));
 
   app.get("/", (_req, res) => {
