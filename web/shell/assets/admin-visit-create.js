@@ -146,7 +146,7 @@ if (session) {
         "error",
         "Справочники загружены частично",
         "Часть данных сейчас недоступна. Проверьте backend и права доступа.",
-        "Частичная ошибка"
+        "Требует внимания"
       );
     } else {
       renderWorkspaceState(
@@ -257,7 +257,7 @@ if (session) {
         typeof result.bonusAccrualAmount === "number"
           ? ` Клиенту автоматически начислено ${result.bonusAccrualAmount} бонусов.`
           : "";
-      successMessage.textContent = `Визит создан (ID: ${result.id}).${bonusText}`;
+      successMessage.textContent = `Визит успешно создан. Номер визита: ${result.id}.${bonusText}`;
 
       selectedServices.length = 0;
       form.reset();

@@ -123,7 +123,11 @@ export async function apiLogin({ email, password }) {
   });
   const data = await parseJson(response);
   if (!response.ok) {
-    throw new Error(data.message || data.error || `Login failed (${response.status})`);
+    throw new Error(
+      data.message
+      || data.error
+      || "Не удалось выполнить вход. Проверьте данные и попробуйте ещё раз."
+    );
   }
   return data;
 }
@@ -159,7 +163,7 @@ async function apiRefreshToken(refreshToken) {
   });
   const data = await parseJson(response);
   if (!response.ok) {
-    throw new Error(data.message || `Refresh failed (${response.status})`);
+    throw new Error(data.message || "Сессия завершилась. Войдите снова.");
   }
   return data;
 }
@@ -204,13 +208,19 @@ export async function authFetchJson(path, { method = "GET", body, accessToken } 
 
   if (initialResponse.status !== 401) {
     const initialData = await parseJson(initialResponse);
-    if (!initialResponse.ok) throw new Error(initialData.message || initialData.error || `Request failed (${initialResponse.status})`);
+    if (!initialResponse.ok) {
+      throw new Error(
+        initialData.message
+        || initialData.error
+        || "Не удалось выполнить действие. Попробуйте ещё раз."
+      );
+    }
     return initialData;
   }
 
   const refreshedSession = await refreshSessionIfNeeded({ force: true });
   token = refreshedSession?.accessToken || "";
-  if (!token) throw new Error("Session expired. Please login again.");
+  if (!token) throw new Error("Сессия завершилась. Войдите снова.");
 
   const retryResponse = await fetch(`${getApiBase()}${path}`, {
     method,
@@ -221,7 +231,13 @@ export async function authFetchJson(path, { method = "GET", body, accessToken } 
     body: body ? JSON.stringify(body) : undefined
   });
   const retryData = await parseJson(retryResponse);
-  if (!retryResponse.ok) throw new Error(retryData.message || retryData.error || `Request failed (${retryResponse.status})`);
+  if (!retryResponse.ok) {
+    throw new Error(
+      retryData.message
+      || retryData.error
+      || "Не удалось выполнить действие. Попробуйте ещё раз."
+    );
+  }
   return retryData;
 }
 

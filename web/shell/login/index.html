@@ -12,13 +12,12 @@
       <section class="shell">
         <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
           <h1 class="title">Autoservice</h1>
-          <p class="subtitle">Вход во внутреннюю систему для client, admin и super_admin.</p>
-          <p id="flags" class="subtitle" style="margin-top: 6px; font-size: 13px;"></p>
+          <p class="subtitle">Войдите в систему, чтобы открыть кабинет клиента или рабочее пространство команды.</p>
           <div class="spacer-24"></div>
 
           <form id="login-form">
             <label class="label" for="email">Электронная почта</label>
-            <input class="input" id="email" type="email" placeholder="admin@autoservice.local" required />
+            <input class="input" id="email" type="email" placeholder="name@example.com" required />
 
             <div class="spacer-16"></div>
             <label class="label" for="password">Пароль</label>
@@ -35,13 +34,10 @@
     </main>
 
     <script type="module">
-      import { apiLogin, apiMe, featureFlags, writeSession } from "/assets/app.js";
+      import { apiLogin, apiMe, writeSession } from "/assets/app.js";
 
       const form = document.getElementById("login-form");
       const errorNode = document.getElementById("error");
-      const flagsNode = document.getElementById("flags");
-      flagsNode.textContent = `Параметры первого запуска: files=${featureFlags.filesEnabled}, push=${featureFlags.pushEnabled}, smtp=${featureFlags.smtpEnabled}`;
-
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         void (async () => {
@@ -76,8 +72,8 @@
               msg.includes("NetworkError") ||
               msg.includes("network");
             errorNode.textContent = isNetwork
-              ? "Не удается подключиться к серверу. Проверьте соединение и попробуйте снова."
-              : msg || "Не удалось войти";
+              ? "Не удалось подключиться к серверу. Проверьте соединение и попробуйте снова."
+              : msg || "Не удалось выполнить вход. Проверьте данные и попробуйте ещё раз.";
           }
         })();
       });

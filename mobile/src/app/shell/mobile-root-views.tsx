@@ -86,11 +86,11 @@ export function StaffAccessView(props: { session: AuthSession; onLogout: () => v
         <Text style={styles.brandMark}>CRS</Text>
         <Text style={styles.splashTitle}>Рабочее пространство команды</Text>
         <Text style={styles.splashSubtitle}>
-          Для роли {props.session.role} основной операционный контур доступен в web-кабинете.
+          Для роли {props.session.role} основной рабочий контур доступен в браузере.
         </Text>
-        <Text style={styles.splashSubtitle}>Рекомендуемый маршрут: {navigation.defaultPath}</Text>
+        <Text style={styles.splashSubtitle}>Откроется раздел: {navigation.defaultPath}</Text>
         <View style={styles.splashActions}>
-          <AppButton label="Открыть web-кабинет" onPress={() => void openWebWorkspace()} haptic="impactLight" />
+          <AppButton label="Открыть рабочий кабинет" onPress={() => void openWebWorkspace()} haptic="impactLight" />
           <AppButton label="Выйти" variant="secondary" onPress={props.onLogout} haptic="selection" />
         </View>
       </GlassCard>
@@ -202,7 +202,7 @@ export function LoginView(props: {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="client@example.com"
+            placeholder="name@example.com"
           />
           <AppInput
             label="Пароль"
