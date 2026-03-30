@@ -41,7 +41,7 @@ function parseOrigins(...values: Array<string | undefined>) {
 }
 
 const corsOrigins = parseOrigins(
-  process.env.CORS_ORIGIN ?? "http://localhost:3000,http://127.0.0.1:3100",
+  process.env.CORS_ORIGIN,
   process.env.CORS_EXTRA_ORIGINS
 );
 
@@ -63,11 +63,11 @@ export const env = {
   filesEnabled: parseBoolean(process.env.FILES_ENABLED, false),
   pushEnabled: parseBoolean(process.env.PUSH_ENABLED, false),
   smtpEnabled: parseBoolean(process.env.SMTP_ENABLED, false),
-  s3Endpoint: process.env.S3_ENDPOINT ?? "http://127.0.0.1:9000",
+  s3Endpoint: process.env.S3_ENDPOINT ?? "",
   s3Region: process.env.S3_REGION ?? "us-east-1",
   s3Bucket: process.env.S3_BUCKET ?? "autoservice-chat",
   s3AccessKeyId: process.env.S3_ACCESS_KEY_ID ?? process.env.S3_ACCESS_KEY ?? "",
   s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? process.env.S3_SECRET_KEY ?? "",
-  s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? "http://127.0.0.1:9000/autoservice-chat",
+  s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? "",
   fcmServerKey: process.env.FCM_SERVER_KEY ?? ""
 };

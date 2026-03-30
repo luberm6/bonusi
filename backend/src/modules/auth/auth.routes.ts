@@ -34,7 +34,7 @@ authRouter.post(
     const payload = await login({
       email: String(email),
       password: String(password),
-      ip: req.ip || "127.0.0.1",
+      ip: req.ip || "unknown",
       device: device
         ? {
             deviceId: device.deviceId,

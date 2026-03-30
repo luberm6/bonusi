@@ -1,11 +1,12 @@
 import { randomUUID } from "crypto";
 import pg from "pg";
 import { io as ioClient } from "socket.io-client";
+import { requireEnvUrl } from "./helpers/require-env-url.mjs";
 
 const { Pool } = pg;
 const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
-const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
-const wsBase = process.env.WS_BASE_URL ?? "http://127.0.0.1:4010";
+const apiBase = requireEnvUrl("API_BASE_URL");
+const wsBase = requireEnvUrl("WS_BASE_URL");
 const filesEnabled = process.env.FILES_ENABLED === "true";
 const pool = new Pool({ connectionString: dbUrl });
 

@@ -52,7 +52,7 @@
 - `ACCESS_TOKEN_TTL=15m`
 - `REFRESH_TOKEN_TTL_DAYS=30`
 - `TRUST_PROXY=true`
-- `CORS_EXTRA_ORIGINS=http://localhost:3000,http://127.0.0.1:3100`
+- `CORS_EXTRA_ORIGINS=` при необходимости можно добавить дополнительные origin вручную
 - `FILES_ENABLED=false`
 - `NOMINATIM_*` and cache TTL defaults
 - `SUPER_ADMIN_EMAIL=admin@autoservice.local`

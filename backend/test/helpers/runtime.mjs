@@ -1,9 +1,10 @@
 import pg from "pg";
+import { requireEnvUrl } from "./require-env-url.mjs";
 
 const { Pool } = pg;
 
 export const dbUrl = process.env.DATABASE_URL ?? "postgresql:///bonusi_dev";
-export const apiBase = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
+export const apiBase = requireEnvUrl("API_BASE_URL");
 
 export function createTestPool() {
   return new Pool({ connectionString: dbUrl });

@@ -18,14 +18,21 @@ function normalizeApiBase(base) {
 function isLoopbackTarget(base) {
   try {
     const url = new URL(base);
-    return ["127.0.0.1", "localhost", "0.0.0.0"].includes(url.hostname);
+    const host = url.hostname;
+    if (!host) return true;
+    if (!host.includes(".")) return true;
+    const octets = host.split(".");
+    return octets.length === 4 && octets.every((part) => /^\d+$/.test(part)) && Number(octets[0]) === 127;
   } catch {
     return false;
   }
 }
 
 function isLocalBrowserHost(hostname) {
-  return ["127.0.0.1", "localhost", "0.0.0.0"].includes(hostname);
+  if (!hostname) return true;
+  if (!hostname.includes(".")) return true;
+  const octets = hostname.split(".");
+  return octets.length === 4 && octets.every((part) => /^\d+$/.test(part)) && Number(octets[0]) === 127;
 }
 
 function deriveRenderApiBase() {
@@ -51,13 +58,17 @@ function deriveRenderApiBase() {
 function resolveApiBase() {
   const configured = normalizeApiBase(globalThis.__AUTOSERVICE_API_BASE__);
   if (configured) {
-    const browserHost = typeof window === "undefined" ? "localhost" : window.location.hostname;
+    const browserHost = typeof window === "undefined" ? "" : window.location.hostname;
     if (!isLoopbackTarget(configured) || isLocalBrowserHost(browserHost)) {
       return configured;
     }
   }
 
-  return deriveRenderApiBase() || "http://127.0.0.1:4000/api/v1";
+  if (typeof window !== "undefined") {
+    return deriveRenderApiBase() || `${window.location.origin.replace(/\/+$/, "")}/api/v1`;
+  }
+
+  return "/api/v1";
 }
 
 const DEFAULT_API_BASE = resolveApiBase();

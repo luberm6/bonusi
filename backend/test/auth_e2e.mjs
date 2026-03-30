@@ -1,4 +1,6 @@
-const baseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:4010/api/v1";
+import { requireEnvUrl } from "./helpers/require-env-url.mjs";
+
+const baseUrl = requireEnvUrl("API_BASE_URL");
 
 async function request(path, { method = "GET", body, token, forwardedFor } = {}) {
   const headers = { "content-type": "application/json" };

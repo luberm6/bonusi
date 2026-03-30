@@ -12,5 +12,5 @@ export function getClientIp(req: Request): string {
   if (cf) return cf;
   const xff = firstCsvValue(req.headers["x-forwarded-for"] as string | string[] | undefined);
   if (xff) return xff;
-  return req.ip || "127.0.0.1";
+  return req.ip || "unknown";
 }

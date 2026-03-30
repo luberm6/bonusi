@@ -35,7 +35,7 @@ services:
           name: autoservice-web
           property: host
       - key: CORS_EXTRA_ORIGINS
-        value: http://localhost:3000,http://127.0.0.1:3100
+        value: ""
       - key: FILES_ENABLED
         value: false
       - key: PUSH_ENABLED
