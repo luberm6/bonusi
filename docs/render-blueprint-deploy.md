@@ -46,6 +46,11 @@
 - `PUBLIC_API_BASE` (`fromService.host` for backend; build script adds `https://` and appends `/api/v1`)
 - `CORS_ORIGIN` (`fromService.host` for web; backend normalizes it to a valid origin)
 
+Important:
+
+- Do not override `PUBLIC_API_BASE` manually in the Render UI for `autoservice-web`.
+- Keep it linked via `fromService.host`, otherwise the static shell can point to the wrong backend hostname.
+
 ### C) Defaults / safe automatic values
 
 - `NODE_ENV=production`
@@ -80,6 +85,7 @@
    - password: generated in Render env var `SUPER_ADMIN_PASSWORD`
 5. Immediately change password after first login.
 6. After first successful login, you can remove `SUPER_ADMIN_PASSWORD` from Render env (keep `SUPER_ADMIN_EMAIL`).
+7. Do not set `PUBLIC_API_BASE` manually on `autoservice-web`; keep the service binding from blueprint.
 
 ## Known limitations
 

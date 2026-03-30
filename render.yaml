@@ -80,6 +80,7 @@ services:
     pullRequestPreviewsEnabled: false
     autoDeploy: true
     envVars:
+      # Keep this linked to the backend service host. Do not override manually in Render UI.
       - key: PUBLIC_API_BASE
         fromService:
           type: web

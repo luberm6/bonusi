@@ -57,15 +57,29 @@ function deriveRenderApiBase() {
 
 function resolveApiBase() {
   const configured = normalizeApiBase(globalThis.__AUTOSERVICE_API_BASE__);
+  const derivedRender = typeof window !== "undefined" ? deriveRenderApiBase() : null;
   if (configured) {
     const browserHost = typeof window === "undefined" ? "" : window.location.hostname;
+    if (derivedRender && !isLocalBrowserHost(browserHost)) {
+      try {
+        const configuredHost = new URL(configured).host;
+        const derivedHost = new URL(derivedRender).host;
+        if (configuredHost === derivedHost) {
+          return configured;
+        }
+      } catch {
+        return derivedRender;
+      }
+      return derivedRender;
+    }
+
     if (!isLoopbackTarget(configured) || isLocalBrowserHost(browserHost)) {
       return configured;
     }
   }
 
   if (typeof window !== "undefined") {
-    return deriveRenderApiBase() || `${window.location.origin.replace(/\/+$/, "")}/api/v1`;
+    return derivedRender || `${window.location.origin.replace(/\/+$/, "")}/api/v1`;
   }
 
   return "/api/v1";
