@@ -4,7 +4,6 @@ import {
   Dimensions,
   Linking,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { AuthSession } from "../navigation/role-navigation-resolver";
 import { resolveNavigationAfterLogin } from "../navigation/role-navigation-resolver";
 import { mobileEnv } from "../../shared/config/mobile-env";
