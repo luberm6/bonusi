@@ -26,6 +26,22 @@ type LoginResponse = {
   deviceId?: string | null;
 };
 
+function toLoginErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "Не удалось выполнить вход. Попробуйте ещё раз.";
+  }
+  const message = error.message.trim();
+  if (!message) {
+    return "Не удалось выполнить вход. Попробуйте ещё раз.";
+  }
+  if (/invalid password|invalid credentials|unauthorized|401/i.test(message)) {
+    return "Проверьте логин и пароль.";
+  }
+  if (/network|fetch|request failed/i.test(message)) {
+    return "Не удалось выполнить вход. Проверьте подключение и попробуйте ещё раз.";
+  }
+  return message;
+}
 
 export function MobileRootShell() {
   const [booting, setBooting] = useState(true);
@@ -93,7 +109,7 @@ export function MobileRootShell() {
 
       const text = await response.text();
       const payload = text ? (JSON.parse(text) as LoginResponse & { message?: string; error?: string }) : null;
-      if (!response.ok || !payload?.accessToken || !payload.user?.id || !payload.user?.role) {
+      if (!response.ok || !payload?.accessToken || !payload?.refreshToken || !payload.user?.id || !payload.user?.role) {
         throw new Error(payload?.message || payload?.error || "Не удалось выполнить вход");
       }
 
@@ -116,7 +132,7 @@ export function MobileRootShell() {
       setPassword("");
     } catch (error) {
       fireHaptic("notificationError");
-      setLoginError(error instanceof Error ? error.message : "Не удалось выполнить вход");
+      setLoginError(toLoginErrorMessage(error));
     } finally {
       setLoginLoading(false);
     }
