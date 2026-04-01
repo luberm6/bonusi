@@ -220,6 +220,22 @@ function friendlyErrorMessage(error: unknown, fallback: string) {
   return message;
 }
 
+function formatMessageTime(iso: string): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return "";
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+  const time = date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  if (date >= todayStart) return time;
+  if (date >= yesterdayStart) return `вчера, ${time}`;
+  return (
+    date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }).replace(".", "") +
+    `, ${time}`
+  );
+}
+
 function ScreenHeader(props: { title: string; onBack: () => void }) {
   return (
     <View style={styles.screenHeader}>
@@ -437,10 +453,7 @@ function AnimatedMessageBubble(props: { mine: boolean; text: string; createdAt: 
     >
       <Text style={[styles.messageText, props.mine && styles.messageTextMine]}>{props.text}</Text>
       <Text style={[styles.messageMeta, props.mine && styles.messageMetaMine]}>
-        {new Date(props.createdAt).toLocaleTimeString("ru-RU", {
-          hour: "2-digit",
-          minute: "2-digit"
-        })}
+        {formatMessageTime(props.createdAt)}
       </Text>
     </Animated.View>
   );
@@ -476,6 +489,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const chatScrollRef = useRef<ScrollView | null>(null);
   const hasChatBaselineRef = useRef(false);
   const lastIncomingMessageIdRef = useRef<string | null>(null);
+  const isAtBottomRef = useRef(true);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-12)).current;
   const swipeBackTranslateX = useRef(new Animated.Value(0)).current;
@@ -516,6 +530,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
   useEffect(() => {
     if (screen !== "chat" || !messages) return;
+    if (!isAtBottomRef.current) return; // пользователь читает историю — не прерываем
     const timer = setTimeout(() => {
       chatScrollRef.current?.scrollToEnd({ animated: true });
     }, 90);
@@ -762,6 +777,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   }
 
   async function openConversation(conversationId: string) {
+    isAtBottomRef.current = true; // при открытии диалога всегда скроллим вниз
     setActiveConversationId(conversationId);
     setChatLoading(true);
     setChatError(null);
@@ -1218,6 +1234,12 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 alwaysBounceVertical
                 keyboardDismissMode="interactive"
                 keyboardShouldPersistTaps="handled"
+                scrollEventThrottle={100}
+                onScroll={(e) => {
+                  const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+                  isAtBottomRef.current =
+                    contentOffset.y + layoutMeasurement.height >= contentSize.height - 80;
+                }}
               >
                 {!(messages ?? []).length ? (
                   <View style={styles.messagesEmpty}>
@@ -1938,6 +1960,7 @@ const styles = StyleSheet.create({
   },
   messageBubble: {
     maxWidth: "82%",
+    flexShrink: 1,
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 12
@@ -1955,6 +1978,7 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 15,
     lineHeight: 21,
+    flexShrink: 1,
     color: mobileTokens.color.textPrimary
   },
   messageTextMine: {

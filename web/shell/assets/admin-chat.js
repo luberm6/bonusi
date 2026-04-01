@@ -8,6 +8,15 @@ import {
 const session = initAdminWorkspace();
 
 if (session) {
+  // CSS для fade-in новых сообщений и word-wrap длинных
+  const styleEl = document.createElement("style");
+  styleEl.textContent = `
+    @keyframes msgFadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+    .workspace-msg.msg-new { animation: msgFadeIn 180ms ease-out both; }
+    .workspace-msg { white-space: pre-wrap; word-break: break-word; }
+  `;
+  document.head.appendChild(styleEl);
+
   const chatState = document.getElementById("chat-state");
   const conversationList = document.getElementById("conv-list");
   const chatPanel = document.getElementById("chat-panel");
@@ -17,6 +26,7 @@ if (session) {
   let activeConversationId = null;
   let pollInterval = null;
   let lastMessageIds = "";
+  let prevMessageIds = new Set();
 
   // Тихое обновление сообщений — не трогает поле ввода, не дёргает скролл
   const renderMessagesOnly = (messages) => {
@@ -31,15 +41,18 @@ if (session) {
     msgs.innerHTML = "";
     if (!messages.length) {
       msgs.innerHTML = '<p class="workspace-empty">Сообщений пока нет. Начните диалог первым.</p>';
+      prevMessageIds = new Set();
       return;
     }
     for (const message of messages) {
       const mine = message.senderId === session.userId;
+      const isNew = !prevMessageIds.has(message.id);
       const node = document.createElement("div");
-      node.className = `workspace-msg ${mine ? "mine" : "other"}`;
+      node.className = `workspace-msg ${mine ? "mine" : "other"}${isNew ? " msg-new" : ""}`;
       node.innerHTML = `${message.text || ""}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
       msgs.appendChild(node);
     }
+    prevMessageIds = new Set(messages.map((m) => m.id));
     if (atBottom) {
       msgs.scrollTop = msgs.scrollHeight;
     }
@@ -78,10 +91,15 @@ if (session) {
 
   const formatTime = (iso) => {
     if (!iso) return "";
-    return new Date(iso).toLocaleTimeString("ru-RU", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) return "";
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+    const time = date.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    if (date >= todayStart) return time;
+    if (date >= yesterdayStart) return `вчера, ${time}`;
+    return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }).replace(".", "") + `, ${time}`;
   };
 
   const renderConversationPreview = (conversation) => {
@@ -142,6 +160,7 @@ if (session) {
   // Полный рендер панели — при первом открытии диалога
   const renderMessages = (messages) => {
     lastMessageIds = ""; // сбрасываем кэш, чтобы renderMessagesOnly всегда отрисовал
+    prevMessageIds = new Set(); // при смене диалога все сообщения — "старые", без анимации
     chatPanel.innerHTML = `
       <div class="workspace-chat-board">
         <div class="workspace-chat-messages" id="msgs"></div>
