@@ -519,6 +519,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   }, [messages, props.session.userId]);
 
   useEffect(() => {
+    if (screen !== "chat" || !activeConversationId) return;
+    const timer = setInterval(() => {
+      void openConversation(activeConversationId);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [screen, activeConversationId]);
+
+  useEffect(() => {
     if (!toast) return;
     toastOpacity.setValue(0);
     toastTranslateY.setValue(-12);
@@ -704,6 +712,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     setChatLoading(true);
     setChatError(null);
     try {
+      await requestJson<{ id: string; created: boolean }>(
+        "/chat/conversations/ensure",
+        props.accessToken,
+        { method: "POST", body: JSON.stringify({}) }
+      );
       const convs = await requestJson<ConversationRow[]>("/chat/conversations", props.accessToken);
       setConversations(convs);
       const firstConversationId = convs[0]?.id ?? null;

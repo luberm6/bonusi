@@ -15,6 +15,24 @@ if (session) {
 
   let toastTimer = null;
   let activeConversationId = null;
+  let pollInterval = null;
+
+  const startPolling = (conversationId) => {
+    stopPolling();
+    pollInterval = window.setInterval(async () => {
+      try {
+        const msgs = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
+        renderMessages(msgs);
+        bindMessageComposer(conversationId);
+      } catch (_) {}
+    }, 5000);
+  };
+
+  const stopPolling = () => {
+    if (pollInterval) { window.clearInterval(pollInterval); pollInterval = null; }
+  };
+
+  window.addEventListener("beforeunload", stopPolling);
 
   const showToast = (text, tone = "success") => {
     toast.textContent = text;
@@ -76,8 +94,9 @@ if (session) {
         conversation.unreadCount > 0
           ? `<span class="unread-badge">${conversation.unreadCount}</span>`
           : "";
+      const clientLabel = conversation.clientName || conversation.clientEmail || "Клиент";
       item.innerHTML = `
-        <div class="workspace-chat-name">${conversation.participantId || "Клиент"}${unreadBadge}</div>
+        <div class="workspace-chat-name">${clientLabel}${unreadBadge}</div>
         <div class="workspace-chat-preview">${renderConversationPreview(conversation)}</div>
       `;
       item.addEventListener("click", () => {
@@ -163,6 +182,7 @@ if (session) {
       const messages = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
       renderMessages(messages);
       bindMessageComposer(conversationId);
+      startPolling(conversationId);
     } catch (error) {
       chatPanel.innerHTML = `<div class="workspace-panel workspace-panel-compact"><p class="error">${formatWorkspaceError(error, "Не удалось открыть диалог")}</p></div>`;
       showToast(formatWorkspaceError(error, "Не удалось открыть диалог"), "error");

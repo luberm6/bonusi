@@ -17,6 +17,7 @@ import {
 import { isUserOnline } from "./chat.presence.js";
 import {
   createTemplate,
+  ensureConversation,
   listConversations,
   listMessages,
   listTemplates,
@@ -60,6 +61,16 @@ chatRouter.get(
   asyncHandler(async (req, res) => {
     const payload = await listConversations(req.authUser!);
     res.json(payload);
+  })
+);
+
+chatRouter.post(
+  "/chat/conversations/ensure",
+  authGuard,
+  asyncHandler(async (req, res) => {
+    const clientId = typeof req.body?.clientId === "string" ? req.body.clientId : undefined;
+    const payload = await ensureConversation(req.authUser!, { clientId });
+    res.status(payload.created ? 201 : 200).json(payload);
   })
 );
 

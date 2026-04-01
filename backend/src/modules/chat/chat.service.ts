@@ -93,8 +93,10 @@ export async function listConversations(actor: AuthenticatedUser) {
   const result = await pool.query(
     `select c.id, c.client_id, c.admin_id, c.created_at, c.updated_at,
             m.id as last_message_id, m.text as last_message_text, m.created_at as last_message_at,
-            coalesce(unread.unread_count, 0) as unread_count
+            coalesce(unread.unread_count, 0) as unread_count,
+            cu.email as client_email, cu.full_name as client_name
      from public.conversations c
+     left join public.users cu on cu.id = c.client_id
      left join lateral (
        select id, text, created_at
        from public.messages
@@ -118,6 +120,8 @@ export async function listConversations(actor: AuthenticatedUser) {
     id: row.id,
     clientId: row.client_id,
     adminId: row.admin_id,
+    clientEmail: row.client_email as string | null,
+    clientName: row.client_name as string | null,
     updatedAt: row.updated_at,
     createdAt: row.created_at,
     unreadCount: Number(row.unread_count),
@@ -129,6 +133,59 @@ export async function listConversations(actor: AuthenticatedUser) {
         }
       : null
   }));
+}
+
+export async function ensureConversation(actor: AuthenticatedUser, input: { clientId?: string }) {
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (actor.role === "client") {
+    const existing = await pool.query(
+      `select id from public.conversations where client_id = $1 limit 1`,
+      [actor.id]
+    );
+    if (existing.rowCount) return { id: existing.rows[0].id as string, created: false };
+
+    const adminRes = await pool.query(
+      `select id from public.users where role = 'admin' and is_active = true order by created_at asc limit 1`
+    );
+    if (!adminRes.rowCount) throw new HttpError(503, "Нет доступных администраторов");
+    const adminId = adminRes.rows[0].id as string;
+
+    const created = await pool.query(
+      `insert into public.conversations (client_id, admin_id)
+       values ($1, $2)
+       on conflict (client_id, admin_id) do update set updated_at = now()
+       returning id`,
+      [actor.id, adminId]
+    );
+    return { id: created.rows[0].id as string, created: true };
+  }
+
+  if (actor.role === "admin" || actor.role === "super_admin") {
+    if (!input.clientId) throw new HttpError(400, "clientId обязателен");
+    if (!UUID_RE.test(input.clientId)) throw new HttpError(400, "Некорректный clientId");
+
+    let adminId: string;
+    if (actor.role === "super_admin") {
+      const adminRes = await pool.query(
+        `select id from public.users where role = 'admin' and is_active = true order by created_at asc limit 1`
+      );
+      adminId = adminRes.rows[0]?.id ?? actor.id;
+    } else {
+      adminId = actor.id;
+    }
+
+    const result = await pool.query(
+      `insert into public.conversations (client_id, admin_id)
+       values ($1, $2)
+       on conflict (client_id, admin_id) do update set updated_at = now()
+       returning id`,
+      [input.clientId, adminId]
+    );
+    return { id: result.rows[0].id as string, created: true };
+  }
+
+  throw new HttpError(403, "Доступ запрещён");
 }
 
 export async function listMessages(actor: AuthenticatedUser, conversationId: string) {
