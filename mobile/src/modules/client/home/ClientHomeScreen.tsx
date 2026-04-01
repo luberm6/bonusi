@@ -4,8 +4,10 @@ import {
   Dimensions,
   Easing,
   Image,
+  KeyboardAvoidingView,
   Linking,
   PanResponder,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +16,7 @@ import {
   View
 } from "react-native";
 import type { AuthSession } from "../../../app/navigation/role-navigation-resolver";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { mobileEnv } from "../../../shared/config/mobile-env";
 import { mobileTokens } from "../../../shared/design/tokens";
 import { fireHaptic, type HapticIntent } from "../../../shared/native/haptics";
@@ -163,7 +166,10 @@ function randomId() {
   if (typeof globalThis.crypto?.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
   }
-  return `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
 
 async function requestJson<T>(path: string, token: string, init?: RequestInit): Promise<T> {
@@ -493,6 +499,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTranslateY = useRef(new Animated.Value(-12)).current;
   const swipeBackTranslateX = useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
 
   const clientName = useMemo(() => {
     const raw = me?.fullName?.trim();
@@ -832,7 +839,6 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       presentToast("success", "Сообщение отправлено");
     } catch (error) {
       setMessageText(draft); // возвращаем текст при ошибке
-      setChatError(friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже."));
       presentToast("error", friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже."), "notificationError");
     } finally {
       setSubmittingMessage(false);
@@ -1283,13 +1289,17 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   }
 
   return (
-    <View style={styles.root}>
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       {toast ? (
         <Animated.View
           pointerEvents="none"
           style={[
             styles.toast,
             toast.type === "success" ? styles.toastSuccess : styles.toastError,
+            { top: insets.top + 8 },
             { opacity: toastOpacity, transform: [{ translateY: toastTranslateY }] }
           ]}
         >
@@ -1331,7 +1341,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           </MotionScreen>
         </Animated.View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -2024,7 +2034,6 @@ const styles = StyleSheet.create({
   },
   toast: {
     position: "absolute",
-    top: 18,
     left: 18,
     right: 18,
     zIndex: 20,

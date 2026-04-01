@@ -61,6 +61,7 @@ function canAccessConversation(actor: AuthenticatedUser, conv: ConversationRow):
 }
 
 function canSendInConversation(actor: AuthenticatedUser, conv: ConversationRow): boolean {
+  if (actor.role === "super_admin") return true;
   return actor.id === conv.client_id || actor.id === conv.admin_id;
 }
 
@@ -79,7 +80,7 @@ async function getConversationRaw(conversationId: string): Promise<ConversationR
 function resolveReceiverId(actorId: string, conv: ConversationRow): string {
   if (actorId === conv.client_id) return conv.admin_id;
   if (actorId === conv.admin_id) return conv.client_id;
-  throw new HttpError(403, "Sender is not conversation member");
+  return conv.client_id; // super_admin отправляет как admin, получатель — клиент
 }
 
 export async function listConversations(actor: AuthenticatedUser) {
