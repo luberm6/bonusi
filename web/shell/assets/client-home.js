@@ -9,11 +9,11 @@ if (session) {
 
   const app = document.getElementById("app");
   const CONTACT_LINKS = [
-    { key: "vk", label: "VK", url: "https://vk.com" },
-    { key: "ig", label: "IG", url: "https://instagram.com" },
-    { key: "tg", label: "TG", url: "https://t.me" },
-    { key: "mail", label: "@", url: "mailto:info@centr-radius-service.ru" },
-    { key: "phone", label: "PH", url: "tel:+78000000000" }
+    { key: "vk", label: "ВК", url: "https://vk.com" },
+    { key: "ig", label: "Instagram", url: "https://instagram.com" },
+    { key: "tg", label: "Telegram", url: "https://t.me" },
+    { key: "mail", label: "Email", url: "mailto:info@centr-radius-service.ru" },
+    { key: "phone", label: "Телефон", url: "tel:+78000000000" }
   ];
 
   let screen = "home";

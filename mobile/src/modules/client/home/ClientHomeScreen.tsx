@@ -152,11 +152,11 @@ function getWorkHoursText(value: BranchRow["workHours"]): string | null {
 const HERO_IMAGE = require("./assets/client-hero-car.png");
 
 const CONTACT_LINKS = [
-  { key: "vk", label: "VK", url: "https://vk.com" },
-  { key: "ig", label: "IG", url: "https://instagram.com" },
-  { key: "tg", label: "TG", url: "https://t.me" },
+  { key: "vk", label: "ВК", url: "https://vk.com" },
+  { key: "ig", label: "Instagram", url: "https://instagram.com" },
+  { key: "tg", label: "Telegram", url: "https://t.me" },
   { key: "mail", label: "@", url: "mailto:info@centr-radius-service.ru" },
-  { key: "phone", label: "PH", url: "tel:+78000000000" }
+  { key: "phone", label: "Телефон", url: "tel:+78000000000" }
 ] as const;
 
 function randomId() {

@@ -206,7 +206,7 @@ export function LoginView(props: {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="name@example.com"
+            placeholder="example@mail.ru"
           />
           <AppInput
             label="Пароль"
