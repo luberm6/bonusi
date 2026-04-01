@@ -57,6 +57,11 @@ export function parseVisitId(id: string): string {
   return id;
 }
 
+export function parseClientId(id: string): string {
+  if (!UUID_RE.test(id)) throw new HttpError(400, "Invalid client id");
+  return id;
+}
+
 export function parseCreateVisitDto(body: unknown): CreateVisitDto {
   if (!body || typeof body !== "object") throw new HttpError(400, "Request body is required");
   const input = body as Record<string, unknown>;
@@ -103,11 +108,13 @@ export function parseVisitsFilter(query: Record<string, unknown>): VisitsFilterD
     if (Array.isArray(value)) return typeof value[0] === "string" ? value[0] : undefined;
     return typeof value === "string" ? value : undefined;
   };
-  const clientId = pick(query.clientId);
-  const adminId = pick(query.adminId);
-  const branchId = pick(query.branchId);
-  const dateFrom = parseOptionalDate(pick(query.dateFrom), "dateFrom");
-  const dateTo = parseOptionalDate(pick(query.dateTo), "dateTo");
+  const clientId = pick(query.clientId) ?? pick(query.client_id);
+  const adminId = pick(query.adminId) ?? pick(query.admin_id);
+  const branchId = pick(query.branchId) ?? pick(query.branch_id);
+  const dateFromRaw = pick(query.dateFrom) ?? pick(query.date_from);
+  const dateToRaw = pick(query.dateTo) ?? pick(query.date_to);
+  const dateFrom = parseOptionalDate(dateFromRaw, "dateFrom");
+  const dateTo = parseOptionalDate(dateToRaw, "dateTo");
 
   if (clientId && !UUID_RE.test(clientId)) throw new HttpError(400, "clientId filter is invalid");
   if (adminId && !UUID_RE.test(adminId)) throw new HttpError(400, "adminId filter is invalid");
