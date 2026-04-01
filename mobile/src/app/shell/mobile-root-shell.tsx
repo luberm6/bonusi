@@ -9,6 +9,7 @@ import { fireHaptic } from "../../shared/native/haptics";
 import { AnonymousView, BootSplash, LoginView, OnboardingView, StaffAccessView } from "./mobile-root-views";
 import {
   clearPersistedSession,
+  getRefreshToken,
   ONBOARDING_KEY,
   persistSession,
   restorePersistedSession
@@ -150,6 +151,59 @@ export function MobileRootShell() {
     setPassword("");
     setLoginError(null);
   };
+
+  const refreshAccessToken = async (): Promise<void> => {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken || !session) return;
+    try {
+      const response = await fetch(`${mobileEnv.apiBaseUrl}/auth/refresh`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ refreshToken })
+      });
+      if (!response.ok) {
+        await handleLogout();
+        return;
+      }
+      const data = (await response.json()) as { accessToken: string; refreshToken: string };
+      if (!data.accessToken || !data.refreshToken) {
+        await handleLogout();
+        return;
+      }
+      await persistSession({ session, accessToken: data.accessToken }, data.refreshToken);
+      setAccessToken(data.accessToken);
+    } catch {
+      // сетевая ошибка — не разлогиниваем, попробуем в следующий раз
+    }
+  };
+
+  useEffect(() => {
+    if (!session || !accessToken) return;
+
+    const decodeExp = (token: string): number | null => {
+      try {
+        const parts = token.split(".");
+        if (parts.length < 2) return null;
+        const payload = JSON.parse(atob(parts[1])) as { exp?: unknown };
+        return typeof payload.exp === "number" ? payload.exp : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const tick = async () => {
+      const exp = decodeExp(accessToken);
+      if (!exp) return;
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (exp - nowSec <= 90) {
+        await refreshAccessToken();
+      }
+    };
+
+    void tick();
+    const interval = setInterval(() => { void tick(); }, 60_000);
+    return () => clearInterval(interval);
+  }, [session, accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (booting) {
     return <BootSplash />;

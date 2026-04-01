@@ -53,3 +53,7 @@ export async function clearPersistedSession() {
   await Promise.all([AsyncStorage.removeItem(SESSION_KEY), AsyncStorage.removeItem(REFRESH_TOKEN_KEY)]);
   clearSessionBridge();
 }
+
+export async function getRefreshToken(): Promise<string | null> {
+  return AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+}
