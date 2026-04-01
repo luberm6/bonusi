@@ -521,7 +521,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   useEffect(() => {
     if (screen !== "chat" || !activeConversationId) return;
     const timer = setInterval(() => {
-      void openConversation(activeConversationId);
+      void silentRefreshMessages(activeConversationId);
     }, 5000);
     return () => clearInterval(timer);
   }, [screen, activeConversationId]);
@@ -756,9 +756,24 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     }
   }
 
+  // Тихое фоновое обновление сообщений — без loading state, без ошибок в UI
+  async function silentRefreshMessages(conversationId: string) {
+    try {
+      const rows = await requestJson<MessageRow[]>(
+        `/chat/conversations/${encodeURIComponent(conversationId)}/messages`,
+        props.accessToken
+      );
+      setMessages(rows);
+    } catch (_) {
+      // не показываем ошибку при фоновом опросе
+    }
+  }
+
   async function sendMessage() {
     if (!activeConversationId || !messageText.trim()) return;
     fireHaptic("impactLight");
+    const draft = messageText.trim();
+    setMessageText(""); // сразу очищаем поле
     setSubmittingMessage(true);
     setChatError(null);
     try {
@@ -769,14 +784,15 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           method: "POST",
           body: JSON.stringify({
             clientMessageId: randomId(),
-            text: messageText.trim()
+            text: draft
           })
         }
       );
-      setMessageText("");
+      // Тихо обновляем сообщения без loading state
+      await silentRefreshMessages(activeConversationId);
       presentToast("success", "Сообщение отправлено");
-      await openConversation(activeConversationId);
     } catch (error) {
+      setMessageText(draft); // возвращаем текст при ошибке
       setChatError(friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже."));
       presentToast("error", friendlyErrorMessage(error, "Не удалось отправить сообщение. Попробуйте ещё раз чуть позже."), "notificationError");
     } finally {

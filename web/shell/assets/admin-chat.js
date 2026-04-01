@@ -16,14 +16,41 @@ if (session) {
   let toastTimer = null;
   let activeConversationId = null;
   let pollInterval = null;
+  let lastMessageIds = "";
+
+  // Тихое обновление сообщений — не трогает поле ввода, не дёргает скролл
+  const renderMessagesOnly = (messages) => {
+    const msgs = document.getElementById("msgs");
+    if (!msgs) return;
+    const newIds = messages.map((m) => m.id).join(",");
+    if (newIds === lastMessageIds) return; // ничего нового — не перерисовываем
+    lastMessageIds = newIds;
+
+    const atBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 80;
+
+    msgs.innerHTML = "";
+    if (!messages.length) {
+      msgs.innerHTML = '<p class="workspace-empty">Сообщений пока нет. Начните диалог первым.</p>';
+      return;
+    }
+    for (const message of messages) {
+      const mine = message.senderId === session.userId;
+      const node = document.createElement("div");
+      node.className = `workspace-msg ${mine ? "mine" : "other"}`;
+      node.innerHTML = `${message.text || ""}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
+      msgs.appendChild(node);
+    }
+    if (atBottom) {
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+  };
 
   const startPolling = (conversationId) => {
     stopPolling();
     pollInterval = window.setInterval(async () => {
       try {
         const msgs = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
-        renderMessages(msgs);
-        bindMessageComposer(conversationId);
+        renderMessagesOnly(msgs);
       } catch (_) {}
     }, 5000);
   };
@@ -67,21 +94,21 @@ if (session) {
         chatState,
         "default",
         "Диалогов пока нет",
-        "Когда появится первое обращение, оно отобразится в рабочем списке.",
+        "Когда клиент напишет первым, диалог появится здесь автоматически.",
         "Чат"
       );
       conversationList.innerHTML =
         '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Диалогов пока нет.</p></div>';
       chatPanel.innerHTML =
-        '<div id="no-conv" class="workspace-panel workspace-panel-compact">Диалогов пока нет. Когда появится первый, он отобразится здесь.</div>';
+        '<div id="no-conv" class="workspace-panel workspace-panel-compact" style="color:#94a3b8;padding:32px;text-align:center;">Ожидаем первого обращения от клиента.</div>';
       return;
     }
 
     renderWorkspaceState(
       chatState,
       "success",
-      "Диалоги синхронизированы",
-      "Список обращений получен из backend и готов к работе.",
+      "Чат активен",
+      "Новые сообщения обновляются автоматически каждые 5 секунд.",
       "Актуально"
     );
 
@@ -106,7 +133,9 @@ if (session) {
     }
   };
 
+  // Полный рендер панели — при первом открытии диалога
   const renderMessages = (messages) => {
+    lastMessageIds = ""; // сбрасываем кэш, чтобы renderMessagesOnly всегда отрисовал
     chatPanel.innerHTML = `
       <div class="workspace-chat-board">
         <div class="workspace-chat-messages" id="msgs"></div>
@@ -116,22 +145,10 @@ if (session) {
         </div>
       </div>
     `;
-
-    const messagesElement = document.getElementById("msgs");
-    if (!messages.length) {
-      messagesElement.innerHTML =
-        '<p class="workspace-empty">Сообщений пока нет. Начните диалог первым.</p>';
-      return;
-    }
-
-    for (const message of messages) {
-      const mine = message.senderId === session.userId;
-      const node = document.createElement("div");
-      node.className = `workspace-msg ${mine ? "mine" : "other"}`;
-      node.innerHTML = `${message.text || ""}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
-      messagesElement.appendChild(node);
-    }
-    messagesElement.scrollTop = messagesElement.scrollHeight;
+    renderMessagesOnly(messages);
+    // При первичной загрузке всегда скроллим вниз
+    const msgs = document.getElementById("msgs");
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
   };
 
   const bindMessageComposer = (conversationId) => {
@@ -141,20 +158,28 @@ if (session) {
     sendButton.addEventListener("click", async () => {
       const text = textInput.value.trim();
       if (!text) return;
-
+      const draft = textInput.value;
       textInput.value = "";
       sendButton.disabled = true;
+      sendButton.textContent = "Отправка...";
       try {
         await authFetchJson(`/chat/conversations/${conversationId}/messages`, {
           method: "POST",
           body: { clientMessageId: crypto.randomUUID(), text }
         });
+        const msgs = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
+        lastMessageIds = "";
+        renderMessagesOnly(msgs);
+        // После отправки всегда скроллим вниз
+        const msgsEl = document.getElementById("msgs");
+        if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
         showToast("Сообщение отправлено");
-        await loadConversations(conversationId);
       } catch (error) {
+        textInput.value = draft; // возвращаем текст при ошибке
         showToast(formatWorkspaceError(error, "Не удалось отправить сообщение"), "error");
       } finally {
         sendButton.disabled = false;
+        sendButton.textContent = "Отправить";
       }
     });
 
@@ -176,7 +201,7 @@ if (session) {
     });
 
     chatPanel.innerHTML =
-      '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Открываем диалог...</p></div>';
+      '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty" style="padding:24px;text-align:center;color:#94a3b8;">Загружаем переписку...</p></div>';
 
     try {
       const messages = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
@@ -184,7 +209,7 @@ if (session) {
       bindMessageComposer(conversationId);
       startPolling(conversationId);
     } catch (error) {
-      chatPanel.innerHTML = `<div class="workspace-panel workspace-panel-compact"><p class="error">${formatWorkspaceError(error, "Не удалось открыть диалог")}</p></div>`;
+      chatPanel.innerHTML = `<div class="workspace-panel workspace-panel-compact"><p class="error" style="padding:24px;">${formatWorkspaceError(error, "Не удалось загрузить переписку. Нажмите на диалог ещё раз.")}</p></div>`;
       showToast(formatWorkspaceError(error, "Не удалось открыть диалог"), "error");
       return;
     }
@@ -199,7 +224,7 @@ if (session) {
       chatState,
       "default",
       "Загружаем диалоги",
-      "Синхронизируем обращения и последние сообщения.",
+      "Получаем список обращений из сервера.",
       "Чат"
     );
 
@@ -217,14 +242,14 @@ if (session) {
       renderWorkspaceState(
         chatState,
         "error",
-        "Не удалось загрузить диалоги",
+        "Ошибка загрузки",
         message,
         "Ошибка"
       );
       conversationList.innerHTML =
-        '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Не удалось загрузить диалоги.</p></div>';
+        '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Не удалось загрузить диалоги. Обновите страницу.</p></div>';
       chatPanel.innerHTML =
-        '<div id="no-conv" class="workspace-panel workspace-panel-compact">Не удалось открыть диалог.</div>';
+        '<div id="no-conv" class="workspace-panel workspace-panel-compact" style="color:#94a3b8;padding:32px;text-align:center;">Не удалось открыть диалог.</div>';
       showToast(message, "error");
     }
   };
