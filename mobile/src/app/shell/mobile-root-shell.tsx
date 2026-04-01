@@ -35,12 +35,12 @@ function toLoginErrorMessage(error: unknown): string {
     return "Не удалось выполнить вход. Попробуйте ещё раз.";
   }
   if (/invalid password|invalid credentials|unauthorized|401/i.test(message)) {
-    return "Проверьте логин и пароль.";
+    return "Неверный email или пароль";
   }
   if (/network|fetch|request failed/i.test(message)) {
     return "Не удалось выполнить вход. Проверьте подключение и попробуйте ещё раз.";
   }
-  return message;
+  return "Не удалось выполнить вход. Попробуйте ещё раз.";
 }
 
 export function MobileRootShell() {
@@ -87,7 +87,9 @@ export function MobileRootShell() {
   };
 
   const handleLogin = async () => {
-    if (!email.trim() || !password) return;
+    if (!email.trim() || !password) {
+      return;
+    }
     setLoginLoading(true);
     setLoginError(null);
     try {

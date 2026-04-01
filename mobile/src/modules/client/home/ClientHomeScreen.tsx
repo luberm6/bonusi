@@ -425,7 +425,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         if (!mounted) return;
         setHomeError(friendlyErrorMessage(error, "Не удалось открыть главный экран. Попробуйте ещё раз чуть позже."));
       } finally {
-        if (mounted) setLoadingHome(false);
+        if (mounted) {
+          setLoadingHome(false);
+        }
       }
     })();
 

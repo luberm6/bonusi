@@ -25,10 +25,14 @@ export async function restorePersistedSession(): Promise<PersistedSession | null
   }
 
   const raw = await AsyncStorage.getItem(SESSION_KEY);
-  if (!raw) return null;
+  if (!raw) {
+    return null;
+  }
   try {
     const parsed = JSON.parse(raw) as PersistedSession;
-    if (!parsed?.session?.userId || !parsed?.accessToken) return null;
+    if (!parsed?.session?.userId || !parsed?.accessToken) {
+      return null;
+    }
     writeSessionToBridge(parsed.session, parsed.accessToken);
     return parsed;
   } catch {
@@ -38,14 +42,14 @@ export async function restorePersistedSession(): Promise<PersistedSession | null
 }
 
 export async function persistSession(payload: PersistedSession, refreshToken: string) {
-  await AsyncStorage.multiSet([
-    [SESSION_KEY, JSON.stringify(payload)],
-    [REFRESH_TOKEN_KEY, refreshToken]
+  await Promise.all([
+    AsyncStorage.setItem(SESSION_KEY, JSON.stringify(payload)),
+    AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
   ]);
   writeSessionToBridge(payload.session, payload.accessToken);
 }
 
 export async function clearPersistedSession() {
-  await AsyncStorage.multiRemove([SESSION_KEY, REFRESH_TOKEN_KEY]);
+  await Promise.all([AsyncStorage.removeItem(SESSION_KEY), AsyncStorage.removeItem(REFRESH_TOKEN_KEY)]);
   clearSessionBridge();
 }
