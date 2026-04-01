@@ -18,6 +18,7 @@
           </div>
           <div class="nav-links">
             <span class="badge badge-neutral">Сводка</span>
+            <a class="link" href="/admin/visits/">Визиты</a>
             <a class="link" href="/home/">Личный кабинет</a>
             <button id="logout-btn" class="btn btn-secondary" type="button">Выйти</button>
           </div>
@@ -65,13 +66,17 @@
               <h2 class="workspace-section-title">Быстрые действия</h2>
               <p class="workspace-section-meta">Частые операционные сценарии без лишних переходов.</p>
             </div>
-            <span class="badge badge-soft">Back office</span>
+            <span class="badge badge-soft">Админка</span>
           </div>
           <div class="spacer-16"></div>
           <div class="workspace-action-grid" id="workspace-actions">
             <a class="workspace-action-card primary" href="/admin/visits/create/">
               <span class="workspace-action-title">Создать визит</span>
               <span class="workspace-action-meta">Оформить новый визит клиента и собрать услуги в один сценарий.</span>
+            </a>
+            <a class="workspace-action-card" href="/admin/visits/">
+              <span class="workspace-action-title">Визиты</span>
+              <span class="workspace-action-meta">Открыть общую историю визитов, фильтры по клиентам и детали оформления.</span>
             </a>
             <a class="workspace-action-card" href="/admin/clients/create/">
               <span class="workspace-action-title">Создать клиента</span>
