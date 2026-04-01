@@ -46,6 +46,32 @@ export function friendlyErrorMessage(error, fallback) {
   if (/fetch/i.test(message) || /network/i.test(message)) {
     return "Похоже, соединение нестабильно. Попробуйте ещё раз через пару секунд.";
   }
+  if (/invalid credentials/i.test(message) || /wrong password/i.test(message) || /incorrect.*password/i.test(message)) {
+    return "Неверный логин или пароль.";
+  }
+  if (/too many requests/i.test(message) || /too many.*sends/i.test(message) || /rate limit/i.test(message) || /please slow down/i.test(message) || /please retry/i.test(message)) {
+    return "Слишком много попыток. Подождите немного и попробуйте снова.";
+  }
+  if (/validation failed/i.test(message) || /must be valid/i.test(message) || /is required/i.test(message) || /cannot be empty/i.test(message) || /too long/i.test(message)) {
+    return "Некорректные данные. Проверьте введённое и попробуйте ещё раз.";
+  }
+  if (/bad request/i.test(message) || /invalid.*id/i.test(message)) {
+    return "Ошибка запроса. Попробуйте ещё раз.";
+  }
+  if (/unauthorized/i.test(message) || /not authenticated/i.test(message)) {
+    return "Требуется авторизация. Войдите в аккаунт снова.";
+  }
+  if (/forbidden/i.test(message) || /access denied/i.test(message)) {
+    return "Это действие недоступно для вашего аккаунта.";
+  }
+  if (/not found/i.test(message)) {
+    return "Данные не найдены.";
+  }
+  if (/server error/i.test(message) || /internal server/i.test(message)) {
+    return "Ошибка сервера. Попробуйте ещё раз чуть позже.";
+  }
+  // Если осталось английское сообщение — использовать fallback
+  if (!/[а-яёА-ЯЁ]/.test(message)) return fallback;
   return message;
 }
 

@@ -187,13 +187,36 @@ function friendlyErrorMessage(error: unknown, fallback: string) {
   if (!(error instanceof Error)) return fallback;
   const message = error.message.trim();
   if (!message) return fallback;
-  if (/access denied/i.test(message) || /forbidden/i.test(message) || /unauthorized/i.test(message)) {
-    return "Это действие сейчас недоступно для вашего аккаунта.";
-  }
   if (/request failed/i.test(message) || /network request failed/i.test(message)) return fallback;
   if (/fetch/i.test(message) || /network/i.test(message)) {
     return "Похоже, соединение нестабильно. Попробуйте ещё раз через пару секунд.";
   }
+  if (/invalid credentials/i.test(message) || /wrong password/i.test(message) || /incorrect.*password/i.test(message)) {
+    return "Неверный логин или пароль.";
+  }
+  if (/too many requests/i.test(message) || /too many.*sends/i.test(message) || /rate limit/i.test(message) || /please slow down/i.test(message) || /please retry/i.test(message)) {
+    return "Слишком много попыток. Подождите немного и попробуйте снова.";
+  }
+  if (/validation failed/i.test(message) || /must be valid/i.test(message) || /is required/i.test(message) || /cannot be empty/i.test(message) || /too long/i.test(message)) {
+    return "Некорректные данные. Проверьте введённое и попробуйте ещё раз.";
+  }
+  if (/bad request/i.test(message) || /invalid.*id/i.test(message)) {
+    return "Ошибка запроса. Попробуйте ещё раз.";
+  }
+  if (/unauthorized/i.test(message) || /not authenticated/i.test(message)) {
+    return "Требуется авторизация. Войдите в аккаунт снова.";
+  }
+  if (/access denied/i.test(message) || /forbidden/i.test(message)) {
+    return "Это действие недоступно для вашего аккаунта.";
+  }
+  if (/not found/i.test(message)) {
+    return "Данные не найдены.";
+  }
+  if (/server error/i.test(message) || /internal server/i.test(message)) {
+    return "Ошибка сервера. Попробуйте ещё раз чуть позже.";
+  }
+  // Если осталось английское сообщение — использовать fallback
+  if (!/[а-яёА-ЯЁ]/.test(message)) return fallback;
   return message;
 }
 
@@ -1196,7 +1219,12 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 keyboardDismissMode="interactive"
                 keyboardShouldPersistTaps="handled"
               >
-                {(messages ?? []).map((message) => {
+                {!(messages ?? []).length ? (
+                  <View style={styles.messagesEmpty}>
+                    <Text style={styles.messagesEmptyTitle}>Сообщений пока нет</Text>
+                    <Text style={styles.messagesEmptyHint}>Напишите, чтобы начать общение с сервисом</Text>
+                  </View>
+                ) : (messages ?? []).map((message) => {
                   const mine = message.senderId === props.session.userId;
                   return (
                     <AnimatedMessageBubble
@@ -1213,12 +1241,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 <TextInput
                   value={messageText}
                   onChangeText={setMessageText}
-                  placeholder="Напишите сообщение"
+                  placeholder="Введите сообщение"
                   placeholderTextColor="#94A3B8"
                   multiline
                   style={styles.chatInput}
                 />
-                {messageText.trim().length > 0 ? <Text style={styles.typingFeel}>Печатаем сообщение...</Text> : null}
                 <AppButton
                   label={submittingMessage ? "Отправка..." : "Отправить"}
                   onPress={() => void sendMessage()}
@@ -1886,7 +1913,28 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     gap: 10,
-    paddingBottom: 18
+    paddingBottom: 18,
+    flexGrow: 1
+  },
+  messagesEmpty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 24
+  },
+  messagesEmptyTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: mobileTokens.color.textPrimary,
+    textAlign: "center"
+  },
+  messagesEmptyHint: {
+    marginTop: 6,
+    fontSize: 13,
+    color: mobileTokens.color.textSecondary,
+    textAlign: "center",
+    lineHeight: 18
   },
   messageBubble: {
     maxWidth: "82%",

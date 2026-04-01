@@ -61,6 +61,12 @@ if (session) {
 
   window.addEventListener("beforeunload", stopPolling);
 
+  // Всегда показываем русский текст — если ошибка выглядит как английская, берём fallback
+  const chatErrorText = (error, fallback) => {
+    const msg = formatWorkspaceError(error, fallback);
+    return /[а-яёА-ЯЁ]/.test(msg) ? msg : fallback;
+  };
+
   const showToast = (text, tone = "success") => {
     toast.textContent = text;
     toast.className = `workspace-toast ${tone} show`;
@@ -155,6 +161,12 @@ if (session) {
     const sendButton = document.getElementById("send-btn");
     const textInput = document.getElementById("msg-text");
 
+    const syncSendState = () => {
+      sendButton.disabled = !textInput.value.trim();
+    };
+    syncSendState();
+    textInput.addEventListener("input", syncSendState);
+
     sendButton.addEventListener("click", async () => {
       const text = textInput.value.trim();
       if (!text) return;
@@ -176,7 +188,7 @@ if (session) {
         showToast("Сообщение отправлено");
       } catch (error) {
         textInput.value = draft; // возвращаем текст при ошибке
-        showToast(formatWorkspaceError(error, "Не удалось отправить сообщение"), "error");
+        showToast(chatErrorText(error, "Не удалось отправить сообщение. Попробуйте ещё раз."), "error");
       } finally {
         sendButton.disabled = false;
         sendButton.textContent = "Отправить";
@@ -209,8 +221,8 @@ if (session) {
       bindMessageComposer(conversationId);
       startPolling(conversationId);
     } catch (error) {
-      chatPanel.innerHTML = `<div class="workspace-panel workspace-panel-compact"><p class="error" style="padding:24px;">${formatWorkspaceError(error, "Не удалось загрузить переписку. Нажмите на диалог ещё раз.")}</p></div>`;
-      showToast(formatWorkspaceError(error, "Не удалось открыть диалог"), "error");
+      chatPanel.innerHTML = `<div class="workspace-panel workspace-panel-compact"><p class="error" style="padding:24px;">${chatErrorText(error, "Не удалось загрузить переписку. Нажмите на диалог ещё раз.")}</p></div>`;
+      showToast(chatErrorText(error, "Не удалось открыть диалог"), "error");
       return;
     }
 
@@ -238,18 +250,18 @@ if (session) {
         conversations.find((item) => item.id === preferredConversationId) || conversations[0];
       await openConversation(nextConversation, conversations);
     } catch (error) {
-      const message = formatWorkspaceError(error, "Не удалось загрузить диалоги");
+      const message = chatErrorText(error, "Не удалось загрузить диалоги. Обновите страницу.");
       renderWorkspaceState(
         chatState,
         "error",
-        "Ошибка загрузки",
+        "Не удалось загрузить чат",
         message,
         "Ошибка"
       );
       conversationList.innerHTML =
         '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Не удалось загрузить диалоги. Обновите страницу.</p></div>';
       chatPanel.innerHTML =
-        '<div id="no-conv" class="workspace-panel workspace-panel-compact" style="color:#94a3b8;padding:32px;text-align:center;">Не удалось открыть диалог.</div>';
+        '<div id="no-conv" class="workspace-panel workspace-panel-compact" style="color:#94a3b8;padding:32px;text-align:center;">Не удалось открыть диалог. Обновите страницу.</div>';
       showToast(message, "error");
     }
   };

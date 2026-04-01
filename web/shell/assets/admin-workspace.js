@@ -53,6 +53,37 @@ export function appendSuperAdminActions(container) {
 }
 
 export function formatWorkspaceError(error, fallbackText) {
-  if (error instanceof Error && error.message) return error.message;
-  return fallbackText;
+  if (!(error instanceof Error)) return fallbackText;
+  const message = String(error.message || "").trim();
+  if (!message) return fallbackText;
+  if (/request failed/i.test(message) || /network request failed/i.test(message)) return fallbackText;
+  if (/fetch/i.test(message) || /network/i.test(message)) {
+    return "Соединение нестабильно. Попробуйте ещё раз.";
+  }
+  if (/invalid credentials/i.test(message) || /wrong password/i.test(message)) {
+    return "Неверный логин или пароль.";
+  }
+  if (/too many requests/i.test(message) || /too many.*sends/i.test(message) || /rate limit/i.test(message) || /please slow down/i.test(message) || /please retry/i.test(message)) {
+    return "Слишком много попыток. Подождите немного и повторите.";
+  }
+  if (/validation failed/i.test(message) || /must be valid/i.test(message) || /is required/i.test(message) || /cannot be empty/i.test(message) || /too long/i.test(message)) {
+    return "Некорректные данные. Проверьте форму.";
+  }
+  if (/bad request/i.test(message) || /invalid.*id/i.test(message)) {
+    return "Ошибка запроса. Попробуйте ещё раз.";
+  }
+  if (/unauthorized/i.test(message) || /not authenticated/i.test(message)) {
+    return "Требуется авторизация. Обновите страницу.";
+  }
+  if (/access denied/i.test(message) || /forbidden/i.test(message)) {
+    return "Действие недоступно для вашей роли.";
+  }
+  if (/not found/i.test(message)) {
+    return "Данные не найдены.";
+  }
+  if (/server error/i.test(message) || /internal server/i.test(message)) {
+    return "Ошибка сервера. Попробуйте позже.";
+  }
+  if (!/[а-яёА-ЯЁ]/.test(message)) return fallbackText;
+  return message;
 }
