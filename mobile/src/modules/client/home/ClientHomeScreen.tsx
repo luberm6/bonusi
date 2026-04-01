@@ -27,7 +27,7 @@ type ClientHomeProps = {
   onLogout: () => void;
 };
 
-type ScreenKey = "home" | "booking" | "visits" | "bonus-history" | "cashback" | "chat";
+type ScreenKey = "home" | "booking" | "visits" | "visit-details" | "bonus-history" | "cashback" | "chat";
 
 type UserMe = {
   id: string;
@@ -45,8 +45,33 @@ type VisitRow = {
   visitDate: string;
   finalAmount?: number;
   totalAmount?: number;
+  discountAmount?: number;
   comment?: string | null;
   branchName?: string | null;
+  bonusAccrualAmount?: number;
+  serviceNames?: string[];
+  servicesCount?: number;
+};
+
+type VisitServiceRow = {
+  id: string;
+  serviceNameSnapshot?: string;
+  price: number;
+  quantity: number;
+  total: number;
+};
+
+type VisitDetail = {
+  id: string;
+  visitDate: string;
+  branchName?: string | null;
+  adminName?: string | null;
+  comment?: string | null;
+  totalAmount?: number;
+  discountAmount?: number;
+  finalAmount?: number;
+  bonusAccrualAmount?: number;
+  visitServices?: VisitServiceRow[];
 };
 
 type BonusHistoryRow = {
@@ -91,10 +116,32 @@ const SCREEN_DEPTH: Record<ScreenKey, number> = {
   home: 0,
   booking: 1,
   visits: 1,
+  "visit-details": 2,
   "bonus-history": 1,
   cashback: 1,
   chat: 1
 };
+
+function formatVisitDate(value?: string | null) {
+  if (!value) return "Дата не указана";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Дата не указана";
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function formatMoney(value?: number | null) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+  return `${value.toLocaleString("ru-RU", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })} ₽`;
+}
 
 function getWorkHoursText(value: BranchRow["workHours"]): string | null {
   if (!value || typeof value !== "object") return null;
@@ -140,6 +187,9 @@ function friendlyErrorMessage(error: unknown, fallback: string) {
   if (!(error instanceof Error)) return fallback;
   const message = error.message.trim();
   if (!message) return fallback;
+  if (/access denied/i.test(message) || /forbidden/i.test(message) || /unauthorized/i.test(message)) {
+    return "Это действие сейчас недоступно для вашего аккаунта.";
+  }
   if (/request failed/i.test(message) || /network request failed/i.test(message)) return fallback;
   if (/fetch/i.test(message) || /network/i.test(message)) {
     return "Похоже, соединение нестабильно. Попробуйте ещё раз через пару секунд.";
@@ -382,6 +432,11 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const [bonusBalance, setBonusBalance] = useState<number>(0);
   const [visits, setVisits] = useState<VisitRow[] | null>(null);
   const [visitsLoading, setVisitsLoading] = useState(false);
+  const [visitsError, setVisitsError] = useState<string | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<VisitRow | null>(null);
+  const [visitDetail, setVisitDetail] = useState<VisitDetail | null>(null);
+  const [visitDetailLoading, setVisitDetailLoading] = useState(false);
+  const [visitDetailError, setVisitDetailError] = useState<string | null>(null);
   const [bonusHistory, setBonusHistory] = useState<BonusHistoryRow[] | null>(null);
   const [bonusHistoryLoading, setBonusHistoryLoading] = useState(false);
   const [branches, setBranches] = useState<BranchRow[] | null>(null);
@@ -571,17 +626,41 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   async function ensureVisitsLoaded() {
     if (visits) return;
     setVisitsLoading(true);
+    setVisitsError(null);
     try {
       const rows = await requestJson<VisitRow[]>(
-        `/visits?clientId=${encodeURIComponent(props.session.userId)}`,
+        `/clients/${encodeURIComponent(props.session.userId)}/visits`,
         props.accessToken
       );
       setVisits(rows);
     } catch (error) {
-      presentToast("error", friendlyErrorMessage(error, "Не удалось загрузить визиты. Попробуйте ещё раз чуть позже."), "notificationError");
-      setVisits([]);
+      const message = friendlyErrorMessage(error, "Не удалось загрузить историю посещений. Попробуйте ещё раз чуть позже.");
+      setVisitsError(message);
+      presentToast("error", message, "notificationError");
+      setVisits(null);
     } finally {
       setVisitsLoading(false);
+    }
+  }
+
+  async function openVisitDetails(visit: VisitRow) {
+    setSelectedVisit(visit);
+    setVisitDetail(null);
+    setVisitDetailError(null);
+    setVisitDetailLoading(true);
+    goToScreen("visit-details", { haptic: "impactLight" });
+    try {
+      const detail = await requestJson<VisitDetail>(
+        `/visits/${encodeURIComponent(visit.id)}`,
+        props.accessToken
+      );
+      setVisitDetail(detail);
+    } catch (error) {
+      const message = friendlyErrorMessage(error, "Не удалось загрузить детали посещения. Попробуйте ещё раз чуть позже.");
+      setVisitDetailError(message);
+      presentToast("error", message, "notificationError");
+    } finally {
+      setVisitDetailLoading(false);
     }
   }
 
@@ -834,19 +913,114 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         <ScreenHeader title="История посещений" onBack={() => goToScreen("home", { haptic: null })} />
         {visitsLoading && !visits ? (
           <ListSkeleton rows={3} />
+        ) : visitsError ? (
+          <EmptyState title="Не удалось загрузить посещения" description={visitsError} />
         ) : !visits?.length ? (
-          <EmptyState title="У вас пока нет визитов" description="Начните с записи, и история посещений появится здесь." />
+          <EmptyState title="У вас пока нет посещений" description="После первого визита история появится здесь." />
         ) : (
           visits.map((visit) => (
-            <GlassCard key={visit.id} elevated style={styles.listCard}>
-              <Text style={styles.listTitle}>{new Date(visit.visitDate).toLocaleDateString("ru-RU")}</Text>
-              <Text style={styles.listSubtitle}>{visit.branchName || "Филиал сервиса"}</Text>
-              <Text style={styles.listValue}>
-                {typeof visit.finalAmount === "number" ? `${visit.finalAmount.toFixed(2)} ₽` : "Сумма появится после подтверждения"}
-              </Text>
-              {visit.comment ? <Text style={styles.listHint}>{visit.comment}</Text> : null}
-            </GlassCard>
+            <Pressable
+              key={visit.id}
+              onPress={() => {
+                void openVisitDetails(visit);
+              }}
+              style={({ pressed }) => [styles.visitCardPressable, pressed && styles.pressedTile]}
+            >
+              <GlassCard elevated style={styles.listCard}>
+                <Text style={styles.listTitle}>{formatVisitDate(visit.visitDate)}</Text>
+                <Text style={styles.listSubtitle}>{visit.branchName || "Филиал сервиса"}</Text>
+                <View style={styles.visitServiceTags}>
+                  {(visit.serviceNames?.length ? visit.serviceNames : ["Состав услуг появится в деталях"]).map((serviceName) => (
+                    <View key={`${visit.id}-${serviceName}`} style={styles.visitServiceTag}>
+                      <Text style={styles.visitServiceTagText}>{serviceName}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.visitSummaryRow}>
+                  <View style={styles.visitMetric}>
+                    <Text style={styles.visitMetricLabel}>Итог</Text>
+                    <Text style={styles.visitMetricValue}>{formatMoney(visit.finalAmount)}</Text>
+                  </View>
+                  <View style={styles.visitMetric}>
+                    <Text style={styles.visitMetricLabel}>Бонусы</Text>
+                    <Text style={styles.visitMetricValue}>{formatMoney(visit.bonusAccrualAmount ?? 0)}</Text>
+                  </View>
+                </View>
+                <Text style={styles.listHint}>Нажмите, чтобы открыть детали посещения.</Text>
+              </GlassCard>
+            </Pressable>
           ))
+        )}
+      </>
+    );
+  }
+
+  function renderVisitDetails() {
+    const detail = visitDetail;
+    const services = detail?.visitServices ?? [];
+
+    return (
+      <>
+        <ScreenHeader title="Детали посещения" onBack={() => goToScreen("visits", { haptic: null })} />
+        {visitDetailLoading && !detail ? (
+          <ListSkeleton rows={3} />
+        ) : visitDetailError ? (
+          <EmptyState title="Не удалось открыть посещение" description={visitDetailError} />
+        ) : !selectedVisit ? (
+          <EmptyState title="Посещение не выбрано" description="Вернитесь к истории посещений и откройте нужный визит." />
+        ) : (
+          <>
+            <GlassCard elevated style={styles.detailHeroCard}>
+              <Text style={styles.detailHeroTitle}>{formatVisitDate(detail?.visitDate ?? selectedVisit.visitDate)}</Text>
+              <Text style={styles.detailHeroSubtitle}>{detail?.branchName || selectedVisit.branchName || "Филиал сервиса"}</Text>
+              {detail?.adminName ? <Text style={styles.detailHeroHint}>Оформил: {detail.adminName}</Text> : null}
+              {detail?.comment ? <Text style={styles.detailHeroHint}>Комментарий: {detail.comment}</Text> : null}
+            </GlassCard>
+
+            <GlassCard elevated style={styles.detailTotalsCard}>
+              <View style={styles.detailTotalsGrid}>
+                <View style={styles.detailTotalCell}>
+                  <Text style={styles.detailTotalLabel}>Сумма до скидки</Text>
+                  <Text style={styles.detailTotalValue}>{formatMoney(detail?.totalAmount ?? selectedVisit.totalAmount)}</Text>
+                </View>
+                <View style={styles.detailTotalCell}>
+                  <Text style={styles.detailTotalLabel}>Скидка</Text>
+                  <Text style={styles.detailTotalValue}>{formatMoney(detail?.discountAmount ?? selectedVisit.discountAmount ?? 0)}</Text>
+                </View>
+                <View style={styles.detailTotalCell}>
+                  <Text style={styles.detailTotalLabel}>Итоговая сумма</Text>
+                  <Text style={styles.detailTotalValue}>{formatMoney(detail?.finalAmount ?? selectedVisit.finalAmount)}</Text>
+                </View>
+                <View style={styles.detailTotalCell}>
+                  <Text style={styles.detailTotalLabel}>Начисленные бонусы</Text>
+                  <Text style={styles.detailTotalValue}>{formatMoney(detail?.bonusAccrualAmount ?? selectedVisit.bonusAccrualAmount ?? 0)}</Text>
+                </View>
+              </View>
+            </GlassCard>
+
+            <Text style={styles.detailSectionTitle}>Услуги</Text>
+            {!services.length ? (
+              <EmptyState title="Состав услуг недоступен" description="Попробуйте открыть посещение чуть позже." />
+            ) : (
+              services.map((service) => (
+                <GlassCard key={service.id} elevated style={styles.serviceCard}>
+                  <Text style={styles.serviceTitle}>{service.serviceNameSnapshot || "Услуга"}</Text>
+                  <View style={styles.serviceRow}>
+                    <Text style={styles.serviceLabel}>Цена</Text>
+                    <Text style={styles.serviceValue}>{formatMoney(service.price)}</Text>
+                  </View>
+                  <View style={styles.serviceRow}>
+                    <Text style={styles.serviceLabel}>Количество</Text>
+                    <Text style={styles.serviceValue}>{service.quantity}</Text>
+                  </View>
+                  <View style={styles.serviceRow}>
+                    <Text style={styles.serviceLabel}>Итог</Text>
+                    <Text style={styles.serviceValue}>{formatMoney(service.total)}</Text>
+                  </View>
+                </GlassCard>
+              ))
+            )}
+          </>
         )}
       </>
     );
@@ -1071,6 +1245,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <MotionScreen motionKey={screen} direction={transitionDirection}>
             {screen === "home" && renderHome()}
             {screen === "visits" && renderVisits()}
+            {screen === "visit-details" && renderVisitDetails()}
             {screen === "bonus-history" && renderBonusHistory()}
             {screen === "cashback" && renderCashback()}
             {screen === "booking" && renderBooking()}
@@ -1473,6 +1648,9 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 12
   },
+  visitCardPressable: {
+    marginBottom: 12
+  },
   listTitle: {
     fontSize: 20,
     fontWeight: "700",
@@ -1494,6 +1672,127 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: mobileTokens.color.textSecondary
+  },
+  visitServiceTags: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 14
+  },
+  visitServiceTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.82)",
+    borderWidth: 1,
+    borderColor: "rgba(148,163,184,0.18)"
+  },
+  visitServiceTagText: {
+    fontSize: 13,
+    color: "#1E293B",
+    fontWeight: "600"
+  },
+  visitSummaryRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 16
+  },
+  visitMetric: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.68)",
+    borderWidth: 1,
+    borderColor: "rgba(148,163,184,0.14)"
+  },
+  visitMetricLabel: {
+    fontSize: 13,
+    color: mobileTokens.color.textSecondary
+  },
+  visitMetricValue: {
+    marginTop: 6,
+    fontSize: 20,
+    fontWeight: "800",
+    color: mobileTokens.color.textPrimary
+  },
+  detailHeroCard: {
+    padding: 20,
+    marginBottom: 12,
+    backgroundColor: "rgba(255,255,255,0.82)",
+    borderColor: "rgba(255,255,255,0.46)"
+  },
+  detailHeroTitle: {
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: "800",
+    color: mobileTokens.color.textPrimary
+  },
+  detailHeroSubtitle: {
+    marginTop: 8,
+    fontSize: 16,
+    color: mobileTokens.color.textSecondary
+  },
+  detailHeroHint: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 20,
+    color: mobileTokens.color.textSecondary
+  },
+  detailTotalsCard: {
+    padding: 16,
+    marginBottom: 12
+  },
+  detailTotalsGrid: {
+    gap: 10
+  },
+  detailTotalCell: {
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.68)",
+    borderWidth: 1,
+    borderColor: "rgba(148,163,184,0.14)"
+  },
+  detailTotalLabel: {
+    fontSize: 13,
+    color: mobileTokens.color.textSecondary
+  },
+  detailTotalValue: {
+    marginTop: 6,
+    fontSize: 20,
+    fontWeight: "800",
+    color: mobileTokens.color.primaryAlt
+  },
+  detailSectionTitle: {
+    marginTop: 4,
+    marginBottom: 12,
+    fontSize: 22,
+    fontWeight: "800",
+    color: mobileTokens.color.textPrimary
+  },
+  serviceCard: {
+    padding: 18,
+    marginBottom: 12
+  },
+  serviceTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: mobileTokens.color.textPrimary
+  },
+  serviceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 12,
+    gap: 12
+  },
+  serviceLabel: {
+    fontSize: 14,
+    color: mobileTokens.color.textSecondary
+  },
+  serviceValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: mobileTokens.color.textPrimary
   },
   cashbackCard: {
     padding: 22,
