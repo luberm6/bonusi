@@ -17,7 +17,7 @@ export const webComponents = {
     borderRadius: webTokens.radius[12],
     border: "none",
     background: webTokens.color.primary,
-    color: "#ffffff",
+    color: "#070A0D",
     fontWeight: 700,
     transition: `transform ${webMotion.fast}, opacity ${webMotion.fast}`
   } satisfies CssObject,

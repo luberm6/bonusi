@@ -1348,7 +1348,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#E9EDF5"
+    backgroundColor: mobileTokens.color.background
   },
   content: {
     padding: 18,
@@ -1360,14 +1360,14 @@ const styles = StyleSheet.create({
   skeletonBlock: {
     overflow: "hidden",
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.78)"
+    backgroundColor: mobileTokens.color.glass
   },
   skeletonShimmer: {
     position: "absolute",
     top: 0,
     bottom: 0,
     width: 96,
-    backgroundColor: "rgba(255,255,255,0.24)"
+    backgroundColor: mobileTokens.color.glass
   },
   brandSkeletonLogo: {
     width: 74,
@@ -1483,13 +1483,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    borderColor: "rgba(255,255,255,0.5)"
+    backgroundColor: mobileTokens.color.glass,
+    borderColor: mobileTokens.color.borderSoft
   },
   brandLogo: {
     fontSize: 40,
     fontWeight: "800",
-    color: "#FF6B1A",
+    color: mobileTokens.color.primaryAlt,
     letterSpacing: 1
   },
   brandMeta: {
@@ -1521,7 +1521,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: "rgba(15, 23, 42, 0.82)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    borderColor: mobileTokens.color.borderSoft,
     alignItems: "center",
     justifyContent: "center",
     ...mobileTokens.shadow.soft
@@ -1537,8 +1537,8 @@ const styles = StyleSheet.create({
   },
   actionGridCard: {
     padding: 14,
-    backgroundColor: "rgba(255,255,255,0.58)",
-    borderColor: "rgba(255,255,255,0.46)"
+    backgroundColor: mobileTokens.color.glass,
+    borderColor: mobileTokens.color.borderSoft
   },
   actionGrid: {
     flexDirection: "row",
@@ -1549,13 +1549,13 @@ const styles = StyleSheet.create({
     width: "48%",
     minHeight: 78,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.72)",
+    backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.42)",
+    borderColor: mobileTokens.color.borderSoft,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 14,
-    shadowColor: "#0f172a",
+    shadowcolor: mobileTokens.color.textPrimary,
     shadowOpacity: 0.08,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
@@ -1574,9 +1574,9 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.42)",
+    backgroundColor: mobileTokens.color.glass,
     borderRadius: 24,
-    borderColor: "rgba(255,255,255,0.36)",
+    borderColor: mobileTokens.color.borderSoft,
     shadowOpacity: 0.18
   },
   heroFrame: {
@@ -1594,7 +1594,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 96,
-    backgroundColor: "rgba(255,255,255,0.16)"
+    backgroundColor: mobileTokens.color.glass
   },
   heroTopFade: {
     position: "absolute",
@@ -1602,7 +1602,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 120,
-    backgroundColor: "rgba(255,255,255,0.08)"
+    backgroundColor: mobileTokens.color.glass
   },
   heroBottomShade: {
     position: "absolute",
@@ -1617,10 +1617,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: "rgba(23, 31, 47, 0.84)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
+    borderColor: mobileTokens.color.borderSoft,
     justifyContent: "center",
     paddingHorizontal: 24,
-    shadowColor: "#0f172a",
+    shadowcolor: mobileTokens.color.textPrimary,
     shadowOpacity: 0.24,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 14 },
@@ -1646,8 +1646,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 18,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    borderColor: "rgba(255,255,255,0.46)"
+    backgroundColor: mobileTokens.color.glass,
+    borderColor: mobileTokens.color.borderSoft
   },
   bonusCircle: {
     width: 132,
@@ -1655,7 +1655,7 @@ const styles = StyleSheet.create({
     borderRadius: 66,
     borderWidth: 1.5,
     borderColor: "rgba(15, 23, 42, 0.22)",
-    backgroundColor: "rgba(255,255,255,0.56)",
+    backgroundColor: mobileTokens.color.glass,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#ffffff",
@@ -1685,7 +1685,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 32,
     fontWeight: "300",
-    color: "#0F172A",
+    color: mobileTokens.color.textPrimary,
     textTransform: "uppercase"
   },
   userEmail: {
@@ -1771,13 +1771,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.82)",
+    backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.18)"
   },
   visitServiceTagText: {
     fontSize: 13,
-    color: "#1E293B",
+    color: mobileTokens.color.textPrimary,
     fontWeight: "600"
   },
   visitSummaryRow: {
@@ -1789,7 +1789,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.68)",
+    backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.14)"
   },
@@ -1806,8 +1806,8 @@ const styles = StyleSheet.create({
   detailHeroCard: {
     padding: 20,
     marginBottom: 12,
-    backgroundColor: "rgba(255,255,255,0.82)",
-    borderColor: "rgba(255,255,255,0.46)"
+    backgroundColor: mobileTokens.color.glass,
+    borderColor: mobileTokens.color.borderSoft
   },
   detailHeroTitle: {
     fontSize: 24,
@@ -1836,7 +1836,7 @@ const styles = StyleSheet.create({
   detailTotalCell: {
     padding: 14,
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.68)",
+    backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.14)"
   },
@@ -1885,8 +1885,8 @@ const styles = StyleSheet.create({
   cashbackCard: {
     padding: 22,
     gap: 12,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    borderColor: "rgba(255,255,255,0.48)"
+    backgroundColor: mobileTokens.color.glass,
+    borderColor: mobileTokens.color.borderSoft
   },
   cashbackTitle: {
     fontSize: 20,
@@ -1896,7 +1896,7 @@ const styles = StyleSheet.create({
   cashbackValue: {
     fontSize: 42,
     fontWeight: "900",
-    color: "#FF6B1A"
+    color: mobileTokens.color.primaryAlt
   },
   cashbackHint: {
     fontSize: 15,
@@ -1920,7 +1920,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.78)",
+    backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft
   },
@@ -1940,8 +1940,8 @@ const styles = StyleSheet.create({
   chatPanel: {
     padding: 16,
     minHeight: 520,
-    backgroundColor: "rgba(255,255,255,0.78)",
-    borderColor: "rgba(255,255,255,0.46)"
+    backgroundColor: mobileTokens.color.glass,
+    borderColor: mobileTokens.color.borderSoft
   },
   messagesList: {
     gap: 10,
@@ -1981,9 +1981,9 @@ const styles = StyleSheet.create({
   },
   messageOther: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.42)"
+    borderColor: mobileTokens.color.borderSoft
   },
   messageText: {
     fontSize: 15,
@@ -2016,14 +2016,14 @@ const styles = StyleSheet.create({
     minHeight: 92,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.58)",
-    backgroundColor: "rgba(255,255,255,0.78)",
+    borderColor: mobileTokens.color.borderSoft,
+    backgroundColor: mobileTokens.color.glass,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     color: mobileTokens.color.textPrimary,
     textAlignVertical: "top",
-    shadowColor: "#0f172a",
+    shadowcolor: mobileTokens.color.textPrimary,
     shadowOpacity: 0.05,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
@@ -2040,7 +2040,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    shadowColor: "#0f172a",
+    shadowcolor: mobileTokens.color.textPrimary,
     shadowOpacity: 0.14,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },

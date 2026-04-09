@@ -1,17 +1,17 @@
 export const mobileTokens = {
   color: {
-    primary: "#0F766E",
-    primaryAlt: "#2563EB",
-    background: "#F8FAFC",
-    textPrimary: "#0F172A",
-    textSecondary: "#475569",
-    success: "#16A34A",
-    warning: "#F59E0B",
-    error: "#DC2626",
-    borderSoft: "rgba(15, 23, 42, 0.12)",
-    glass: "rgba(255,255,255,0.72)",
-    glassStrong: "rgba(255,255,255,0.84)",
-    overlay: "rgba(15, 23, 42, 0.24)"
+    primary: "#00E5FF", // Neon Cyan
+    primaryAlt: "#FFB300", // Warm Gold
+    background: "#070A0D", // Obsidian Dark
+    textPrimary: "#F8FAFC", // Bright White
+    textSecondary: "#94A3B8", // Soft Muted Gray
+    success: "#00E676",
+    warning: "#FFAB00",
+    error: "#FF3D00",
+    borderSoft: "rgba(255, 255, 255, 0.15)",
+    glass: "rgba(20, 25, 30, 0.6)",
+    glassStrong: "rgba(20, 25, 30, 0.85)",
+    overlay: "rgba(0, 0, 0, 0.75)"
   },
   spacing: {
     4: 4,
@@ -25,7 +25,8 @@ export const mobileTokens = {
     8: 8,
     12: 12,
     16: 16,
-    20: 20
+    20: 20,
+    round: 999
   },
   typography: {
     titleLg: 24,
@@ -37,15 +38,15 @@ export const mobileTokens = {
   },
   shadow: {
     glass: {
-      shadowColor: "#0f172a",
-      shadowOpacity: 0.16,
-      shadowRadius: 28,
-      shadowOffset: { width: 0, height: 10 },
+      shadowColor: "#000000", // Cyan glow
+      shadowOpacity: 0.15,
+      shadowRadius: 44,
+      shadowOffset: { width: 0, height: 12 },
       elevation: 9
     },
     soft: {
-      shadowColor: "#0f172a",
-      shadowOpacity: 0.1,
+      shadowColor: "#000000",
+      shadowOpacity: 0.25,
       shadowRadius: 18,
       shadowOffset: { width: 0, height: 6 },
       elevation: 4

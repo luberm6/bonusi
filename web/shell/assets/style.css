@@ -1,15 +1,15 @@
 :root {
-  --bg: #f3f7fb;
-  --text: #0f172a;
-  --muted: #475569;
-  --primary: #0f766e;
-  --primary-2: #2563eb;
-  --error: #dc2626;
-  --success: #16a34a;
-  --glass: rgba(255, 255, 255, 0.74);
-  --glass-strong: rgba(255, 255, 255, 0.82);
-  --glass-border: rgba(255, 255, 255, 0.34);
-  --shadow: 0 22px 56px rgba(15, 23, 42, 0.13);
+  --bg: #070A0D;
+  --text: #F8FAFC;
+  --muted: #94A3B8;
+  --primary: #00E5FF;
+  --primary-2: #FFB300;
+  --error: #FF3D00;
+  --success: #00E676;
+  --glass: rgba(20, 25, 30, 0.6);
+  --glass-strong: rgba(20, 25, 30, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
   --inner-light: inset 0 1px 0 rgba(255, 255, 255, 0.58);
 }
 
@@ -48,8 +48,8 @@ body {
   min-height: 100%;
   scroll-behavior: smooth;
   background:
-    radial-gradient(circle at 15% 10%, rgba(37, 99, 235, 0.12), transparent 30%),
-    radial-gradient(circle at 85% 8%, rgba(15, 118, 110, 0.12), transparent 34%),
+    radial-gradient(circle at 15% 10%, rgba(0, 229, 255, 0.08), transparent 30%),
+    radial-gradient(circle at 85% 8%, rgba(255, 179, 0, 0.08), transparent 34%),
     var(--bg);
 }
 
@@ -64,10 +64,10 @@ body {
 }
 
 .glass {
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(24px) saturate(180%);
   background: var(--glass);
   border: 1px solid var(--glass-border);
-  border-radius: 18px;
+  border-radius: 24px;
   box-shadow: var(--shadow), var(--inner-light);
 }
 
@@ -112,7 +112,7 @@ body {
   line-height: 1.2;
   min-height: 44px;
   transition:
-    transform 160ms ease,
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 160ms ease,
     background-color 160ms ease,
     opacity 160ms ease;
@@ -120,8 +120,8 @@ body {
 
 .btn-primary {
   background: linear-gradient(120deg, var(--primary), var(--primary-2));
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.16);
+  color: #070A0D;
+  box-shadow: 0 10px 22px rgba(0, 229, 255, 0.25);
 }
 
 .btn-secondary {
@@ -134,7 +134,7 @@ body {
 }
 
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.985);
   opacity: 0.96;
 }
 
@@ -158,7 +158,7 @@ a.link:focus-visible {
   border-radius: 12px;
   padding: 12px 12px;
   font-size: 14px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--glass-strong);
   min-height: 44px;
   transition:
     border-color 160ms ease,
@@ -254,7 +254,7 @@ a.link {
   text-decoration: none;
   color: var(--primary-2);
   font-weight: 600;
-  transition: opacity 160ms ease, transform 160ms ease;
+  transition: opacity 160ms ease, transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 a.link:hover {
@@ -389,12 +389,12 @@ a.link:active {
   align-items: center;
   justify-content: center;
   min-height: 58px;
-  border-radius: 18px;
+  border-radius: 24px;
   text-decoration: none;
   color: var(--text);
   font-weight: 800;
   letter-spacing: 0.08em;
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(24px) saturate(180%);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
   border: 1px solid rgba(255, 255, 255, 0.34);
@@ -402,7 +402,7 @@ a.link:active {
     0 14px 28px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255,255,255,0.46);
   transition:
-    transform 160ms ease,
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 160ms ease,
     background-color 160ms ease;
 }
@@ -417,7 +417,7 @@ a.link:active {
 }
 
 .client-contact-link:active {
-  transform: scale(0.97);
+  transform: scale(0.985);
 }
 
 .client-action-grid {
@@ -428,11 +428,11 @@ a.link:active {
 
 .client-action-tile {
   min-height: 108px;
-  border-radius: 22px;
+  border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.36);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.64));
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(24px) saturate(180%);
   box-shadow:
     0 18px 36px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255,255,255,0.54);
@@ -443,7 +443,7 @@ a.link:active {
   text-align: left;
   cursor: pointer;
   transition:
-    transform 160ms ease,
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 160ms ease,
     background-color 160ms ease;
 }
@@ -458,7 +458,7 @@ a.link:active {
 }
 
 .client-action-tile:active {
-  transform: scale(0.97);
+  transform: scale(0.985);
 }
 
 .client-action-tile span {
@@ -726,7 +726,7 @@ a.link:active {
 }
 
 .client-chat-tab:active {
-  transform: scale(0.97);
+  transform: scale(0.985);
 }
 
 .client-chat-panel {
@@ -747,8 +747,8 @@ a.link:active {
 }
 
 .client-message {
-  max-width: 72%;
-  border-radius: 18px;
+  max-width: 78%;
+  border-radius: 22px;
   padding: 12px 14px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
   animation: clientFadeSlide 220ms ease both;
@@ -757,16 +757,15 @@ a.link:active {
 .client-message.mine {
   align-self: flex-end;
   background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  color: #fff;
-  border-bottom-right-radius: 6px;
+  color: #070A0D;
+  border-bottom-right-radius: 8px;
 }
 
 .client-message.other {
   align-self: flex-start;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.82));
+  background: var(--glass-strong);
   border: 1px solid rgba(255,255,255,0.42);
-  border-bottom-left-radius: 6px;
+  border-bottom-left-radius: 8px;
 }
 
 .client-message-text {
@@ -855,7 +854,7 @@ a.link:active {
 
 .client-skeleton-block {
   min-height: 96px;
-  border-radius: 22px;
+  border-radius: 28px;
 }
 
 .client-skeleton-chat {
@@ -865,7 +864,7 @@ a.link:active {
 
 .client-skeleton-message {
   height: 58px;
-  border-radius: 18px;
+  border-radius: 24px;
 }
 
 .client-skeleton-message.is-right {
@@ -930,12 +929,12 @@ a.link:active {
 .workspace-panel {
   padding: clamp(16px, 2vw, 22px);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--glass);
   border: 1px solid rgba(255, 255, 255, 0.48);
   box-shadow:
     0 20px 52px rgba(15, 23, 42, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(24px) saturate(180%);
 }
 
 .workspace-panel-compact {
@@ -981,16 +980,16 @@ a.link:active {
   gap: 8px;
   min-height: 118px;
   padding: 16px;
-  border-radius: 18px;
+  border-radius: 24px;
   text-decoration: none;
   color: inherit;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--glass);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow:
     0 14px 32px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.58);
   transition:
-    transform 160ms ease,
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 160ms ease,
     background-color 160ms ease,
     border-color 160ms ease;
@@ -1210,9 +1209,9 @@ a.link:active {
   border-radius: 16px;
   cursor: pointer;
   border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--glass);
   transition:
-    transform 160ms ease,
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 160ms ease,
     box-shadow 160ms ease,
     background-color 160ms ease;
@@ -1263,7 +1262,7 @@ a.link:active {
   flex-direction: column;
   gap: 10px;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 24px;
   background: rgba(248, 250, 252, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.16);
 }
@@ -1281,7 +1280,7 @@ a.link:active {
 }
 
 .workspace-msg {
-  max-width: 72%;
+  max-width: 78%;
   padding: 10px 12px;
   border-radius: 16px;
   font-size: 14px;
@@ -1293,14 +1292,14 @@ a.link:active {
   align-self: flex-end;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  border-bottom-right-radius: 6px;
+  border-bottom-right-radius: 8px;
 }
 
 .workspace-msg.other {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--glass-strong);
   color: var(--text);
-  border-bottom-left-radius: 6px;
+  border-bottom-left-radius: 8px;
 }
 
 .workspace-msg-meta {
@@ -1428,7 +1427,7 @@ a.link:active {
 
   .client-action-tile {
     min-height: 92px;
-    border-radius: 18px;
+    border-radius: 24px;
     padding: 14px 12px;
   }
 

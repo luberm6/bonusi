@@ -1,13 +1,13 @@
 export const webTokens = {
   color: {
-    primary: "#0F766E",
-    primaryAlt: "#2563EB",
-    background: "#F8FAFC",
-    surface: "rgba(255,255,255,0.78)",
-    surfaceStrong: "rgba(255,255,255,0.86)",
-    border: "rgba(15,23,42,0.14)",
-    textPrimary: "#0F172A",
-    textSecondary: "#475569",
+    primary: "#00E5FF",
+    primaryAlt: "#FFB300",
+    background: "#070A0D",
+    surface: "rgba(20,25,30,0.6)",
+    surfaceStrong: "rgba(20,25,30,0.85)",
+    border: "rgba(255,255,255,0.15)",
+    textPrimary: "#F8FAFC",
+    textSecondary: "#94A3B8",
     success: "#16A34A",
     warning: "#F59E0B",
     error: "#DC2626"
@@ -39,7 +39,7 @@ export const webTokens = {
     soft: "0 6px 18px rgba(15,23,42,0.08)"
   },
   blur: {
-    surface: "blur(12px)"
+    surface: "rgba(20,25,30,0.6)"
   }
 } as const;
 

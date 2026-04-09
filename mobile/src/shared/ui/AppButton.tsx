@@ -37,8 +37,8 @@ export function AppButton(props: Props) {
       <Text
         style={[
           styles.label,
-          (variant === "primary" || variant === "destructive") && styles.labelLight,
-          (variant === "secondary" || variant === "ghost") && styles.labelDark
+          (variant === "primary" || variant === "destructive") && styles.labelPrimary,
+          (variant === "secondary" || variant === "ghost") && styles.labelSecondary
         ]}
       >
         {props.label}
@@ -73,11 +73,11 @@ const styles = StyleSheet.create({
     fontSize: mobileTokens.typography.body,
     fontWeight: "700"
   },
-  labelLight: {
-    color: "#ffffff"
+  labelPrimary: {
+    color: "#070A0D" // Dark text on Cyan primary button for high contrast
   },
-  labelDark: {
-    color: mobileTokens.color.textPrimary
+  labelSecondary: {
+    color: mobileTokens.color.textPrimary // Bright text on Glass/Dark secondary
   },
   pressed: {
     transform: [{ scale: 0.972 }],

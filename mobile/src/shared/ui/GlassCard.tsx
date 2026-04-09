@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
   base: {
     backgroundColor: mobileTokens.color.glass,
     borderRadius: mobileTokens.radius[20],
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.42)"
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: mobileTokens.color.borderSoft
   },
   elevated: {
     ...mobileTokens.shadow.glass
