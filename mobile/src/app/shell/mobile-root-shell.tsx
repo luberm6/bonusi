@@ -1,12 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ClientHomeScreen } from "../../modules/client/home/ClientHomeScreen";
 import type { AuthSession } from "../navigation/role-navigation-resolver";
 import { mobileEnv } from "../../shared/config/mobile-env";
 import { fireHaptic } from "../../shared/native/haptics";
 import { AnonymousView, BootSplash, LoginView, OnboardingView, StaffAccessView } from "./mobile-root-views";
+import { useAppUpdate } from "../../shared/hooks/useAppUpdate";
+import { UpdateOverlay } from "../../shared/ui/UpdateOverlay";
+import { APP_VERSION } from "../../shared/config/app-version";
 import {
   clearPersistedSession,
   getRefreshToken,
@@ -54,6 +57,7 @@ export function MobileRootShell() {
   const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const { updateInfo, performUpdate, dismiss } = useAppUpdate();
 
   useEffect(() => {
     (async () => {
@@ -103,9 +107,9 @@ export function MobileRootShell() {
           email: email.trim(),
           password,
           device: {
-            platform: "ios",
-            deviceName: "iPhone App",
-            appVersion: "1.0.0"
+            platform: Platform.OS,
+            deviceName: Platform.OS === "android" ? "Android App" : "iPhone App",
+            appVersion: APP_VERSION.versionName
           }
         })
       });
@@ -236,6 +240,12 @@ export function MobileRootShell() {
       ) : (
         <StaffAccessView session={session} onLogout={() => void handleLogout()} />
       )}
+      <UpdateOverlay 
+        visible={!!updateInfo} 
+        metadata={updateInfo!} 
+        onUpdate={performUpdate} 
+        onDismiss={dismiss} 
+      />
     </SafeAreaView>
   );
 }

@@ -21,6 +21,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Sync App Version to JS
+        shell: bash
+        run: |
+          RUN_NUMBER=${{ github.run_number }}
+          VERSION_NAME="1.0.${RUN_NUMBER}"
+          sed -i "s/versionName: \".*\"/versionName: \"${VERSION_NAME}\"/" mobile/src/shared/config/app-version.ts
+          sed -i "s/versionCode: .*/versionCode: ${RUN_NUMBER}/" mobile/src/shared/config/app-version.ts
+          echo "Synced App Version: ${VERSION_NAME} (Code: ${RUN_NUMBER})"
+
       - name: Strip local JVM path for CI
         run: |
           # Это нужно, чтобы локальный путь к Java из gradle.properties не ломал облачную сборку
