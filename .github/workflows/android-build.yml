@@ -169,9 +169,11 @@ jobs:
           APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/debug/app-debug.apk"
           test -f "$APK_PATH" || { echo "::error::Debug APK not found at $APK_PATH"; exit 1; }
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bonusi-debug-apk
-          path: ${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 3
+      - name: Send APK to Telegram
+        shell: bash
+        run: |
+          APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/debug/app-debug.apk"
+          curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -F "caption=Новая сборка Bonusi 🤖" \
+            -F "document=@${APK_PATH};filename=bonusi-debug.apk"
