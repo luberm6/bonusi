@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 16,
     justifyContent: "center",
-    backgroundColor: "#E9EDF5"
+    backgroundColor: mobileTokens.color.background
   },
   splashCard: {
     padding: mobileTokens.spacing[24],
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     lineHeight: 42,
     letterSpacing: 1.2,
     fontWeight: "800",
-    color: "#FF6B1A"
+    color: mobileTokens.color.primary
   },
   splashTitle: {
     ...mobileTypography.headingLg
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: "#475569",
+    color: mobileTokens.color.textSecondary,
     textAlign: "center",
     marginBottom: 6
   },
@@ -311,9 +311,9 @@ const styles = StyleSheet.create({
   },
   onboardingHero: {
     height: 240,
-    borderRadius: 28,
+    borderRadius: mobileTokens.radius.card,
     marginBottom: mobileTokens.spacing[24],
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: "rgba(0,229,255,0.06)",
     overflow: "hidden",
     justifyContent: "center",
     alignItems: "center"
@@ -365,8 +365,8 @@ const styles = StyleSheet.create({
   paginationDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(71,85,105,0.22)"
+    borderRadius: mobileTokens.radius.full,
+    backgroundColor: "rgba(255,255,255,0.12)"
   },
   paginationDotActive: {
     width: 28,

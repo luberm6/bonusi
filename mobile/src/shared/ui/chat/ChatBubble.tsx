@@ -22,7 +22,7 @@ export function ChatBubble(props: Props) {
 const styles = StyleSheet.create({
   wrap: {
     maxWidth: "84%",
-    marginBottom: 10
+    marginBottom: mobileTokens.spacing[12]
   },
   outgoingWrap: {
     alignSelf: "flex-end"
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start"
   },
   bubble: {
-    borderRadius: 16,
+    borderRadius: mobileTokens.radius[16],
     paddingHorizontal: 12,
     paddingVertical: 9
   },
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   outgoingText: {
-    color: "#F8FAFC"
+    color: mobileTokens.color.textPrimary
   },
   incomingText: {
     color: mobileTokens.color.textPrimary

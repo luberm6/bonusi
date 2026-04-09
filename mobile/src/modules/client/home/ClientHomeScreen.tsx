@@ -1353,15 +1353,15 @@ const styles = StyleSheet.create({
     backgroundColor: mobileTokens.color.background
   },
   content: {
-    padding: 18,
-    gap: 16
+    padding: mobileTokens.spacing[18],
+    gap: mobileTokens.spacing[16]
   },
   skeletonWrap: {
-    gap: 16
+    gap: mobileTokens.spacing[16]
   },
   skeletonBlock: {
     overflow: "hidden",
-    borderRadius: 18,
+    borderRadius: mobileTokens.radius.card,
     backgroundColor: mobileTokens.color.glass
   },
   skeletonShimmer: {
@@ -1374,28 +1374,28 @@ const styles = StyleSheet.create({
   brandSkeletonLogo: {
     width: 74,
     height: 58,
-    borderRadius: 20
+    borderRadius: mobileTokens.radius.card
   },
   skeletonTitleLine: {
     height: 20,
     width: "74%",
-    borderRadius: 10
+    borderRadius: mobileTokens.radius.button
   },
   skeletonSubtitleLine: {
     height: 14,
     width: "92%",
-    borderRadius: 10,
+    borderRadius: mobileTokens.radius.button,
     marginTop: 8
   },
   contactSkeleton: {
     width: 54,
     height: 54,
-    borderRadius: 18
+    borderRadius: mobileTokens.radius.card
   },
   actionSkeleton: {
     width: "48%",
     minHeight: 78,
-    borderRadius: 18
+    borderRadius: mobileTokens.radius.card
   },
   heroSkeleton: {
     width: "100%",
@@ -1404,7 +1404,7 @@ const styles = StyleSheet.create({
   },
   chatSkeleton: {
     minHeight: 114,
-    borderRadius: 22
+    borderRadius: mobileTokens.radius.card
   },
   bonusCircleSkeleton: {
     width: 132,
@@ -1414,60 +1414,60 @@ const styles = StyleSheet.create({
   bonusNameSkeleton: {
     height: 30,
     width: "92%",
-    borderRadius: 14
+    borderRadius: mobileTokens.radius.button
   },
   bonusMailSkeleton: {
     height: 16,
     width: "70%",
-    borderRadius: 10
+    borderRadius: mobileTokens.radius.button
   },
   messageSkeletonLeft: {
     width: "58%",
     height: 64,
-    borderRadius: 18
+    borderRadius: mobileTokens.radius.card
   },
   messageSkeletonRight: {
     width: "46%",
     height: 54,
-    borderRadius: 18,
+    borderRadius: mobileTokens.radius.card,
     alignSelf: "flex-end"
   },
   messageSkeletonLeftWide: {
     width: "68%",
     height: 62,
-    borderRadius: 18
+    borderRadius: mobileTokens.radius.card
   },
   chatInputSkeleton: {
     width: "100%",
     minHeight: 92,
-    borderRadius: 20
+    borderRadius: mobileTokens.radius.card
   },
   chatButtonSkeleton: {
     width: "100%",
     height: 52,
-    borderRadius: 16
+    borderRadius: mobileTokens.radius.button
   },
   listTitleSkeleton: {
     width: "54%",
     height: 20,
-    borderRadius: 10
+    borderRadius: mobileTokens.radius.button
   },
   listSubtitleSkeleton: {
     width: "70%",
     height: 14,
-    borderRadius: 10,
+    borderRadius: mobileTokens.radius.button,
     marginTop: 8
   },
   listValueSkeleton: {
     width: "38%",
     height: 24,
-    borderRadius: 10,
+    borderRadius: mobileTokens.radius.button,
     marginTop: 14
   },
   listHintSkeleton: {
     width: "88%",
     height: 14,
-    borderRadius: 10,
+    borderRadius: mobileTokens.radius.button,
     marginTop: 10
   },
   loaderWrap: {
@@ -1481,7 +1481,7 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
   brandCard: {
-    padding: 18,
+    padding: mobileTokens.spacing[18],
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
@@ -1520,7 +1520,7 @@ const styles = StyleSheet.create({
   contactIcon: {
     width: 54,
     height: 54,
-    borderRadius: 18,
+    borderRadius: mobileTokens.radius.card,
     backgroundColor: "rgba(15, 23, 42, 0.82)",
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft,
@@ -1538,7 +1538,7 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   actionGridCard: {
-    padding: 14,
+    padding: mobileTokens.spacing[14],
     backgroundColor: mobileTokens.color.glass,
     borderColor: mobileTokens.color.borderSoft
   },
@@ -1550,7 +1550,7 @@ const styles = StyleSheet.create({
   actionTile: {
     width: "48%",
     minHeight: 78,
-    borderRadius: 20,
+    borderRadius: mobileTokens.radius.card,
     backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft,
@@ -1572,19 +1572,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
     fontWeight: "700",
-    color: "#111827"
+    color: mobileTokens.color.textPrimary
   },
   heroCard: {
     overflow: "hidden",
     backgroundColor: mobileTokens.color.glass,
-    borderRadius: 24,
+    borderRadius: mobileTokens.radius.card,
     borderColor: mobileTokens.color.borderSoft,
     shadowOpacity: 0.18
   },
   heroFrame: {
     position: "relative",
     overflow: "hidden",
-    borderRadius: 24
+    borderRadius: mobileTokens.radius.card
   },
   heroImage: {
     width: "100%",
@@ -1616,7 +1616,7 @@ const styles = StyleSheet.create({
   },
   chatCta: {
     minHeight: 114,
-    borderRadius: 24,
+    borderRadius: mobileTokens.radius.card,
     backgroundColor: "rgba(23, 31, 47, 0.84)",
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft,
@@ -1644,7 +1644,7 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   bonusCard: {
-    padding: 18,
+    padding: mobileTokens.spacing[18],
     flexDirection: "row",
     alignItems: "center",
     gap: 18,
@@ -1681,7 +1681,7 @@ const styles = StyleSheet.create({
   },
   bonusMeta: {
     flex: 1,
-    gap: 8
+    gap: mobileTokens.spacing[8]
   },
   userName: {
     fontSize: 28,
@@ -1735,7 +1735,7 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textSecondary
   },
   listCard: {
-    padding: 18,
+    padding: mobileTokens.spacing[18],
     marginBottom: 12
   },
   visitCardPressable: {
@@ -1766,7 +1766,7 @@ const styles = StyleSheet.create({
   visitServiceTags: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: mobileTokens.spacing[8],
     marginTop: 14
   },
   visitServiceTag: {
@@ -1784,13 +1784,13 @@ const styles = StyleSheet.create({
   },
   visitSummaryRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: mobileTokens.spacing[12],
     marginTop: 16
   },
   visitMetric: {
     flex: 1,
-    padding: 14,
-    borderRadius: 18,
+    padding: mobileTokens.spacing[14],
+    borderRadius: mobileTokens.radius.card,
     backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.14)"
@@ -1829,15 +1829,15 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textSecondary
   },
   detailTotalsCard: {
-    padding: 16,
+    padding: mobileTokens.spacing[16],
     marginBottom: 12
   },
   detailTotalsGrid: {
     gap: 10
   },
   detailTotalCell: {
-    padding: 14,
-    borderRadius: 18,
+    padding: mobileTokens.spacing[14],
+    borderRadius: mobileTokens.radius.card,
     backgroundColor: mobileTokens.color.glass,
     borderWidth: 1,
     borderColor: "rgba(148,163,184,0.14)"
@@ -1860,7 +1860,7 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textPrimary
   },
   serviceCard: {
-    padding: 18,
+    padding: mobileTokens.spacing[18],
     marginBottom: 12
   },
   serviceTitle: {
@@ -1873,7 +1873,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 12,
-    gap: 12
+    gap: mobileTokens.spacing[12]
   },
   serviceLabel: {
     fontSize: 14,
@@ -1886,7 +1886,7 @@ const styles = StyleSheet.create({
   },
   cashbackCard: {
     padding: 22,
-    gap: 12,
+    gap: mobileTokens.spacing[12],
     backgroundColor: mobileTokens.color.glass,
     borderColor: mobileTokens.color.borderSoft
   },
@@ -1940,7 +1940,7 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textPrimary
   },
   chatPanel: {
-    padding: 16,
+    padding: mobileTokens.spacing[16],
     minHeight: 520,
     backgroundColor: mobileTokens.color.glass,
     borderColor: mobileTokens.color.borderSoft
@@ -1973,7 +1973,7 @@ const styles = StyleSheet.create({
   messageBubble: {
     maxWidth: "82%",
     flexShrink: 1,
-    borderRadius: 18,
+    borderRadius: mobileTokens.radius.card,
     paddingHorizontal: 14,
     paddingVertical: 12
   },
@@ -2016,7 +2016,7 @@ const styles = StyleSheet.create({
   },
   chatInput: {
     minHeight: 92,
-    borderRadius: 20,
+    borderRadius: mobileTokens.radius.card,
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft,
     backgroundColor: mobileTokens.color.glass,
@@ -2039,7 +2039,7 @@ const styles = StyleSheet.create({
     left: 18,
     right: 18,
     zIndex: 20,
-    borderRadius: 16,
+    borderRadius: mobileTokens.radius.button,
     paddingHorizontal: 16,
     paddingVertical: 14,
     shadowcolor: mobileTokens.color.textPrimary,
