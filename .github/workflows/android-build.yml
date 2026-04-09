@@ -173,7 +173,8 @@ jobs:
         shell: bash
         run: |
           APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/debug/app-debug.apk"
+          zip -j /tmp/bonusi-debug.zip "${APK_PATH}"
           curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
             -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
             -F "caption=Новая сборка Bonusi 🤖" \
-            -F "document=@${APK_PATH};filename=bonusi-debug.apk"
+            -F "document=@/tmp/bonusi-debug.zip;filename=bonusi-debug.zip"
