@@ -874,6 +874,12 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
     return (
       <>
+        {/* DEBUG BUILD MARKER */}
+        <View style={{ position: 'absolute', top: 40, left: 20, zIndex: 9999, backgroundColor: 'red', padding: 8, borderRadius: 8 }}>
+          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>BUILD: 30f8631</Text>
+          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>SCREEN: ClientHomeScreen</Text>
+        </View>
+
         <GlassCard elevated animated style={styles.brandCard}>
           <View style={styles.brandBadge}>
             <Text style={styles.brandLogo}>OB</Text>
