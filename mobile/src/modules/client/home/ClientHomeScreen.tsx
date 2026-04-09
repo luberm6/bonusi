@@ -465,6 +465,8 @@ function AnimatedMessageBubble(props: { mine: boolean; text: string; createdAt: 
   );
 }
 
+
+// [AUTO-TRIGGER] Metro Cache Invalidation for UI Polish
 export function ClientHomeScreen(props: ClientHomeProps) {
   const screenWidth = Dimensions.get("window").width;
   const [screen, setScreen] = useState<ScreenKey>("home");
@@ -1531,7 +1533,7 @@ const styles = StyleSheet.create({
     opacity: 0.92
   },
   contactIconLabel: {
-    color: "#FFFFFF",
+    color: mobileTokens.color.textPrimary,
     fontSize: 15,
     fontWeight: "800"
   },
@@ -1631,13 +1633,13 @@ const styles = StyleSheet.create({
     opacity: 0.97
   },
   chatCtaLabel: {
-    color: "#FFFFFF",
+    color: mobileTokens.color.textPrimary,
     fontSize: 44,
     fontWeight: "800",
     letterSpacing: 1
   },
   chatCtaHint: {
-    color: "rgba(255,255,255,0.76)",
+    color: mobileTokens.color.textSecondary,
     fontSize: 14,
     marginTop: 4
   },
@@ -1658,7 +1660,7 @@ const styles = StyleSheet.create({
     backgroundColor: mobileTokens.color.glass,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#ffffff",
+    shadowColor: mobileTokens.color.textPrimary,
     shadowOpacity: 0.45,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: -4 },
@@ -1935,7 +1937,7 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   conversationTabLabelActive: {
-    color: "#FFFFFF"
+    color: mobileTokens.color.textPrimary
   },
   chatPanel: {
     padding: 16,
@@ -1992,7 +1994,7 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textPrimary
   },
   messageTextMine: {
-    color: "#FFFFFF"
+    color: mobileTokens.color.textPrimary
   },
   messageMeta: {
     marginTop: 6,
@@ -2000,7 +2002,7 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textSecondary
   },
   messageMetaMine: {
-    color: "rgba(255,255,255,0.72)"
+    color: mobileTokens.color.textSecondary
   },
   chatComposer: {
     marginTop: 12,
@@ -2053,7 +2055,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(220, 38, 38, 0.94)"
   },
   toastText: {
-    color: "#FFFFFF",
+    color: mobileTokens.color.textPrimary,
     fontSize: 14,
     fontWeight: "700",
     textAlign: "center"

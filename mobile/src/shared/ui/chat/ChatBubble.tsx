@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   outgoingText: {
-    color: "#ffffff"
+    color: "#F8FAFC"
   },
   incomingText: {
     color: mobileTokens.color.textPrimary
