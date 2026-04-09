@@ -875,10 +875,12 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     return (
       <>
         <GlassCard elevated animated style={styles.brandCard}>
-          <Text style={styles.brandLogo}>CRS</Text>
+          <View style={styles.brandBadge}>
+            <Text style={styles.brandLogo}>OB</Text>
+          </View>
           <View style={styles.brandMeta}>
-            <Text style={styles.brandTitle}>Centr Radius Service</Text>
-            <Text style={styles.brandSubtitle}>Премиальный сервис для ежедневного сопровождения автомобиля</Text>
+            <Text style={styles.brandTitle}>OBSIDIAN</Text>
+            <Text style={styles.brandSubtitle}>Premium Automotive Maintenance & Concierge</Text>
           </View>
           <AppButton
             label="Выйти"
@@ -892,7 +894,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           />
         </GlassCard>
 
-        <View style={styles.contactRow}>
+        <View style={styles.socialDock}>
           {CONTACT_LINKS.map((item) => (
             <Pressable
               key={item.key}
@@ -900,9 +902,9 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 fireHaptic("selection");
                 openLink(item.url);
               }}
-              style={({ pressed }) => [styles.contactIcon, pressed && styles.pressedSurface]}
+              style={({ pressed }) => [styles.socialIcon, pressed && styles.pressedSurface]}
             >
-              <Text style={styles.contactIconLabel}>{item.label}</Text>
+              <Text style={styles.socialIconLabel}>{item.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -950,6 +952,10 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
         <GlassCard elevated animated style={styles.heroCard}>
           <View style={styles.heroFrame}>
+            <View style={styles.heroOverlay}>
+              <Text style={styles.heroTitle}>PERFORMANCE</Text>
+              <Text style={styles.heroSubtitle}>Ultimate Garage Management</Text>
+            </View>
             <Image source={HERO_IMAGE} resizeMode="cover" style={styles.heroImage} />
             <View pointerEvents="none" style={styles.heroGlassGlow} />
             <View pointerEvents="none" style={styles.heroTopFade} />
@@ -1512,30 +1518,41 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: mobileTokens.color.textSecondary
   },
-  contactRow: {
+  brandBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: mobileTokens.radius.card,
+    backgroundColor: "rgba(23, 31, 47, 0.8)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: mobileTokens.color.borderSoft,
+    ...mobileTokens.shadow.soft
+  },
+  socialDock: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10
   },
-  contactIcon: {
+  socialIcon: {
     width: 54,
     height: 54,
     borderRadius: mobileTokens.radius.card,
-    backgroundColor: "rgba(15, 23, 42, 0.82)",
+    backgroundColor: "rgba(23, 31, 47, 0.64)",
     borderWidth: 1,
     borderColor: mobileTokens.color.borderSoft,
     alignItems: "center",
     justifyContent: "center",
     ...mobileTokens.shadow.soft
   },
-  pressedSurface: {
-    transform: [{ scale: 0.972 }],
-    opacity: 0.92
-  },
-  contactIconLabel: {
+  socialIconLabel: {
     color: mobileTokens.color.textPrimary,
     fontSize: 15,
     fontWeight: "800"
+  },
+  pressedSurface: {
+    transform: [{ scale: 0.972 }],
+    opacity: 0.92
   },
   actionGridCard: {
     padding: mobileTokens.spacing[14],
@@ -1614,6 +1631,30 @@ const styles = StyleSheet.create({
     height: 92,
     backgroundColor: "rgba(15,23,42,0.18)"
   },
+  heroOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    padding: 24,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(15, 23, 42, 0.45)"
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: mobileTokens.color.textPrimary,
+    letterSpacing: 2
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: mobileTokens.color.primaryAlt,
+    marginTop: 4,
+    textTransform: "uppercase"
+  },
   chatCta: {
     minHeight: 114,
     borderRadius: mobileTokens.radius.card,
@@ -1656,11 +1697,11 @@ const styles = StyleSheet.create({
     height: 132,
     borderRadius: 66,
     borderWidth: 1.5,
-    borderColor: "rgba(15, 23, 42, 0.22)",
-    backgroundColor: mobileTokens.color.glass,
+    borderColor: "rgba(34, 211, 238, 0.22)",
+    backgroundColor: "rgba(15, 23, 42, 0.42)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: mobileTokens.color.textPrimary,
+    shadowColor: mobileTokens.color.primaryAlt,
     shadowOpacity: 0.45,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: -4 },
@@ -1670,13 +1711,13 @@ const styles = StyleSheet.create({
     fontSize: 42,
     lineHeight: 42,
     fontWeight: "900",
-    color: "#101010"
+    color: mobileTokens.color.textPrimary
   },
   bonusCaption: {
     marginTop: 4,
     fontSize: 17,
     fontWeight: "700",
-    color: "#101010",
+    color: mobileTokens.color.textSecondary,
     textTransform: "uppercase"
   },
   bonusMeta: {
@@ -1692,7 +1733,7 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 14,
-    color: "rgba(71, 85, 105, 0.92)"
+    color: mobileTokens.color.textSecondary
   },
   screenHeader: {
     flexDirection: "row",
