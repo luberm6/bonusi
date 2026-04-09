@@ -20,4 +20,3 @@ dependencyResolutionManagement {
 
 rootProject.name = 'RnBootstrap'
 include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
