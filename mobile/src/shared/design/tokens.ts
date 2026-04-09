@@ -26,6 +26,9 @@ export const mobileTokens = {
     12: 12,
     16: 16,
     20: 20,
+    24: 24,
+    28: 28,
+    32: 32,
     round: 999
   },
   typography: {
@@ -38,18 +41,32 @@ export const mobileTokens = {
   },
   shadow: {
     glass: {
-      shadowColor: "#000000", // Cyan glow
-      shadowOpacity: 0.15,
-      shadowRadius: 44,
-      shadowOffset: { width: 0, height: 12 },
-      elevation: 9
+      shadowColor: "#00E5FF", // Cyan glow
+      shadowOpacity: 0.25,
+      shadowRadius: 32,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 12
+    },
+    neon: {
+      shadowColor: "#00E5FF",
+      shadowOpacity: 0.4,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 15
+    },
+    gold: {
+      shadowColor: "#FFB300",
+      shadowOpacity: 0.3,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 10
     },
     soft: {
       shadowColor: "#000000",
-      shadowOpacity: 0.25,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 4
+      shadowOpacity: 0.4,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 6
     }
   }
 } as const;

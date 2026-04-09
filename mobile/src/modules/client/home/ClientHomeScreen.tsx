@@ -874,22 +874,16 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
     return (
       <>
-        {/* DEBUG BUILD MARKER */}
-        <View style={{ position: 'absolute', top: 40, left: 20, zIndex: 9999, backgroundColor: 'red', padding: 8, borderRadius: 8 }}>
-          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>BUILD: 30f8631</Text>
-          <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>SCREEN: ClientHomeScreen</Text>
-        </View>
-
         <GlassCard elevated animated style={styles.brandCard}>
           <View style={styles.brandBadge}>
             <Text style={styles.brandLogo}>OB</Text>
           </View>
           <View style={styles.brandMeta}>
             <Text style={styles.brandTitle}>OBSIDIAN</Text>
-            <Text style={styles.brandSubtitle}>Premium Automotive Maintenance & Concierge</Text>
+            <Text style={styles.brandSubtitle}>Premium Automotive Maintenance</Text>
           </View>
           <AppButton
-            label="Выйти"
+            label="Exit"
             variant="ghost"
             onPress={() => {
               fireHaptic("selection");
@@ -1497,64 +1491,63 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    backgroundColor: mobileTokens.color.glass,
-    borderColor: mobileTokens.color.borderSoft
-  },
-  brandLogo: {
-    fontSize: 40,
-    fontWeight: "800",
-    color: mobileTokens.color.primaryAlt,
-    letterSpacing: 1
-  },
-  brandMeta: {
-    flex: 1
-  },
-  logoutButton: {
-    minHeight: 42,
-    paddingHorizontal: 14
-  },
-  brandTitle: {
-    fontSize: 19,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
-  },
-  brandSubtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    lineHeight: 18,
-    color: mobileTokens.color.textSecondary
+    backgroundColor: "rgba(23, 31, 47, 0.45)",
+    borderRadius: mobileTokens.radius[32],
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.06)"
   },
   brandBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: "rgba(23, 31, 47, 0.8)",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(23, 31, 47, 0.9)",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft,
-    ...mobileTokens.shadow.soft
+    borderWidth: 1.5,
+    borderColor: mobileTokens.color.primary,
+    ...mobileTokens.shadow.neon
+  },
+  brandLogo: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: mobileTokens.color.primary,
+    letterSpacing: -1
+  },
+  brandTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: mobileTokens.color.textPrimary,
+    letterSpacing: 2
+  },
+  brandSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    fontWeight: "600",
+    color: mobileTokens.color.primaryAlt,
+    textTransform: "uppercase",
+    letterSpacing: 1
   },
   socialDock: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10
+    paddingHorizontal: mobileTokens.spacing[16],
+    marginVertical: 10
   },
   socialIcon: {
-    width: 54,
-    height: 54,
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: "rgba(23, 31, 47, 0.64)",
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft,
+    borderColor: "rgba(0, 229, 255, 0.3)",
     alignItems: "center",
     justifyContent: "center",
-    ...mobileTokens.shadow.soft
+    ...mobileTokens.shadow.glass
   },
   socialIconLabel: {
     color: mobileTokens.color.textPrimary,
-    fontSize: 15,
-    fontWeight: "800"
+    fontSize: 14,
+    fontWeight: "900"
   },
   pressedSurface: {
     transform: [{ scale: 0.972 }],
@@ -1572,46 +1565,45 @@ const styles = StyleSheet.create({
   },
   actionTile: {
     width: "48%",
-    minHeight: 78,
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: mobileTokens.color.glass,
-    borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft,
+    minHeight: 104,
+    borderRadius: mobileTokens.radius[28],
+    backgroundColor: "rgba(23, 31, 47, 0.45)",
+    borderWidth: 1.2,
+    borderColor: "rgba(0, 229, 255, 0.12)",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 14,
-    shadowcolor: mobileTokens.color.textPrimary,
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3
+    paddingHorizontal: 16,
+    ...mobileTokens.shadow.glass
   },
   pressedTile: {
-    transform: [{ scale: 0.972 }],
-    opacity: 0.96
+    transform: [{ scale: 0.962 }],
+    opacity: 0.92
   },
   actionTileLabel: {
     textAlign: "center",
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
+    fontSize: 15,
+    lineHeight: 18,
+    fontWeight: "900",
+    color: mobileTokens.color.textPrimary,
+    textTransform: "uppercase",
+    letterSpacing: 1
   },
   heroCard: {
     overflow: "hidden",
-    backgroundColor: mobileTokens.color.glass,
-    borderRadius: mobileTokens.radius.card,
-    borderColor: mobileTokens.color.borderSoft,
-    shadowOpacity: 0.18
+    backgroundColor: "rgba(15, 23, 42, 0.3)",
+    borderRadius: mobileTokens.radius[32],
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    shadowOpacity: 0.15
   },
   heroFrame: {
     position: "relative",
     overflow: "hidden",
-    borderRadius: mobileTokens.radius.card
+    borderRadius: mobileTokens.radius[32]
   },
   heroImage: {
     width: "100%",
-    height: 220
+    height: 240
   },
   heroGlassGlow: {
     position: "absolute",
@@ -1644,102 +1636,104 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 10,
-    padding: 24,
+    padding: 32,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(15, 23, 42, 0.45)"
+    backgroundColor: "rgba(7, 10, 13, 0.38)"
   },
   heroTitle: {
-    fontSize: 32,
+    fontSize: 40,
     fontWeight: "900",
     color: mobileTokens.color.textPrimary,
-    letterSpacing: 2
+    letterSpacing: 4
   },
   heroSubtitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: mobileTokens.color.primaryAlt,
-    marginTop: 4,
-    textTransform: "uppercase"
+    fontSize: 13,
+    fontWeight: "700",
+    color: mobileTokens.color.primary,
+    marginTop: 2,
+    textTransform: "uppercase",
+    letterSpacing: 3
   },
   chatCta: {
-    minHeight: 114,
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: "rgba(23, 31, 47, 0.84)",
-    borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft,
+    minHeight: 128,
+    borderRadius: mobileTokens.radius[32],
+    backgroundColor: "rgba(23, 31, 47, 0.92)",
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 229, 255, 0.25)",
     justifyContent: "center",
-    paddingHorizontal: 24,
-    shadowcolor: mobileTokens.color.textPrimary,
-    shadowOpacity: 0.24,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 9
+    paddingHorizontal: 32,
+    ...mobileTokens.shadow.neon
   },
   pressedCta: {
-    transform: [{ scale: 0.976 }],
-    opacity: 0.97
+    transform: [{ scale: 0.98 }],
+    opacity: 0.98
   },
   chatCtaLabel: {
     color: mobileTokens.color.textPrimary,
-    fontSize: 44,
-    fontWeight: "800",
-    letterSpacing: 1
+    fontSize: 48,
+    fontWeight: "900",
+    letterSpacing: 3
   },
   chatCtaHint: {
-    color: mobileTokens.color.textSecondary,
-    fontSize: 14,
-    marginTop: 4
+    color: mobileTokens.color.primary,
+    fontSize: 12,
+    fontWeight: "800",
+    marginTop: -2,
+    textTransform: "uppercase",
+    letterSpacing: 1
   },
   bonusCard: {
-    padding: mobileTokens.spacing[18],
+    padding: 24,
     flexDirection: "row",
     alignItems: "center",
-    gap: 18,
-    backgroundColor: mobileTokens.color.glass,
-    borderColor: mobileTokens.color.borderSoft
+    gap: 24,
+    backgroundColor: "rgba(23, 31, 47, 0.65)",
+    borderRadius: mobileTokens.radius[32],
+    borderWidth: 1,
+    borderColor: "rgba(255, 179, 0, 0.15)",
+    ...mobileTokens.shadow.gold
   },
   bonusCircle: {
-    width: 132,
-    height: 132,
-    borderRadius: 66,
-    borderWidth: 1.5,
-    borderColor: "rgba(34, 211, 238, 0.22)",
-    backgroundColor: "rgba(15, 23, 42, 0.42)",
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 2,
+    borderColor: "rgba(255, 179, 0, 0.35)",
+    backgroundColor: "rgba(7, 10, 13, 0.55)",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: mobileTokens.color.primaryAlt,
-    shadowOpacity: 0.45,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: -4 },
-    elevation: 2
+    ...mobileTokens.shadow.gold
   },
   bonusValue: {
-    fontSize: 42,
-    lineHeight: 42,
+    fontSize: 48,
+    lineHeight: 48,
     fontWeight: "900",
-    color: mobileTokens.color.textPrimary
+    color: mobileTokens.color.primaryAlt
   },
   bonusCaption: {
-    marginTop: 4,
-    fontSize: 17,
-    fontWeight: "700",
+    marginTop: 2,
+    fontSize: 15,
+    fontWeight: "900",
     color: mobileTokens.color.textSecondary,
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    letterSpacing: 1
   },
   bonusMeta: {
     flex: 1,
-    gap: mobileTokens.spacing[8]
+    gap: 4
   },
   userName: {
-    fontSize: 28,
-    lineHeight: 32,
-    fontWeight: "300",
+    fontSize: 26,
+    lineHeight: 30,
+    fontWeight: "900",
     color: mobileTokens.color.textPrimary,
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    letterSpacing: 1
   },
   userEmail: {
-    fontSize: 14,
-    color: mobileTokens.color.textSecondary
+    fontSize: 13,
+    fontWeight: "600",
+    color: "rgba(148, 163, 184, 0.6)"
   },
   screenHeader: {
     flexDirection: "row",
