@@ -2,7 +2,7 @@ export const mobileTokens = {
   color: {
     primary: "#00E5FF", // Neon Cyan
     primaryAlt: "#FFB300", // Warm Gold
-    background: "#070A0D", // Obsidian Dark
+    background: "#070A0D", // Midnight Dark
     textPrimary: "#F8FAFC", // Bright White
     textSecondary: "#94A3B8", // Soft Muted Gray
     success: "#00E676",

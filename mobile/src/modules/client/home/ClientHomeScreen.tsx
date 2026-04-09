@@ -13,7 +13,8 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View
+  View,
+  BackHandler
 } from "react-native";
 import type { AuthSession } from "../../../app/navigation/role-navigation-resolver";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -156,10 +157,10 @@ const HERO_IMAGE = require("./assets/client-hero-car.png");
 
 const CONTACT_LINKS = [
   { key: "vk", label: "ВК", url: "https://vk.com" },
-  { key: "ig", label: "Instagram", url: "https://instagram.com" },
-  { key: "tg", label: "Telegram", url: "https://t.me" },
+  { key: "ig", label: "Inst", url: "https://instagram.com" },
+  { key: "tg", label: "TG", url: "https://t.me" },
   { key: "mail", label: "@", url: "mailto:info@centr-radius-service.ru" },
-  { key: "phone", label: "Телефон", url: "tel:+78000000000" }
+  { key: "phone", label: "Тел", url: "tel:+78000000000" }
 ] as const;
 
 function randomId() {
@@ -502,6 +503,25 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   const toastTranslateY = useRef(new Animated.Value(-12)).current;
   const swipeBackTranslateX = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const backAction = () => {
+      if (screen === "home") {
+        return false; // let system handle it
+      }
+      if (SCREEN_DEPTH[screen] > 1 && screen === "visit-details") {
+        goToScreen("visits", { haptic: "impactLight" });
+      } else {
+        goToScreen("home", { haptic: "impactLight" });
+      }
+      return true; // handled
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    return () => backHandler.remove();
+  }, [screen]);
 
   const clientName = useMemo(() => {
     const raw = me?.fullName?.trim();
@@ -876,14 +896,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       <>
         <GlassCard elevated animated style={styles.brandCard}>
           <View style={styles.brandBadge}>
-            <Text style={styles.brandLogo}>OB</Text>
+            <Text style={styles.brandLogo}>ЦР</Text>
           </View>
           <View style={styles.brandMeta}>
-            <Text style={styles.brandTitle}>OBSIDIAN</Text>
-            <Text style={styles.brandSubtitle}>Premium Automotive Maintenance</Text>
+            <Text style={styles.brandTitle} numberOfLines={1}>ЦЕНТР РАДИУС</Text>
+            <Text style={styles.brandSubtitle} numberOfLines={1}>Профессиональный автосервис</Text>
           </View>
           <AppButton
-            label="Exit"
+            label="Выход"
             variant="ghost"
             onPress={() => {
               fireHaptic("selection");
@@ -904,7 +924,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
               }}
               style={({ pressed }) => [styles.socialIcon, pressed && styles.pressedSurface]}
             >
-              <Text style={styles.socialIconLabel}>{item.label}</Text>
+              <Text style={styles.socialIconLabel} numberOfLines={1} adjustsFontSizeToFit>{item.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -918,7 +938,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 void ensureBranchesLoaded().then(() => goToScreen("booking", { haptic: null }));
               }}
             >
-              <Text style={styles.actionTileLabel}>Записаться</Text>
+              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>Записаться</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
@@ -927,7 +947,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 void ensureVisitsLoaded().then(() => goToScreen("visits", { haptic: null }));
               }}
             >
-              <Text style={styles.actionTileLabel}>История посещений</Text>
+              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>История посещений</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
@@ -936,7 +956,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 void ensureBonusHistoryLoaded().then(() => goToScreen("bonus-history", { haptic: null }));
               }}
             >
-              <Text style={styles.actionTileLabel}>История начислений</Text>
+              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>История начислений</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
@@ -945,7 +965,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                 void ensureBonusHistoryLoaded().then(() => goToScreen("cashback", { haptic: null }));
               }}
             >
-              <Text style={styles.actionTileLabel}>Система кешбека</Text>
+              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>Система кешбека</Text>
             </Pressable>
           </View>
         </GlassCard>
@@ -953,8 +973,8 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         <GlassCard elevated animated style={styles.heroCard}>
           <View style={styles.heroFrame}>
             <View style={styles.heroOverlay}>
-              <Text style={styles.heroTitle}>PERFORMANCE</Text>
-              <Text style={styles.heroSubtitle}>Ultimate Garage Management</Text>
+              <Text style={styles.heroTitle} numberOfLines={1} adjustsFontSizeToFit>ЦЕНТР РАДИУС</Text>
+              <Text style={styles.heroSubtitle} numberOfLines={1} adjustsFontSizeToFit>ПРЕМИУМ СЕРВИС</Text>
             </View>
             <Image source={HERO_IMAGE} resizeMode="cover" style={styles.heroImage} />
             <View pointerEvents="none" style={styles.heroGlassGlow} />
@@ -981,8 +1001,8 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             <Text style={styles.bonusCaption}>бонусов</Text>
           </View>
           <View style={styles.bonusMeta}>
-            <Text style={styles.userName}>{clientName}</Text>
-            <Text style={styles.userEmail}>{me?.email ?? ""}</Text>
+            <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">{clientName}</Text>
+            <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">{me?.email ?? ""}</Text>
           </View>
         </GlassCard>
       </>
@@ -1514,10 +1534,10 @@ const styles = StyleSheet.create({
     letterSpacing: -1
   },
   brandTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "900",
     color: mobileTokens.color.textPrimary,
-    letterSpacing: 2
+    letterSpacing: 1
   },
   brandSubtitle: {
     marginTop: 2,
@@ -1546,8 +1566,9 @@ const styles = StyleSheet.create({
   },
   socialIconLabel: {
     color: mobileTokens.color.textPrimary,
-    fontSize: 14,
-    fontWeight: "900"
+    fontSize: 11,
+    fontWeight: "900",
+    textTransform: "uppercase"
   },
   pressedSurface: {
     transform: [{ scale: 0.972 }],
@@ -1581,12 +1602,12 @@ const styles = StyleSheet.create({
   },
   actionTileLabel: {
     textAlign: "center",
-    fontSize: 15,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 16,
     fontWeight: "900",
     color: mobileTokens.color.textPrimary,
     textTransform: "uppercase",
-    letterSpacing: 1
+    letterSpacing: 0.5
   },
   heroCard: {
     overflow: "hidden",
@@ -1641,10 +1662,10 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(7, 10, 13, 0.38)"
   },
   heroTitle: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: "900",
     color: mobileTokens.color.textPrimary,
-    letterSpacing: 4
+    letterSpacing: 2
   },
   heroSubtitle: {
     fontSize: 13,
