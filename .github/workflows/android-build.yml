@@ -14,6 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Strip local JVM path for CI
+        run: |
+          # Это нужно, чтобы локальный путь к Java из gradle.properties не ломал облачную сборку
+          find . -name "gradle.properties" -exec sed -i '/org.gradle.java.home/d' {} +
+
       - name: Detect Android project layout
         id: detect
         shell: bash
