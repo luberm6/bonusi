@@ -1598,9 +1598,11 @@ const styles = StyleSheet.create({
     width: "48%",
     minHeight: 104,
     borderRadius: mobileTokens.radius[28],
-    backgroundColor: "rgba(23, 31, 47, 0.55)",
+    backgroundColor: "rgba(10, 12, 16, 0.65)",
     borderWidth: 1,
     borderColor: mobileTokens.color.borderEmphasis,
+    borderTopWidth: 1.5,
+    borderTopColor: mobileTokens.color.rimLight,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
@@ -1621,11 +1623,13 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     overflow: "hidden",
-    backgroundColor: "rgba(15, 23, 42, 0.3)",
+    backgroundColor: "rgba(10, 12, 16, 0.35)",
     borderRadius: mobileTokens.radius[32],
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    shadowOpacity: 0.15
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderTopWidth: 2,
+    borderTopColor: mobileTokens.color.rimLight,
+    ...mobileTokens.shadow.glass
   },
   heroFrame: {
     position: "relative",
@@ -1684,14 +1688,16 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.primary,
     marginTop: 2,
     textTransform: "uppercase",
-    letterSpacing: 3
+    letterSpacing: 4
   },
   chatCta: {
     minHeight: 128,
     borderRadius: mobileTokens.radius[32],
-    backgroundColor: "rgba(23, 31, 47, 0.92)",
+    backgroundColor: "rgba(10, 12, 16, 0.95)",
     borderWidth: 1.5,
-    borderColor: "rgba(0, 229, 255, 0.25)",
+    borderColor: "rgba(0, 229, 255, 0.35)",
+    borderTopWidth: 2.5,
+    borderTopColor: "rgba(0, 229, 255, 0.6)",
     justifyContent: "center",
     paddingHorizontal: 32,
     ...mobileTokens.shadow.neon
@@ -1719,10 +1725,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 24,
-    backgroundColor: "rgba(23, 31, 47, 0.72)",
+    backgroundColor: "rgba(10, 12, 16, 0.8)",
     borderRadius: mobileTokens.radius[32],
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderEmphasis,
+    borderColor: "rgba(255, 179, 0, 0.25)",
+    borderTopWidth: 2,
+    borderTopColor: "rgba(255, 255, 255, 0.25)",
     ...mobileTokens.shadow.gold
   },
   bonusCircle: {
