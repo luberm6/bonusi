@@ -1338,6 +1338,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         
         <ScrollView
           style={styles.pageScroll}
+          contentContainerStyle={{ paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
           decelerationRate="normal"
           bounces
@@ -1359,7 +1360,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
                   }
             ]}
           >
-            <MotionScreen motionKey={screen} direction={transitionDirection}>
+            <View style={{ flex: 1 }}>
               {screen === "home" && renderHome()}
               {screen === "visits" && renderVisits()}
               {screen === "visit-details" && renderVisitDetails()}
@@ -1367,7 +1368,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
               {screen === "cashback" && renderCashback()}
               {screen === "booking" && renderBooking()}
               {screen === "chat" && renderChat()}
-            </MotionScreen>
+            </View>
           </Animated.View>
         </ScrollView>
 
@@ -1434,21 +1435,22 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   gaugeContainer: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 12,
-    borderColor: "rgba(255,255,255,0.03)",
+    width: "100%",
+    height: 220,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.2)"
+    backgroundColor: "rgba(0,0,0,0.3)",
+    overflow: "hidden"
   },
   gaugeImage: {
     position: "absolute",
     width: "100%",
     height: "100%",
-    borderRadius: 100,
-    opacity: 0.6
+    borderRadius: 20,
+    opacity: 0.5
   },
   bonusValue: {
     fontSize: 48,
