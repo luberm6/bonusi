@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -641,26 +641,27 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
   const [weather, setWeather] = useState<{ temp: number; icon: string } | null>(null);
 
-  useEffect(() => {
-    async function fetchWeather() {
-      try {
-        const res = await fetch(
-          "https://api.open-meteo.com/v1/forecast?latitude=59.9386&longitude=30.3141&current_weather=true"
-        );
-        const data = await res.json();
-        const temp = Math.round(data.current_weather.temperature);
-        const code = data.current_weather.weathercode;
-        let emoji = "☀️";
-        if (code >= 1 && code <= 3) emoji = "⛅";
-        if (code >= 45) emoji = "☁️";
-        if (code >= 51) emoji = "🌧️";
-        setWeather({ temp, icon: emoji });
-      } catch (e) {
-        console.log("Weather fetch failed", e);
-      }
+  const fetchWeather = useCallback(async () => {
+    try {
+      const res = await fetch(
+        "https://api.open-meteo.com/v1/forecast?latitude=59.9386&longitude=30.3141&current_weather=true"
+      );
+      const data = await res.json();
+      const temp = Math.round(data.current_weather.temperature);
+      const code = data.current_weather.weathercode;
+      let emoji = "☀️";
+      if (code >= 1 && code <= 3) emoji = "⛅";
+      if (code >= 45) emoji = "☁️";
+      if (code >= 51) emoji = "🌧️";
+      setWeather({ temp, icon: emoji });
+    } catch (e) {
+      console.log("Weather fetch failed", e);
     }
-    void fetchWeather();
   }, []);
+
+  useEffect(() => {
+    void fetchWeather();
+  }, [fetchWeather]);
 
   function goToScreen(next: ScreenKey, options?: { haptic?: HapticIntent | null }) {
     if (options?.haptic !== null) {
@@ -1306,7 +1307,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   return (
     <View style={styles.screenWrap}>
       {/* Fixed Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top, height: 60 + insets.top }]}>
         <Pressable onPress={() => fireHaptic("selection")} style={({ pressed }) => [pressed && styles.pressedSurface]}>
           <Text style={{ fontSize: 24, color: "rgba(255,255,255,0.4)" }}>☰</Text>
         </Pressable>
