@@ -24,6 +24,7 @@ import { fireHaptic, type HapticIntent } from "../../../shared/native/haptics";
 import { safeOpenExternalUrl } from "../../../shared/native/open-url";
 import { AppButton } from "../../../shared/ui/AppButton";
 import { GlassCard } from "../../../shared/ui/GlassCard";
+import { updateService } from "../../../shared/services/UpdateService";
 
 type ClientHomeProps = {
   session: AuthSession;
@@ -999,6 +1000,15 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <View style={styles.bonusCircle}>
             <Text style={styles.bonusValue}>{bonusBalance}</Text>
             <Text style={styles.bonusCaption}>бонусов</Text>
+            <Pressable 
+              style={styles.updateBadge} 
+              onPress={() => {
+                fireHaptic("selection");
+                void updateService.checkUpdate();
+              }}
+            >
+              <Text style={styles.updateBadgeText}>обновить</Text>
+            </Pressable>
           </View>
           <View style={styles.bonusMeta}>
             <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">{clientName}</Text>
@@ -1588,13 +1598,13 @@ const styles = StyleSheet.create({
     width: "48%",
     minHeight: 104,
     borderRadius: mobileTokens.radius[28],
-    backgroundColor: "rgba(23, 31, 47, 0.45)",
-    borderWidth: 1.2,
-    borderColor: "rgba(0, 229, 255, 0.12)",
+    backgroundColor: "rgba(23, 31, 47, 0.55)",
+    borderWidth: 1,
+    borderColor: mobileTokens.color.borderEmphasis,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
-    ...mobileTokens.shadow.glass
+    ...mobileTokens.shadow.neon
   },
   pressedTile: {
     transform: [{ scale: 0.962 }],
@@ -1665,7 +1675,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "900",
     color: mobileTokens.color.textPrimary,
-    letterSpacing: 2
+    letterSpacing: 2,
+    ...mobileTokens.shadow.neon
   },
   heroSubtitle: {
     fontSize: 13,
@@ -1708,10 +1719,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 24,
-    backgroundColor: "rgba(23, 31, 47, 0.65)",
+    backgroundColor: "rgba(23, 31, 47, 0.72)",
     borderRadius: mobileTokens.radius[32],
     borderWidth: 1,
-    borderColor: "rgba(255, 179, 0, 0.15)",
+    borderColor: mobileTokens.color.borderEmphasis,
     ...mobileTokens.shadow.gold
   },
   bonusCircle: {
@@ -1733,11 +1744,29 @@ const styles = StyleSheet.create({
   },
   bonusCaption: {
     marginTop: 2,
-    fontSize: 15,
+    fontSize: 11,
     fontWeight: "900",
-    color: mobileTokens.color.textSecondary,
+    color: mobileTokens.color.primary,
     textTransform: "uppercase",
-    letterSpacing: 1
+    letterSpacing: 1,
+    opacity: 0.8
+  },
+  updateBadge: {
+    position: "absolute",
+    bottom: -10,
+    backgroundColor: "rgba(0, 229, 255, 0.15)",
+    borderWidth: 1,
+    borderColor: mobileTokens.color.borderEmphasis,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 8
+  },
+  updateBadgeText: {
+    fontSize: 9,
+    fontWeight: "900",
+    color: mobileTokens.color.textPrimary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5
   },
   bonusMeta: {
     flex: 1,

@@ -9,9 +9,10 @@ export const mobileTokens = {
     warning: "#FFAB00",
     error: "#FF3D00",
     borderSoft: "rgba(255, 255, 255, 0.15)",
-    glass: "rgba(20, 25, 30, 0.6)",
-    glassStrong: "rgba(20, 25, 30, 0.85)",
-    overlay: "rgba(0, 0, 0, 0.75)"
+    glass: "rgba(20, 25, 30, 0.42)",
+    glassStrong: "rgba(20, 25, 30, 0.72)",
+    overlay: "rgba(0, 0, 0, 0.82)",
+    borderEmphasis: "rgba(0, 229, 255, 0.35)"
   },
   spacing: {
     4: 4,
@@ -42,17 +43,17 @@ export const mobileTokens = {
   shadow: {
     glass: {
       shadowColor: "#00E5FF", // Cyan glow
-      shadowOpacity: 0.25,
-      shadowRadius: 32,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 12
+      shadowOpacity: 0.35,
+      shadowRadius: 42,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 16
     },
     neon: {
       shadowColor: "#00E5FF",
-      shadowOpacity: 0.4,
-      shadowRadius: 16,
+      shadowOpacity: 0.55,
+      shadowRadius: 24,
       shadowOffset: { width: 0, height: 0 },
-      elevation: 15
+      elevation: 20
     },
     gold: {
       shadowColor: "#FFB300",
