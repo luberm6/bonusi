@@ -1395,139 +1395,6 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: mobileTokens.color.background
-  },
-  content: {
-    padding: mobileTokens.spacing[18],
-    gap: mobileTokens.spacing[16]
-  },
-  skeletonWrap: {
-    gap: mobileTokens.spacing[16]
-  },
-  skeletonBlock: {
-    overflow: "hidden",
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: mobileTokens.color.glass
-  },
-  skeletonShimmer: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    width: 96,
-    backgroundColor: mobileTokens.color.glass
-  },
-  brandSkeletonLogo: {
-    width: 74,
-    height: 58,
-    borderRadius: mobileTokens.radius.card
-  },
-  skeletonTitleLine: {
-    height: 20,
-    width: "74%",
-    borderRadius: mobileTokens.radius.button
-  },
-  skeletonSubtitleLine: {
-    height: 14,
-    width: "92%",
-    borderRadius: mobileTokens.radius.button,
-    marginTop: 8
-  },
-  contactSkeleton: {
-    width: 54,
-    height: 54,
-    borderRadius: mobileTokens.radius.card
-  },
-  actionSkeleton: {
-    width: "48%",
-    minHeight: 78,
-    borderRadius: mobileTokens.radius.card
-  },
-  heroSkeleton: {
-    width: "100%",
-    height: 220,
-    borderRadius: 0
-  },
-  chatSkeleton: {
-    minHeight: 114,
-    borderRadius: mobileTokens.radius.card
-  },
-  bonusCircleSkeleton: {
-    width: 132,
-    height: 132,
-    borderRadius: 66
-  },
-  bonusNameSkeleton: {
-    height: 30,
-    width: "92%",
-    borderRadius: mobileTokens.radius.button
-  },
-  bonusMailSkeleton: {
-    height: 16,
-    width: "70%",
-    borderRadius: mobileTokens.radius.button
-  },
-  messageSkeletonLeft: {
-    width: "58%",
-    height: 64,
-    borderRadius: mobileTokens.radius.card
-  },
-  messageSkeletonRight: {
-    width: "46%",
-    height: 54,
-    borderRadius: mobileTokens.radius.card,
-    alignSelf: "flex-end"
-  },
-  messageSkeletonLeftWide: {
-    width: "68%",
-    height: 62,
-    borderRadius: mobileTokens.radius.card
-  },
-  chatInputSkeleton: {
-    width: "100%",
-    minHeight: 92,
-    borderRadius: mobileTokens.radius.card
-  },
-  chatButtonSkeleton: {
-    width: "100%",
-    height: 52,
-    borderRadius: mobileTokens.radius.button
-  },
-  listTitleSkeleton: {
-    width: "54%",
-    height: 20,
-    borderRadius: mobileTokens.radius.button
-  },
-  listSubtitleSkeleton: {
-    width: "70%",
-    height: 14,
-    borderRadius: mobileTokens.radius.button,
-    marginTop: 8
-  },
-  listValueSkeleton: {
-    width: "38%",
-    height: 24,
-    borderRadius: mobileTokens.radius.button,
-    marginTop: 14
-  },
-  listHintSkeleton: {
-    width: "88%",
-    height: 14,
-    borderRadius: mobileTokens.radius.button,
-    marginTop: 10
-  },
-  loaderWrap: {
-    paddingVertical: 32,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10
-  },
-  loaderText: {
-    color: mobileTokens.color.textSecondary,
-    fontSize: 14
-  },
-const styles = StyleSheet.create({
   skeletonWrap: { gap: 16, padding: 20 },
   skeletonBlock: { backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" },
   skeletonShimmer: { height: "100%", width: 80, backgroundColor: "rgba(255,255,255,0.03)" },
@@ -1721,5 +1588,28 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     color: mobileTokens.color.textPrimary
-  }
+  },
+  root: {
+    flex: 1,
+    backgroundColor: mobileTokens.color.background
+  },
+  pressedSurface: {
+    opacity: 0.7
+  },
+  pressedTile: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }]
+  },
+  toast: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    zIndex: 1000
+  },
+  toastSuccess: { backgroundColor: mobileTokens.color.success },
+  toastError: { backgroundColor: mobileTokens.color.error },
+  toastText: { color: "#FFF", fontWeight: "700" }
 });
