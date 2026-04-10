@@ -1,19 +1,19 @@
 export const mobileTokens = {
   color: {
-    primary: "#00E5FF", // Neon Cyan
-    primaryAlt: "#FFB300", // Warm Gold
-    background: "#070A0D", // Midnight Dark
-    textPrimary: "#F8FAFC", // Bright White
-    textSecondary: "#94A3B8", // Soft Muted Gray
+    primary: "#4ADBF1", // Obsidian Neon Cyan
+    primaryAlt: "#FFB300", // Gold
+    background: "#191A1F", // Deep Obsidian Dark
+    textPrimary: "#FFFFFF",
+    textSecondary: "#A0A0A0",
     success: "#00E676",
     warning: "#FFAB00",
     error: "#FF3D00",
-    borderSoft: "rgba(255, 255, 255, 0.15)",
-    glass: "rgba(10, 12, 16, 0.45)",
-    glassStrong: "rgba(10, 12, 16, 0.75)",
+    borderSoft: "rgba(255, 255, 255, 0.12)",
+    glass: "rgba(36, 37, 43, 0.45)",
+    glassStrong: "rgba(36, 37, 43, 0.75)",
     overlay: "rgba(0, 0, 0, 0.85)",
-    borderEmphasis: "rgba(0, 229, 255, 0.4)",
-    rimLight: "rgba(255, 255, 255, 0.35)"
+    borderEmphasis: "rgba(74, 219, 241, 0.35)",
+    rimLight: "rgba(255, 255, 255, 0.25)"
   },
   spacing: {
     4: 4,
@@ -28,9 +28,7 @@ export const mobileTokens = {
     12: 12,
     16: 16,
     20: 20,
-    24: 24,
-    28: 28,
-    32: 32,
+    card: 16,
     round: 999
   },
   typography: {
@@ -43,18 +41,18 @@ export const mobileTokens = {
   },
   shadow: {
     glass: {
-      shadowColor: "#00E5FF", // Cyan glow
-      shadowOpacity: 0.5,
-      shadowRadius: 48,
-      shadowOffset: { width: 0, height: 16 },
-      elevation: 20
+      shadowColor: "#4ADBF1", // Obsidian Cyan glow
+      shadowOpacity: 0.45,
+      shadowRadius: 32,
+      shadowOffset: { width: 0, height: 12 },
+      elevation: 16
     },
     neon: {
-      shadowColor: "#00E5FF",
-      shadowOpacity: 0.65,
-      shadowRadius: 32,
+      shadowColor: "#4ADBF1",
+      shadowOpacity: 0.6,
+      shadowRadius: 24,
       shadowOffset: { width: 0, height: 0 },
-      elevation: 24
+      elevation: 20
     },
     gold: {
       shadowColor: "#FFB300",

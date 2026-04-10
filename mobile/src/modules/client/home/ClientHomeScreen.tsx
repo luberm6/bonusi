@@ -1566,10 +1566,10 @@ const styles = StyleSheet.create({
   socialIcon: {
     width: 62,
     height: 62,
-    borderRadius: 31,
-    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    borderRadius: 16,
+    backgroundColor: "rgba(36, 37, 43, 0.6)",
     borderWidth: 1,
-    borderColor: "rgba(0, 229, 255, 0.3)",
+    borderColor: "rgba(74, 219, 241, 0.3)",
     alignItems: "center",
     justifyContent: "center",
     ...mobileTokens.shadow.glass
@@ -1597,8 +1597,8 @@ const styles = StyleSheet.create({
   actionTile: {
     width: "48%",
     minHeight: 104,
-    borderRadius: mobileTokens.radius[28],
-    backgroundColor: "rgba(10, 12, 16, 0.65)",
+    borderRadius: mobileTokens.radius.card,
+    backgroundColor: "rgba(36, 37, 43, 0.45)",
     borderWidth: 1,
     borderColor: mobileTokens.color.borderEmphasis,
     borderTopWidth: 1.5,
@@ -1623,8 +1623,8 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     overflow: "hidden",
-    backgroundColor: "rgba(10, 12, 16, 0.35)",
-    borderRadius: mobileTokens.radius[32],
+    backgroundColor: "rgba(36, 37, 43, 0.25)",
+    borderRadius: mobileTokens.radius.card,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.12)",
     borderTopWidth: 2,
@@ -1683,19 +1683,19 @@ const styles = StyleSheet.create({
     ...mobileTokens.shadow.neon
   },
   heroSubtitle: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "800",
     color: mobileTokens.color.primary,
-    marginTop: 2,
+    marginTop: 4,
     textTransform: "uppercase",
-    letterSpacing: 4
+    letterSpacing: 5
   },
   chatCta: {
     minHeight: 128,
-    borderRadius: mobileTokens.radius[32],
-    backgroundColor: "rgba(10, 12, 16, 0.95)",
+    borderRadius: mobileTokens.radius.card,
+    backgroundColor: "rgba(36, 37, 43, 0.95)",
     borderWidth: 1.5,
-    borderColor: "rgba(0, 229, 255, 0.35)",
+    borderColor: "rgba(74, 219, 241, 0.35)",
     borderTopWidth: 2.5,
     borderTopColor: "rgba(0, 229, 255, 0.6)",
     justifyContent: "center",
@@ -1725,8 +1725,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 24,
-    backgroundColor: "rgba(10, 12, 16, 0.8)",
-    borderRadius: mobileTokens.radius[32],
+    backgroundColor: "rgba(36, 37, 43, 0.75)",
+    borderRadius: mobileTokens.radius.card,
     borderWidth: 1,
     borderColor: "rgba(255, 179, 0, 0.25)",
     borderTopWidth: 2,
@@ -1737,9 +1737,9 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    borderWidth: 2,
-    borderColor: "rgba(255, 179, 0, 0.35)",
-    backgroundColor: "rgba(7, 10, 13, 0.55)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 179, 0, 0.4)",
+    backgroundColor: "rgba(10, 12, 16, 0.65)",
     alignItems: "center",
     justifyContent: "center",
     ...mobileTokens.shadow.gold
@@ -1781,12 +1781,12 @@ const styles = StyleSheet.create({
     gap: 4
   },
   userName: {
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 24,
+    lineHeight: 28,
     fontWeight: "900",
     color: mobileTokens.color.textPrimary,
     textTransform: "uppercase",
-    letterSpacing: 1
+    letterSpacing: 2
   },
   userEmail: {
     fontSize: 13,
