@@ -326,39 +326,30 @@ function SkeletonBlock(props: { style?: object }) {
 function HomeSkeleton() {
   return (
     <View style={styles.skeletonWrap}>
-      <GlassCard elevated animated style={styles.brandCard}>
-        <SkeletonBlock style={styles.brandSkeletonLogo} />
-        <View style={styles.brandMeta}>
-          <SkeletonBlock style={styles.skeletonTitleLine} />
-          <SkeletonBlock style={styles.skeletonSubtitleLine} />
-        </View>
-      </GlassCard>
-
-      <View style={styles.contactRow}>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <SkeletonBlock key={index} style={styles.contactSkeleton} />
-        ))}
+      {/* Welcome Skeleton */}
+      <View style={{ padding: 24 }}>
+        <SkeletonBlock style={{ width: 120, height: 10, borderRadius: 5, marginBottom: 8 }} />
+        <SkeletonBlock style={{ width: 200, height: 32, borderRadius: 8 }} />
       </View>
 
-      <GlassCard elevated animated style={styles.actionGridCard}>
-        <View style={styles.actionGrid}>
-          {Array.from({ length: 4 }).map((_, index) => (
-            <SkeletonBlock key={index} style={styles.actionSkeleton} />
-          ))}
-        </View>
-      </GlassCard>
-
-      <GlassCard elevated animated style={styles.heroCard}>
-        <SkeletonBlock style={styles.heroSkeleton} />
-      </GlassCard>
-
-      <SkeletonBlock style={styles.chatSkeleton} />
-
+      {/* Gauge Skeleton (Rectangular) */}
       <GlassCard elevated animated style={styles.bonusCard}>
-        <SkeletonBlock style={styles.bonusCircleSkeleton} />
-        <View style={styles.bonusMeta}>
-          <SkeletonBlock style={styles.bonusNameSkeleton} />
-          <SkeletonBlock style={styles.bonusMailSkeleton} />
+        <SkeletonBlock style={{ width: "100%", height: 180, borderRadius: 20 }} />
+      </GlassCard>
+
+      {/* Bento Grid Skeleton */}
+      <View style={styles.actionGrid}>
+        <SkeletonBlock style={[styles.actionTileBig, { height: 60 }]} />
+        <SkeletonBlock style={[styles.actionTile, { height: 80 }]} />
+        <SkeletonBlock style={[styles.actionTile, { height: 80 }]} />
+      </View>
+
+      {/* Status Card Skeleton */}
+      <GlassCard elevated animated style={styles.infoCard}>
+        <SkeletonBlock style={{ width: 42, height: 42, borderRadius: 21 }} />
+        <View style={{ marginLeft: 16, flex: 1 }}>
+          <SkeletonBlock style={{ width: "60%", height: 12, borderRadius: 6, marginBottom: 8 }} />
+          <SkeletonBlock style={{ width: "100%", height: 10, borderRadius: 5 }} />
         </View>
       </GlassCard>
     </View>
@@ -1307,7 +1298,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   return (
     <View style={styles.screenWrap}>
       {/* Fixed Header */}
-      <View style={[styles.header, { paddingTop: insets.top, height: 60 + insets.top }]}>
+      <View style={styles.header}>
         <Pressable onPress={() => fireHaptic("selection")} style={({ pressed }) => [pressed && styles.pressedSurface]}>
           <Text style={{ fontSize: 24, color: "rgba(255,255,255,0.4)" }}>☰</Text>
         </Pressable>
@@ -1328,7 +1319,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             style={[
               styles.toast,
               toast.type === "success" ? styles.toastSuccess : styles.toastError,
-              { top: insets.top + 8 },
+              { top: 20 },
               { opacity: toastOpacity, transform: [{ translateY: toastTranslateY }] }
             ]}
           >
