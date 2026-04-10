@@ -49,19 +49,24 @@ export function AppButton(props: Props) {
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 46,
-    borderRadius: mobileTokens.radius[12],
+    minHeight: 52,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: mobileTokens.spacing[16]
+    paddingHorizontal: mobileTokens.spacing[24]
   },
   primary: {
-    backgroundColor: mobileTokens.color.primary
+    backgroundColor: mobileTokens.color.secondary,
+    shadowColor: mobileTokens.color.secondary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4
   },
   secondary: {
-    backgroundColor: mobileTokens.color.glassStrong,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft
+    borderColor: "rgba(255, 255, 255, 0.05)"
   },
   ghost: {
     backgroundColor: "transparent"
@@ -71,19 +76,21 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: mobileTokens.typography.body,
-    fontWeight: "700"
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1
   },
   labelPrimary: {
-    color: "#070A0D" // Dark text on Cyan primary button for high contrast
+    color: "#000000"
   },
   labelSecondary: {
-    color: mobileTokens.color.textPrimary // Bright text on Glass/Dark secondary
+    color: mobileTokens.color.textPrimary
   },
   pressed: {
-    transform: [{ scale: 0.972 }],
-    opacity: 0.96
+    transform: [{ scale: 0.98 }],
+    opacity: 0.9
   },
   disabled: {
-    opacity: 0.45
+    opacity: 0.4
   }
 });

@@ -1,19 +1,20 @@
 export const mobileTokens = {
   color: {
-    primary: "#fdfcfe", // Pure Silver/White
+    primary: "#fdfcfe", // Pure Silver
     primaryAlt: "#FFFFFF",
-    background: "#000000", // Pure Obsidian
-    textPrimary: "#FFFFFF",
-    textSecondary: "#8e8e93",
+    secondary: "#a2e7ff", // Electric Blue
+    background: "#131313", // Obsidian Black
+    textPrimary: "#e2e2e2",
+    textSecondary: "#c4c7c8",
     success: "#32d74b",
     warning: "#ffd60a",
     error: "#ff453a",
     borderSoft: "rgba(255, 255, 255, 0.05)",
-    glass: "rgba(0, 0, 0, 0.7)",
-    glassStrong: "rgba(0, 0, 0, 0.9)",
-    overlay: "rgba(0, 0, 0, 0.95)",
-    borderEmphasis: "rgba(255, 255, 255, 0.15)",
-    rimLight: "rgba(255, 255, 255, 0.1)"
+    glass: "rgba(253, 252, 254, 0.05)",
+    glassStrong: "rgba(253, 252, 254, 0.12)",
+    overlay: "rgba(19, 19, 19, 0.95)",
+    borderEmphasis: "rgba(162, 231, 255, 0.2)",
+    rimLight: "rgba(255, 255, 255, 0.08)"
   },
   spacing: {
     4: 4,
@@ -48,8 +49,8 @@ export const mobileTokens = {
       elevation: 16
     },
     neon: {
-      shadowColor: "#FFFFFF",
-      shadowOpacity: 0.1,
+      shadowColor: "#a2e7ff",
+      shadowOpacity: 0.2,
       shadowRadius: 20,
       shadowOffset: { width: 0, height: 0 },
       elevation: 20
@@ -74,17 +75,19 @@ export const mobileTokens = {
 export const mobileTypography = {
   headingLg: {
     fontSize: mobileTokens.typography.titleLg,
-    fontWeight: "700" as const,
-    color: mobileTokens.color.textPrimary
+    fontWeight: "800" as const,
+    color: mobileTokens.color.textPrimary,
+    letterSpacing: -0.5
   },
   headingMd: {
     fontSize: mobileTokens.typography.titleMd,
     fontWeight: "700" as const,
-    color: mobileTokens.color.textPrimary
+    color: mobileTokens.color.textPrimary,
+    letterSpacing: -0.3
   },
   headingSm: {
     fontSize: mobileTokens.typography.titleSm,
-    fontWeight: "600" as const,
+    fontWeight: "700" as const,
     color: mobileTokens.color.textPrimary
   },
   body: {
@@ -98,6 +101,8 @@ export const mobileTypography = {
   },
   caption: {
     fontSize: mobileTokens.typography.caption,
-    color: mobileTokens.color.textSecondary
+    color: mobileTokens.color.textSecondary,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1
   }
 };

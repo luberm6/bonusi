@@ -30,6 +30,7 @@ export function GlassCard(props: Props) {
         props.style
       ]}
     >
+      <View style={styles.topGloss} />
       {props.children}
     </Animated.View>
   );
@@ -39,8 +40,17 @@ const styles = StyleSheet.create({
   base: {
     backgroundColor: mobileTokens.color.glass,
     borderRadius: mobileTokens.radius[20],
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: mobileTokens.color.borderSoft
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.03)",
+    overflow: "hidden"
+  },
+  topGloss: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.12)"
   },
   elevated: {
     ...mobileTokens.shadow.glass

@@ -639,6 +639,29 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     setToast({ type, message });
   }
 
+  const [weather, setWeather] = useState<{ temp: number; icon: string } | null>(null);
+
+  useEffect(() => {
+    async function fetchWeather() {
+      try {
+        const res = await fetch(
+          "https://api.open-meteo.com/v1/forecast?latitude=59.9386&longitude=30.3141&current_weather=true"
+        );
+        const data = await res.json();
+        const temp = Math.round(data.current_weather.temperature);
+        const code = data.current_weather.weathercode;
+        let emoji = "☀️";
+        if (code >= 1 && code <= 3) emoji = "⛅";
+        if (code >= 45) emoji = "☁️";
+        if (code >= 51) emoji = "🌧️";
+        setWeather({ temp, icon: emoji });
+      } catch (e) {
+        console.log("Weather fetch failed", e);
+      }
+    }
+    void fetchWeather();
+  }, []);
+
   function goToScreen(next: ScreenKey, options?: { haptic?: HapticIntent | null }) {
     if (options?.haptic !== null) {
       fireHaptic(options?.haptic ?? "selection");
@@ -894,128 +917,82 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     }
 
     return (
-      <>
-        <GlassCard elevated animated style={styles.brandCard}>
-          <View style={styles.brandBadge}>
-            <Text style={styles.brandLogo}>ЦР</Text>
-          </View>
-          <View style={styles.brandMeta}>
-            <Text style={styles.brandTitle} numberOfLines={1}>ЦЕНТР РАДИУС</Text>
-            <Text style={styles.brandSubtitle} numberOfLines={1}>Профессиональный автосервис</Text>
-          </View>
-          <AppButton
-            label="Выход"
-            variant="ghost"
-            onPress={() => {
-              fireHaptic("selection");
-              props.onLogout();
-            }}
-            style={styles.logoutButton}
-            haptic="selection"
-          />
-        </GlassCard>
-
-        <View style={styles.socialDock}>
-          {CONTACT_LINKS.map((item) => (
-            <Pressable
-              key={item.key}
-              onPress={() => {
-                fireHaptic("selection");
-                openLink(item.url);
-              }}
-              style={({ pressed }) => [styles.socialIcon, pressed && styles.pressedSurface]}
-            >
-              <Text style={styles.socialIconLabel} numberOfLines={1} adjustsFontSizeToFit>{item.label}</Text>
-            </Pressable>
-          ))}
+      <View style={{ flex: 1 }}>
+        {/* Welcome Section */}
+        <View style={styles.brandCard}>
+          <Text style={styles.brandTitle}>С ВОЗВРАЩЕНИЕМ</Text>
+          <Text style={styles.welcomeText}>{clientName || "Анастасия"}</Text>
         </View>
 
-        <GlassCard elevated animated style={styles.actionGridCard}>
-          <View style={styles.actionGrid}>
-            <Pressable
-              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => {
-                fireHaptic("impactLight");
-                void ensureBranchesLoaded().then(() => goToScreen("booking", { haptic: null }));
-              }}
-            >
-              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>Записаться</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => {
-                fireHaptic("impactLight");
-                void ensureVisitsLoaded().then(() => goToScreen("visits", { haptic: null }));
-              }}
-            >
-              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>История посещений</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => {
-                fireHaptic("impactLight");
-                void ensureBonusHistoryLoaded().then(() => goToScreen("bonus-history", { haptic: null }));
-              }}
-            >
-              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>История начислений</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-              onPress={() => {
-                fireHaptic("impactLight");
-                void ensureBonusHistoryLoaded().then(() => goToScreen("cashback", { haptic: null }));
-              }}
-            >
-              <Text style={styles.actionTileLabel} numberOfLines={2} adjustsFontSizeToFit>Система кешбека</Text>
-            </Pressable>
-          </View>
-        </GlassCard>
-
-        <GlassCard elevated animated style={styles.heroCard}>
-          <View style={styles.heroFrame}>
-            <View style={styles.heroOverlay}>
-              <Text style={styles.heroTitle} numberOfLines={1} adjustsFontSizeToFit>ЦЕНТР РАДИУС</Text>
-              <Text style={styles.heroSubtitle} numberOfLines={1} adjustsFontSizeToFit>ПРЕМИУМ СЕРВИС</Text>
-            </View>
-            <Image source={HERO_IMAGE} resizeMode="cover" style={styles.heroImage} />
-            <View pointerEvents="none" style={styles.heroGlassGlow} />
-            <View pointerEvents="none" style={styles.heroTopFade} />
-            <View pointerEvents="none" style={styles.heroBottomShade} />
-          </View>
-        </GlassCard>
-
-        <Pressable
-          style={({ pressed }) => [styles.chatCta, pressed && styles.pressedCta]}
-          onPress={() => {
-            fireHaptic("impactMedium");
-            void ensureChatLoaded();
-            goToScreen("chat", { haptic: null });
-          }}
-        >
-          <Text style={styles.chatCtaLabel}>ЧАТ</Text>
-          <Text style={styles.chatCtaHint}>Связаться с администратором</Text>
-        </Pressable>
-
+        {/* Loyalty Gauge */}
         <GlassCard elevated animated style={styles.bonusCard}>
-          <View style={styles.bonusCircle}>
+          <View style={styles.gaugeContainer}>
+            <Image 
+              source={{ uri: "https://lh3.googleusercontent.com/aida/ADBb0uj9KA2KJkFr7_GHIUDLSf7LCkcuhE4l92aj31aYoNABVzY2Kx4lrZzucyt25yLXdVFBmeLUo8kSGKdujQGdOkJx1ApQuXaHDMXpSCYzXA2ghcJ4TYQOdRkuUtaoS8xrw9G6LJkQMiTI2Kzdre5Wf4pVtht1-ecpx3C1aHe-GMNlpEDMP_rOJ3gvUDNDA-PAX2ZXkDvw5fQUJCuFdQxYvAREhqGGqUiTbY9aeiE4da0C-NnyshpF8Tl8z_TqRvg8qELAqKYvsGbUMjs" }} 
+              style={styles.gaugeImage}
+            />
             <Text style={styles.bonusValue}>{bonusBalance}</Text>
-            <Text style={styles.bonusCaption}>бонусов</Text>
-            <Pressable 
-              style={styles.updateBadge} 
-              onPress={() => {
-                fireHaptic("selection");
-                void updateService.checkUpdate();
-              }}
-            >
-              <Text style={styles.updateBadgeText}>обновить</Text>
-            </Pressable>
-          </View>
-          <View style={styles.bonusMeta}>
-            <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">{clientName}</Text>
-            <Text style={styles.userEmail} numberOfLines={1} ellipsizeMode="tail">{me?.email ?? ""}</Text>
+            <Text style={styles.bonusCaption}>Бонусных баллов</Text>
           </View>
         </GlassCard>
-      </>
+
+        {/* Bento Grid */}
+        <View style={styles.actionGrid}>
+          <Pressable
+            style={({ pressed }) => [styles.actionTileBig, pressed && styles.pressedTile]}
+            onPress={() => {
+              fireHaptic("impactLight");
+              void ensureBranchesLoaded().then(() => goToScreen("booking", { haptic: null }));
+            }}
+          >
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.1)", alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ fontSize: 20 }}>🛠️</Text>
+            </View>
+            <Text style={styles.actionTileLabelDark}>Запись на ремонт</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
+            onPress={() => {
+              fireHaptic("impactLight");
+              void ensureVisitsLoaded().then(() => goToScreen("visits", { haptic: null }));
+            }}
+          >
+            <Text style={{ fontSize: 24 }}>📅</Text>
+            <View>
+              <Text style={styles.actionTileLabel}>История визитов</Text>
+              <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>12 ВЫПОЛНЕНО</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
+            onPress={() => {
+              fireHaptic("impactLight");
+              void ensureBonusHistoryLoaded().then(() => goToScreen("cashback", { haptic: null }));
+            }}
+          >
+            <Text style={{ fontSize: 24 }}>💳</Text>
+            <View>
+              <Text style={styles.actionTileLabel}>Кэшбэк система</Text>
+              <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>СТАВКА 5%</Text>
+            </View>
+          </Pressable>
+        </View>
+
+        {/* Status Card */}
+        <View style={styles.infoCard}>
+          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ fontSize: 18 }}>🚗</Text>
+          </View>
+          <View style={{ marginLeft: 16 }}>
+            <Text style={styles.infoTitle}>Следующее ТО</Text>
+            <Text style={styles.infoSubtitle}>Запланировано на 24 октября 2024</Text>
+          </View>
+        </View>
+
+        <View style={{ height: 120 }} />
+      </View>
     );
   }
 
@@ -1327,59 +1304,93 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      {toast ? (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.toast,
-            toast.type === "success" ? styles.toastSuccess : styles.toastError,
-            { top: insets.top + 8 },
-            { opacity: toastOpacity, transform: [{ translateY: toastTranslateY }] }
-          ]}
-        >
-          <Text style={styles.toastText}>{toast.message}</Text>
-        </Animated.View>
-      ) : null}
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        decelerationRate="normal"
-        bounces
-        alwaysBounceVertical
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+    <View style={styles.screenWrap}>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <Pressable onPress={() => fireHaptic("selection")} style={({ pressed }) => [pressed && styles.pressedSurface]}>
+          <Text style={{ fontSize: 24, color: "rgba(255,255,255,0.4)" }}>☰</Text>
+        </Pressable>
+        <Text style={styles.headerTitle}>OBSIDIAN</Text>
+        <View style={styles.weatherWidget}>
+          <Text style={{ fontSize: 14 }}>{weather?.icon || "☀️"}</Text>
+          <Text style={styles.weatherText}>СПБ {weather ? `${weather.temp}°C` : "+15°C"}</Text>
+        </View>
+      </View>
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <Animated.View
-          {...(screen === "home" ? {} : swipeBackResponder.panHandlers)}
-          style={[
-            screen === "home"
-              ? null
-              : {
-                  transform: [{ translateX: swipeBackTranslateX }],
-                  opacity: swipeBackTranslateX.interpolate({
-                    inputRange: [0, screenWidth],
-                    outputRange: [1, 0.92],
-                    extrapolate: "clamp"
-                  })
-                }
-          ]}
+        {toast ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.toast,
+              toast.type === "success" ? styles.toastSuccess : styles.toastError,
+              { top: insets.top + 8 },
+              { opacity: toastOpacity, transform: [{ translateY: toastTranslateY }] }
+            ]}
+          >
+            <Text style={styles.toastText}>{toast.message}</Text>
+          </Animated.View>
+        ) : null}
+        
+        <ScrollView
+          style={styles.pageScroll}
+          showsVerticalScrollIndicator={false}
+          decelerationRate="normal"
+          bounces
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
         >
-          <MotionScreen motionKey={screen} direction={transitionDirection}>
-            {screen === "home" && renderHome()}
-            {screen === "visits" && renderVisits()}
-            {screen === "visit-details" && renderVisitDetails()}
-            {screen === "bonus-history" && renderBonusHistory()}
-            {screen === "cashback" && renderCashback()}
-            {screen === "booking" && renderBooking()}
-            {screen === "chat" && renderChat()}
-          </MotionScreen>
-        </Animated.View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <Animated.View
+            {...(screen === "home" ? {} : swipeBackResponder.panHandlers)}
+            style={[
+              screen === "home"
+                ? null
+                : {
+                    transform: [{ translateX: swipeBackTranslateX }],
+                    opacity: swipeBackTranslateX.interpolate({
+                      inputRange: [0, screenWidth],
+                      outputRange: [1, 0.92],
+                      extrapolate: "clamp"
+                    })
+                  }
+            ]}
+          >
+            <MotionScreen motionKey={screen} direction={transitionDirection}>
+              {screen === "home" && renderHome()}
+              {screen === "visits" && renderVisits()}
+              {screen === "visit-details" && renderVisitDetails()}
+              {screen === "bonus-history" && renderBonusHistory()}
+              {screen === "cashback" && renderCashback()}
+              {screen === "booking" && renderBooking()}
+              {screen === "chat" && renderChat()}
+            </MotionScreen>
+          </Animated.View>
+        </ScrollView>
+
+        {/* Bottom Navigation */}
+        <View style={styles.navBar}>
+          <Pressable onPress={() => goToScreen("home")} style={styles.navItem}>
+            <Text style={{ fontSize: 22, color: screen === "home" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🏠</Text>
+            <Text style={[styles.navLabel, screen === "home" && styles.navLabelActive]}>Главная</Text>
+          </Pressable>
+          <Pressable onPress={() => goToScreen("visits")} style={styles.navItem}>
+            <Text style={{ fontSize: 22, color: screen === "visits" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>📋</Text>
+            <Text style={[styles.navLabel, screen === "visits" && styles.navLabelActive]}>История</Text>
+          </Pressable>
+          <Pressable onPress={() => goToScreen("booking")} style={styles.navItem}>
+            <Text style={{ fontSize: 22, color: screen === "booking" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🔧</Text>
+            <Text style={[styles.navLabel, screen === "booking" && styles.navLabelActive]}>Сервис</Text>
+          </Pressable>
+          <Pressable onPress={() => goToScreen("chat")} style={styles.navItem}>
+            <Text style={{ fontSize: 22, color: screen === "chat" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>👤</Text>
+            <Text style={[styles.navLabel, screen === "chat" && styles.navLabelActive]}>Профиль</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -1516,647 +1527,199 @@ const styles = StyleSheet.create({
     color: mobileTokens.color.textSecondary,
     fontSize: 14
   },
+const styles = StyleSheet.create({
+  skeletonWrap: { gap: 16, padding: 20 },
+  skeletonBlock: { backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 8, overflow: "hidden" },
+  skeletonShimmer: { height: "100%", width: 80, backgroundColor: "rgba(255,255,255,0.03)" },
+  loaderWrap: { padding: 40, alignItems: "center", gap: 12 },
+  loaderText: { color: mobileTokens.color.textSecondary, fontSize: 13, fontWeight: "600" },
+
+  // Brand & Welcome
   brandCard: {
-    padding: mobileTokens.spacing[18],
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    backgroundColor: "rgba(23, 31, 47, 0.45)",
-    borderRadius: mobileTokens.radius[32],
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)"
-  },
-  brandBadge: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(23, 31, 47, 0.9)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1.5,
-    borderColor: mobileTokens.color.primary,
-    ...mobileTokens.shadow.neon
-  },
-  brandLogo: {
-    fontSize: 32,
-    fontWeight: "900",
-    color: mobileTokens.color.primary,
-    letterSpacing: -1
+    padding: 24,
+    backgroundColor: "transparent",
+    borderWidth: 0
   },
   brandTitle: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: mobileTokens.color.textPrimary,
-    letterSpacing: 1
-  },
-  brandSubtitle: {
-    marginTop: 2,
-    fontSize: 12,
-    fontWeight: "600",
-    color: mobileTokens.color.primaryAlt,
-    textTransform: "uppercase",
-    letterSpacing: 1
-  },
-  socialDock: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: mobileTokens.spacing[16],
-    marginVertical: 10
-  },
-  socialIcon: {
-    width: 62,
-    height: 62,
-    borderRadius: 16,
-    backgroundColor: "rgba(36, 37, 43, 0.6)",
-    borderWidth: 1,
-    borderColor: "rgba(74, 219, 241, 0.3)",
-    alignItems: "center",
-    justifyContent: "center",
-    ...mobileTokens.shadow.glass
-  },
-  socialIconLabel: {
-    color: mobileTokens.color.textPrimary,
-    fontSize: 11,
-    fontWeight: "900",
-    textTransform: "uppercase"
-  },
-  pressedSurface: {
-    transform: [{ scale: 0.972 }],
-    opacity: 0.92
-  },
-  actionGridCard: {
-    padding: mobileTokens.spacing[14],
-    backgroundColor: mobileTokens.color.glass,
-    borderColor: mobileTokens.color.borderSoft
-  },
-  actionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10
-  },
-  actionTile: {
-    width: "48%",
-    minHeight: 104,
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: "rgba(36, 37, 43, 0.45)",
-    borderWidth: 1,
-    borderColor: mobileTokens.color.borderEmphasis,
-    borderTopWidth: 1.5,
-    borderTopColor: mobileTokens.color.rimLight,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    ...mobileTokens.shadow.neon
-  },
-  pressedTile: {
-    transform: [{ scale: 0.962 }],
-    opacity: 0.92
-  },
-  actionTileLabel: {
-    textAlign: "center",
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: "900",
-    color: mobileTokens.color.textPrimary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5
-  },
-  heroCard: {
-    overflow: "hidden",
-    backgroundColor: "rgba(36, 37, 43, 0.25)",
-    borderRadius: mobileTokens.radius.card,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    borderTopWidth: 2,
-    borderTopColor: mobileTokens.color.rimLight,
-    ...mobileTokens.shadow.glass
-  },
-  heroFrame: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: mobileTokens.radius[32]
-  },
-  heroImage: {
-    width: "100%",
-    height: 240
-  },
-  heroGlassGlow: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 96,
-    backgroundColor: mobileTokens.color.glass
-  },
-  heroTopFade: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 120,
-    backgroundColor: mobileTokens.color.glass
-  },
-  heroBottomShade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 92,
-    backgroundColor: "rgba(15,23,42,0.18)"
-  },
-  heroOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10,
-    padding: 32,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(7, 10, 13, 0.38)"
-  },
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: "900",
-    color: mobileTokens.color.textPrimary,
-    letterSpacing: 2,
-    ...mobileTokens.shadow.neon
-  },
-  heroSubtitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "800",
-    color: mobileTokens.color.primary,
-    marginTop: 4,
+    color: mobileTokens.color.textSecondary,
+    letterSpacing: 4,
     textTransform: "uppercase",
-    letterSpacing: 5
+    marginBottom: 8
   },
-  chatCta: {
-    minHeight: 128,
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: "rgba(36, 37, 43, 0.95)",
-    borderWidth: 1.5,
-    borderColor: "rgba(74, 219, 241, 0.35)",
-    borderTopWidth: 2.5,
-    borderTopColor: "rgba(0, 229, 255, 0.6)",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-    ...mobileTokens.shadow.neon
-  },
-  pressedCta: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.98
-  },
-  chatCtaLabel: {
-    color: mobileTokens.color.textPrimary,
-    fontSize: 48,
-    fontWeight: "900",
-    letterSpacing: 3
-  },
-  chatCtaHint: {
-    color: mobileTokens.color.primary,
-    fontSize: 12,
+  welcomeText: {
+    fontSize: 28,
     fontWeight: "800",
-    marginTop: -2,
-    textTransform: "uppercase",
-    letterSpacing: 1
+    color: mobileTokens.color.textPrimary,
+    letterSpacing: -0.5
   },
+
+  // Gauge area
   bonusCard: {
+    marginHorizontal: 16,
+    marginBottom: 24,
     padding: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 24,
-    backgroundColor: "rgba(36, 37, 43, 0.75)",
-    borderRadius: mobileTokens.radius.card,
-    borderWidth: 1,
-    borderColor: "rgba(255, 179, 0, 0.25)",
-    borderTopWidth: 2,
-    borderTopColor: "rgba(255, 255, 255, 0.25)",
-    ...mobileTokens.shadow.gold
-  },
-  bonusCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 1.5,
-    borderColor: "rgba(255, 179, 0, 0.4)",
-    backgroundColor: "rgba(10, 12, 16, 0.65)",
     alignItems: "center",
     justifyContent: "center",
-    ...mobileTokens.shadow.gold
+    minHeight: 280,
+    overflow: "hidden"
+  },
+  gaugeContainer: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 12,
+    borderColor: "rgba(255,255,255,0.03)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.2)"
+  },
+  gaugeImage: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: 100,
+    opacity: 0.6
   },
   bonusValue: {
     fontSize: 48,
-    lineHeight: 48,
-    fontWeight: "900",
-    color: mobileTokens.color.primaryAlt
+    fontWeight: "800",
+    color: mobileTokens.color.primary,
+    textShadowColor: "rgba(162, 231, 255, 0.4)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10
   },
   bonusCaption: {
-    marginTop: 2,
-    fontSize: 11,
-    fontWeight: "900",
-    color: mobileTokens.color.primary,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    opacity: 0.8
-  },
-  updateBadge: {
-    position: "absolute",
-    bottom: -10,
-    backgroundColor: "rgba(0, 229, 255, 0.15)",
-    borderWidth: 1,
-    borderColor: mobileTokens.color.borderEmphasis,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 8
-  },
-  updateBadgeText: {
-    fontSize: 9,
-    fontWeight: "900",
-    color: mobileTokens.color.textPrimary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5
-  },
-  bonusMeta: {
-    flex: 1,
-    gap: 4
-  },
-  userName: {
-    fontSize: 24,
-    lineHeight: 28,
-    fontWeight: "900",
-    color: mobileTokens.color.textPrimary,
-    textTransform: "uppercase",
-    letterSpacing: 2
-  },
-  userEmail: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "rgba(148, 163, 184, 0.6)"
-  },
-  screenHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 4
-  },
-  backButton: {
-    minWidth: 74
-  },
-  pressedNav: {
-    transform: [{ scale: 0.972 }],
-    opacity: 0.9
-  },
-  backButtonPlaceholder: {
-    width: 74
-  },
-  backButtonLabel: {
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: "700",
-    color: mobileTokens.color.primaryAlt
+    color: mobileTokens.color.secondary,
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    marginTop: 4
   },
-  screenTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: mobileTokens.color.textPrimary
-  },
-  emptyCard: {
-    padding: 22
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
-  },
-  emptyDescription: {
-    marginTop: 8,
-    fontSize: 15,
-    lineHeight: 22,
-    color: mobileTokens.color.textSecondary
-  },
-  listCard: {
-    padding: mobileTokens.spacing[18],
-    marginBottom: 12
-  },
-  visitCardPressable: {
-    marginBottom: 12
-  },
-  listTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
-  },
-  listSubtitle: {
-    marginTop: 6,
-    fontSize: 14,
-    color: mobileTokens.color.textSecondary
-  },
-  listValue: {
-    marginTop: 10,
-    fontSize: 24,
-    fontWeight: "800",
-    color: mobileTokens.color.primaryAlt
-  },
-  listHint: {
-    marginTop: 8,
-    fontSize: 14,
-    lineHeight: 20,
-    color: mobileTokens.color.textSecondary
-  },
-  visitServiceTags: {
+
+  // Action Grid
+  actionGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: mobileTokens.spacing[8],
-    marginTop: 14
-  },
-  visitServiceTag: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: mobileTokens.color.glass,
-    borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.18)"
-  },
-  visitServiceTagText: {
-    fontSize: 13,
-    color: mobileTokens.color.textPrimary,
-    fontWeight: "600"
-  },
-  visitSummaryRow: {
-    flexDirection: "row",
-    gap: mobileTokens.spacing[12],
-    marginTop: 16
-  },
-  visitMetric: {
-    flex: 1,
-    padding: mobileTokens.spacing[14],
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: mobileTokens.color.glass,
-    borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.14)"
-  },
-  visitMetricLabel: {
-    fontSize: 13,
-    color: mobileTokens.color.textSecondary
-  },
-  visitMetricValue: {
-    marginTop: 6,
-    fontSize: 20,
-    fontWeight: "800",
-    color: mobileTokens.color.textPrimary
-  },
-  detailHeroCard: {
-    padding: 20,
-    marginBottom: 12,
-    backgroundColor: mobileTokens.color.glass,
-    borderColor: mobileTokens.color.borderSoft
-  },
-  detailHeroTitle: {
-    fontSize: 24,
-    lineHeight: 30,
-    fontWeight: "800",
-    color: mobileTokens.color.textPrimary
-  },
-  detailHeroSubtitle: {
-    marginTop: 8,
-    fontSize: 16,
-    color: mobileTokens.color.textSecondary
-  },
-  detailHeroHint: {
-    marginTop: 8,
-    fontSize: 14,
-    lineHeight: 20,
-    color: mobileTokens.color.textSecondary
-  },
-  detailTotalsCard: {
-    padding: mobileTokens.spacing[16],
-    marginBottom: 12
-  },
-  detailTotalsGrid: {
-    gap: 10
-  },
-  detailTotalCell: {
-    padding: mobileTokens.spacing[14],
-    borderRadius: mobileTokens.radius.card,
-    backgroundColor: mobileTokens.color.glass,
-    borderWidth: 1,
-    borderColor: "rgba(148,163,184,0.14)"
-  },
-  detailTotalLabel: {
-    fontSize: 13,
-    color: mobileTokens.color.textSecondary
-  },
-  detailTotalValue: {
-    marginTop: 6,
-    fontSize: 20,
-    fontWeight: "800",
-    color: mobileTokens.color.primaryAlt
-  },
-  detailSectionTitle: {
-    marginTop: 4,
-    marginBottom: 12,
-    fontSize: 22,
-    fontWeight: "800",
-    color: mobileTokens.color.textPrimary
-  },
-  serviceCard: {
-    padding: mobileTokens.spacing[18],
-    marginBottom: 12
-  },
-  serviceTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
-  },
-  serviceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
-    gap: mobileTokens.spacing[12]
-  },
-  serviceLabel: {
-    fontSize: 14,
-    color: mobileTokens.color.textSecondary
-  },
-  serviceValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
-  },
-  cashbackCard: {
-    padding: 22,
-    gap: mobileTokens.spacing[12],
-    backgroundColor: mobileTokens.color.glass,
-    borderColor: mobileTokens.color.borderSoft
-  },
-  cashbackTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: mobileTokens.color.textPrimary
-  },
-  cashbackValue: {
-    fontSize: 42,
-    fontWeight: "900",
-    color: mobileTokens.color.primaryAlt
-  },
-  cashbackHint: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: mobileTokens.color.textSecondary
-  },
-  cardActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 16
-  },
-  cardButton: {
-    minWidth: 132
-  },
-  conversationTabs: {
-    gap: 10,
-    paddingBottom: 12
-  },
-  conversationTab: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: mobileTokens.color.glass,
+    gap: 12,
+    marginBottom: 24
+  },
+  actionTile: {
+    width: "48%",
+    aspectRatio: 1,
+    padding: 20,
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255,255,255,0.02)",
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft
+    borderColor: "rgba(255,255,255,0.05)"
   },
-  pressedTab: {
-    transform: [{ scale: 0.976 }]
-  },
-  conversationTabActive: {
-    backgroundColor: "#111827"
-  },
-  conversationTabLabel: {
-    color: mobileTokens.color.textPrimary,
-    fontWeight: "700"
-  },
-  conversationTabLabelActive: {
-    color: mobileTokens.color.textPrimary
-  },
-  chatPanel: {
-    padding: mobileTokens.spacing[16],
-    minHeight: 520,
-    backgroundColor: mobileTokens.color.glass,
-    borderColor: mobileTokens.color.borderSoft
-  },
-  messagesList: {
-    gap: 10,
-    paddingBottom: 18,
-    flexGrow: 1
-  },
-  messagesEmpty: {
-    flex: 1,
+  actionTileBig: {
+    width: "100%",
+    aspectRatio: 4,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-    paddingHorizontal: 24
+    paddingHorizontal: 24,
+    backgroundColor: mobileTokens.color.secondary,
+    borderRadius: 20
   },
-  messagesEmptyTitle: {
+  actionTileLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: mobileTokens.color.textPrimary
+  },
+  actionTileLabelDark: {
     fontSize: 15,
-    fontWeight: "600",
-    color: mobileTokens.color.textPrimary,
-    textAlign: "center"
+    fontWeight: "800",
+    color: "#000000",
+    marginLeft: 16
   },
-  messagesEmptyHint: {
-    marginTop: 6,
-    fontSize: 13,
-    color: mobileTokens.color.textSecondary,
-    textAlign: "center",
-    lineHeight: 18
-  },
-  messageBubble: {
-    maxWidth: "82%",
-    flexShrink: 1,
-    borderRadius: mobileTokens.radius.card,
-    paddingHorizontal: 14,
-    paddingVertical: 12
-  },
-  messageMine: {
-    alignSelf: "flex-end",
-    backgroundColor: mobileTokens.color.primaryAlt
-  },
-  messageOther: {
-    alignSelf: "flex-start",
-    backgroundColor: mobileTokens.color.glass,
+
+  // Info Card
+  infoCard: {
+    marginHorizontal: 16,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft
+    borderColor: "rgba(255,255,255,0.05)"
   },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 21,
-    flexShrink: 1,
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: "700",
     color: mobileTokens.color.textPrimary
   },
-  messageTextMine: {
-    color: mobileTokens.color.textPrimary
-  },
-  messageMeta: {
-    marginTop: 6,
-    fontSize: 11,
-    color: mobileTokens.color.textSecondary
-  },
-  messageMetaMine: {
-    color: mobileTokens.color.textSecondary
-  },
-  chatComposer: {
-    marginTop: 12,
-    gap: 10
-  },
-  typingFeel: {
-    marginTop: -2,
+  infoSubtitle: {
     fontSize: 12,
     color: mobileTokens.color.textSecondary,
-    letterSpacing: 0.2
+    marginTop: 2
   },
-  chatInput: {
-    minHeight: 92,
-    borderRadius: mobileTokens.radius.card,
-    borderWidth: 1,
-    borderColor: mobileTokens.color.borderSoft,
-    backgroundColor: mobileTokens.color.glass,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: mobileTokens.color.textPrimary,
-    textAlignVertical: "top",
-    shadowcolor: mobileTokens.color.textPrimary,
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2
-  },
-  sendButton: {
-    minHeight: 52
-  },
-  toast: {
+
+  // Navigation
+  navBar: {
     position: "absolute",
-    left: 18,
-    right: 18,
-    zIndex: 20,
-    borderRadius: mobileTokens.radius.button,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    shadowcolor: mobileTokens.color.textPrimary,
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 90,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingBottom: 24,
+    backgroundColor: "rgba(19, 19, 19, 0.9)",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.05)"
   },
-  toastSuccess: {
-    backgroundColor: "rgba(22, 163, 74, 0.94)"
+  navItem: {
+    alignItems: "center",
+    gap: 4
   },
-  toastError: {
-    backgroundColor: "rgba(220, 38, 38, 0.94)"
-  },
-  toastText: {
-    color: mobileTokens.color.textPrimary,
-    fontSize: 14,
+  navLabel: {
+    fontSize: 9,
     fontWeight: "700",
-    textAlign: "center"
+    color: mobileTokens.color.textSecondary,
+    textTransform: "uppercase",
+    letterSpacing: 1
+  },
+  navLabelActive: {
+    color: mobileTokens.color.secondary
+  },
+
+  // Common
+  screenWrap: { flex: 1, backgroundColor: mobileTokens.color.background },
+  pageScroll: { flex: 1, paddingTop: 40 },
+  header: {
+    height: 60,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.05)"
+  },
+  headerTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: mobileTokens.color.textPrimary,
+    letterSpacing: 4
+  },
+  weatherWidget: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 20
+  },
+  weatherText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: mobileTokens.color.textPrimary
   }
 });
