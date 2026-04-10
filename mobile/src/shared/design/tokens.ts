@@ -1,19 +1,19 @@
 export const mobileTokens = {
   color: {
-    primary: "#4ADBF1", // Obsidian Neon Cyan
-    primaryAlt: "#FFB300", // Gold
-    background: "#191A1F", // Deep Obsidian Dark
+    primary: "#fdfcfe", // Pure Silver/White
+    primaryAlt: "#FFFFFF",
+    background: "#000000", // Pure Obsidian
     textPrimary: "#FFFFFF",
-    textSecondary: "#A0A0A0",
-    success: "#00E676",
-    warning: "#FFAB00",
-    error: "#FF3D00",
-    borderSoft: "rgba(255, 255, 255, 0.12)",
-    glass: "rgba(36, 37, 43, 0.45)",
-    glassStrong: "rgba(36, 37, 43, 0.75)",
-    overlay: "rgba(0, 0, 0, 0.85)",
-    borderEmphasis: "rgba(74, 219, 241, 0.35)",
-    rimLight: "rgba(255, 255, 255, 0.25)"
+    textSecondary: "#8e8e93",
+    success: "#32d74b",
+    warning: "#ffd60a",
+    error: "#ff453a",
+    borderSoft: "rgba(255, 255, 255, 0.05)",
+    glass: "rgba(0, 0, 0, 0.7)",
+    glassStrong: "rgba(0, 0, 0, 0.9)",
+    overlay: "rgba(0, 0, 0, 0.95)",
+    borderEmphasis: "rgba(255, 255, 255, 0.15)",
+    rimLight: "rgba(255, 255, 255, 0.1)"
   },
   spacing: {
     4: 4,
@@ -24,48 +24,48 @@ export const mobileTokens = {
     32: 32
   },
   radius: {
-    8: 8,
-    12: 12,
-    16: 16,
-    20: 20,
+    8: 4,
+    12: 8,
+    16: 12,
+    20: 16,
     card: 16,
     round: 999
   },
   typography: {
-    titleLg: 24,
-    titleMd: 20,
-    titleSm: 17,
-    body: 15,
-    bodySm: 13,
-    caption: 12
+    titleLg: 32,
+    titleMd: 24,
+    titleSm: 18,
+    body: 16,
+    bodySm: 14,
+    caption: 11
   },
   shadow: {
     glass: {
-      shadowColor: "#4ADBF1", // Obsidian Cyan glow
-      shadowOpacity: 0.45,
-      shadowRadius: 32,
-      shadowOffset: { width: 0, height: 12 },
+      shadowColor: "#000000",
+      shadowOpacity: 0.6,
+      shadowRadius: 40,
+      shadowOffset: { width: 0, height: 20 },
       elevation: 16
     },
     neon: {
-      shadowColor: "#4ADBF1",
-      shadowOpacity: 0.6,
-      shadowRadius: 24,
+      shadowColor: "#FFFFFF",
+      shadowOpacity: 0.1,
+      shadowRadius: 20,
       shadowOffset: { width: 0, height: 0 },
       elevation: 20
     },
     gold: {
-      shadowColor: "#FFB300",
-      shadowOpacity: 0.5,
-      shadowRadius: 32,
-      shadowOffset: { width: 0, height: 12 },
+      shadowColor: "#FFFFFF",
+      shadowOpacity: 0.2,
+      shadowRadius: 30,
+      shadowOffset: { width: 0, height: 10 },
       elevation: 18
     },
     soft: {
       shadowColor: "#000000",
-      shadowOpacity: 0.4,
-      shadowRadius: 24,
-      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.8,
+      shadowRadius: 30,
+      shadowOffset: { width: 0, height: 15 },
       elevation: 6
     }
   }

@@ -1,16 +1,17 @@
 export const webTokens = {
   color: {
-    primary: "#00E5FF",
-    primaryAlt: "#FFB300",
-    background: "#070A0D",
-    surface: "rgba(20,25,30,0.6)",
-    surfaceStrong: "rgba(20,25,30,0.85)",
-    border: "rgba(255,255,255,0.15)",
-    textPrimary: "#F8FAFC",
-    textSecondary: "#94A3B8",
-    success: "#16A34A",
-    warning: "#F59E0B",
-    error: "#DC2626"
+    primary: "#fdfcfe", // Silver/White
+    primaryAlt: "#FFFFFF",
+    secondary: "#FFFFFF", // Monochrome accents
+    background: "#000000", // Pure Obsidian
+    surface: "#000000", // Pure Black
+    surfaceStrong: "#000000", // Pure Black
+    border: "rgba(255,255,255,0.05)", // Ultra-thin ghost border
+    textPrimary: "#FFFFFF",
+    textSecondary: "#8e8e93", // Muted Silver
+    success: "#FFFFFF",
+    warning: "#FFFFFF",
+    error: "#ff453a"
   },
   spacing: {
     4: 4,
@@ -21,25 +22,25 @@ export const webTokens = {
     32: 32
   },
   radius: {
-    8: 8,
-    12: 12,
-    16: 16,
-    20: 20
+    8: 4, // ROUND_FOUR refined
+    12: 8,
+    16: 12,
+    20: 16
   },
   typography: {
-    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    titleLg: 32,
-    titleMd: 24,
-    titleSm: 18,
-    body: 15,
-    caption: 12
+    fontFamily: "'Manrope', 'Inter', -apple-system, sans-serif",
+    titleLg: 48, // display-lg impact
+    titleMd: 32,
+    titleSm: 24,
+    body: 16,
+    caption: 11 // label-sm
   },
   shadow: {
-    glass: "0 12px 36px rgba(15,23,42,0.16)",
-    soft: "0 6px 18px rgba(15,23,42,0.08)"
+    glass: "0 20px 40px rgba(0,0,0,0.4), inset 0 0.5px 0 rgba(255,255,255,0.1)",
+    soft: "0 10px 30px rgba(0,0,0,0.3)"
   },
   blur: {
-    surface: "rgba(20,25,30,0.6)"
+    surface: "blur(20px)"
   }
 } as const;
 
