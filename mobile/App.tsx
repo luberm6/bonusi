@@ -7,7 +7,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <MobileShellBoundary>
-        <MobileRootShell />
+        <MobileRootShell key="root-app-shell" />
       </MobileShellBoundary>
     </SafeAreaProvider>
   );
