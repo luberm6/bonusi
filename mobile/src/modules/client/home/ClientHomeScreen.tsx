@@ -1368,7 +1368,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       <View style={[styles.navBar, { paddingBottom: Math.max(24, insets.bottom) }]}>
         <Pressable onPress={() => goToScreen("home")} style={styles.navItem} hitSlop={10}>
           <Text style={{ fontSize: 22, color: screen === "home" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🏠</Text>
-          <Text style={[styles.navLabel, screen === "home" && styles.navLabelActive]}>Главная</Text>
+          <Text style={[styles.navLabel, screen === "home" && styles.navLabelActive]}>Главная v141</Text>
         </Pressable>
         <Pressable onPress={() => goToScreen("visits")} style={styles.navItem} hitSlop={10}>
           <Text style={{ fontSize: 22, color: screen === "visits" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>📋</Text>

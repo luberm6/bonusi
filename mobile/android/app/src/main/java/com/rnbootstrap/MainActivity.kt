@@ -13,6 +13,7 @@ class MainActivity : ReactActivity() {
    * The splash is shown automatically via android:theme="@style/SplashTheme" in AndroidManifest.
    */
   override fun onCreate(savedInstanceState: Bundle?) {
+    android.util.Log.d("AutoService", "MainActivity.onCreate called - Shell Starting")
     setTheme(R.style.AppTheme)
     super.onCreate(savedInstanceState)
   }
