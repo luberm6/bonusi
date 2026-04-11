@@ -376,7 +376,7 @@ function ListSkeleton(props: { rows?: number }) {
   return (
     <View style={styles.skeletonWrap}>
       {Array.from({ length: props.rows ?? 3 }).map((_, index) => (
-        <GlassCard key={index} elevated style={styles.listCard}>
+        <GlassCard key={`skeleton-row-${index}`} elevated style={styles.listCard}>
           <SkeletonBlock style={styles.listTitleSkeleton} />
           <SkeletonBlock style={styles.listSubtitleSkeleton} />
           <SkeletonBlock style={styles.listValueSkeleton} />
@@ -1362,27 +1362,27 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             </MotionScreen>
           </Animated.View>
         </ScrollView>
-
-        {/* Bottom Navigation */}
-        <View style={[styles.navBar, { paddingBottom: Math.max(24, insets.bottom) }]}>
-          <Pressable onPress={() => goToScreen("home")} style={styles.navItem} hitSlop={10}>
-            <Text style={{ fontSize: 22, color: screen === "home" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🏠</Text>
-            <Text style={[styles.navLabel, screen === "home" && styles.navLabelActive]}>Главная</Text>
-          </Pressable>
-          <Pressable onPress={() => goToScreen("visits")} style={styles.navItem} hitSlop={10}>
-            <Text style={{ fontSize: 22, color: screen === "visits" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>📋</Text>
-            <Text style={[styles.navLabel, screen === "visits" && styles.navLabelActive]}>История</Text>
-          </Pressable>
-          <Pressable onPress={() => goToScreen("booking")} style={styles.navItem} hitSlop={10}>
-            <Text style={{ fontSize: 22, color: screen === "booking" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🔧</Text>
-            <Text style={[styles.navLabel, screen === "booking" && styles.navLabelActive]}>Сервис</Text>
-          </Pressable>
-          <Pressable onPress={() => goToScreen("chat")} style={styles.navItem} hitSlop={10}>
-            <Text style={{ fontSize: 22, color: screen === "chat" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>👤</Text>
-            <Text style={[styles.navLabel, screen === "chat" && styles.navLabelActive]}>Профиль</Text>
-          </Pressable>
-        </View>
       </KeyboardAvoidingView>
+
+      {/* Bottom Navigation - Fixed outside Keyboard avoiding view */}
+      <View style={[styles.navBar, { paddingBottom: Math.max(24, insets.bottom) }]}>
+        <Pressable onPress={() => goToScreen("home")} style={styles.navItem} hitSlop={10}>
+          <Text style={{ fontSize: 22, color: screen === "home" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🏠</Text>
+          <Text style={[styles.navLabel, screen === "home" && styles.navLabelActive]}>Главная</Text>
+        </Pressable>
+        <Pressable onPress={() => goToScreen("visits")} style={styles.navItem} hitSlop={10}>
+          <Text style={{ fontSize: 22, color: screen === "visits" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>📋</Text>
+          <Text style={[styles.navLabel, screen === "visits" && styles.navLabelActive]}>История</Text>
+        </Pressable>
+        <Pressable onPress={() => goToScreen("booking")} style={styles.navItem} hitSlop={10}>
+          <Text style={{ fontSize: 22, color: screen === "booking" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🔧</Text>
+          <Text style={[styles.navLabel, screen === "booking" && styles.navLabelActive]}>Сервис</Text>
+        </Pressable>
+        <Pressable onPress={() => goToScreen("chat")} style={styles.navItem} hitSlop={10}>
+          <Text style={{ fontSize: 22, color: screen === "chat" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>👤</Text>
+          <Text style={[styles.navLabel, screen === "chat" && styles.navLabelActive]}>Профиль</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
