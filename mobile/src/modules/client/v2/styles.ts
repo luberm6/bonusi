@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions } from "react-native";
-import { mobileTokens } from "../../../../shared/design/tokens";
+import { mobileTokens } from "../../../shared/design/tokens";
 
 export const styles = StyleSheet.create({
   skeletonWrap: { gap: 16, padding: 20 },
