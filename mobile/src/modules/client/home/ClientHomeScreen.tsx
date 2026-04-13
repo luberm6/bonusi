@@ -848,10 +848,24 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         props.accessToken
       );
       setMessages((prev) => {
-        if (prev && JSON.stringify(prev) === JSON.stringify(rows)) {
-          return prev;
+        if (!prev) return rows;
+        if (prev.length !== rows.length) return rows;
+        // Оптимизированная проверка (сравниваем первые и последние элементы вместо JSON.stringify)
+        if (rows.length > 0) {
+          const prevLast = prev[prev.length - 1];
+          const currLast = rows[rows.length - 1];
+          const prevFirst = prev[0];
+          const currFirst = rows[0];
+          
+          if (prevLast.id !== currLast.id || prevFirst.id !== currFirst.id) {
+            return rows;
+          }
+          // Если ID совпадают, возможно изменился статус прочтения или updatedAt у последнего
+          if (prevLast.readAt !== currLast.readAt) {
+             return rows;
+          }
         }
-        return rows;
+        return prev;
       });
     } catch (_) {
       // не показываем ошибку при фоновом опросе
