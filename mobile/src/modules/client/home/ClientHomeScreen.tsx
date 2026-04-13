@@ -847,7 +847,12 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         `/chat/conversations/${encodeURIComponent(conversationId)}/messages`,
         props.accessToken
       );
-      setMessages(rows);
+      setMessages((prev) => {
+        if (prev && JSON.stringify(prev) === JSON.stringify(rows)) {
+          return prev;
+        }
+        return rows;
+      });
     } catch (_) {
       // не показываем ошибку при фоновом опросе
     }
@@ -1311,7 +1316,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         {toast ? (
           <Animated.View
@@ -1365,7 +1370,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       </KeyboardAvoidingView>
 
       {/* Bottom Navigation - Fixed outside Keyboard avoiding view */}
-      <View style={[styles.navBar, { paddingBottom: Math.max(24, insets.bottom) }]}>
+      <View style={[styles.navBar, { paddingBottom: 12 }]}>
         <Pressable onPress={() => goToScreen("home")} style={styles.navItem} hitSlop={10}>
           <Text style={{ fontSize: 22, color: screen === "home" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🏠</Text>
           <Text style={[styles.navLabel, screen === "home" && styles.navLabelActive]}>Главная v141</Text>
