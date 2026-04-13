@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ClientHomeScreen } from "../../modules/client/home/ClientHomeScreen";
+import { ClientHomeV2 as ClientHomeScreen } from "../../modules/client/v2";
 import type { AuthSession } from "../navigation/role-navigation-resolver";
 import { mobileEnv } from "../../shared/config/mobile-env";
 import { fireHaptic } from "../../shared/native/haptics";
