@@ -928,81 +928,128 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     }
 
     return (
-      <View style={{ flex: 1 }}>
-        {/* Welcome Section */}
-        <View style={styles.brandCard}>
-          <Text style={styles.brandTitle}>С ВОЗВРАЩЕНИЕМ</Text>
-          <Text style={styles.welcomeText}>{clientName || "Анастасия"}</Text>
-        </View>
+      <View style={styles.pixelPerfectRoot}>
+        {/* Background Car Steering Wheel Image */}
+        <Image
+          source={require("./assets/client-hero-car.png")}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
 
-        {/* Loyalty Gauge */}
-        <GlassCard elevated animated style={styles.bonusCard}>
-          <View style={styles.gaugeContainer}>
-            <Image 
-              source={{ uri: "https://lh3.googleusercontent.com/aida/ADBb0uj9KA2KJkFr7_GHIUDLSf7LCkcuhE4l92aj31aYoNABVzY2Kx4lrZzucyt25yLXdVFBmeLUo8kSGKdujQGdOkJx1ApQuXaHDMXpSCYzXA2ghcJ4TYQOdRkuUtaoS8xrw9G6LJkQMiTI2Kzdre5Wf4pVtht1-ecpx3C1aHe-GMNlpEDMP_rOJ3gvUDNDA-PAX2ZXkDvw5fQUJCuFdQxYvAREhqGGqUiTbY9aeiE4da0C-NnyshpF8Tl8z_TqRvg8qELAqKYvsGbUMjs" }} 
-              style={styles.gaugeImage}
-            />
-            <Text style={styles.bonusValue}>{bonusBalance}</Text>
-            <Text style={styles.bonusCaption}>Бонусных баллов</Text>
+        {/* Outer content container */}
+        <View style={styles.pixelPerfectContainer}>
+          
+          {/* Header */}
+          <View style={styles.pixelPerfectHeader}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.neonArrowIcon}>↱</Text> 
+              <Text style={styles.headerSmallLightText}>MAP</Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={{ fontSize: 14 }}>{weather?.icon || "⛅"}</Text>
+              <Text style={styles.headerSmallLightText}>{weather ? `${weather.temp}°C` : "17°C"}</Text>
+              <Text style={[styles.headerSmallLightText, { marginLeft: 16 }]}>12:35 PM</Text>
+            </View>
           </View>
-        </GlassCard>
 
-        {/* Bento Grid */}
-        <View style={styles.actionGrid}>
+          {/* Top Dial / Turbine */}
+          <View style={styles.topDialContainer}>
+            <Text style={styles.zeroKmText}>0 KM</Text>
+            
+            <View style={styles.turbineWidget}>
+              {/* Outer Progress Arc */}
+              <View style={styles.turbineArcRight} />
+              <Text style={styles.distanceTextArc}>157{"\n"}KM</Text>
+              
+              {/* Central Disc */}
+              <View style={styles.turbineDisc}>
+                <View style={styles.turbineInnerPattern} />
+                <Text style={styles.mainScore}>{bonusBalance || 65}</Text>
+                <Text style={styles.scoreCaption}>бонусов</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* User & Car text */}
+          <View style={styles.userCarInfo}>
+            <Text style={styles.userNameText}>{clientName || "АНАСТАСИЯ МИЛАНОВА"}</Text>
+            <Text style={styles.carModelText}>БМВ M5</Text>
+          </View>
+
+          {/* Gauges */}
+          <View style={styles.gaugesContainer}>
+            {/* Left Temp Gauge */}
+            <View style={styles.gaugeBox}>
+              <View style={styles.gaugeHalfBox}>
+                <View style={[styles.gaugeArcFull, { borderColor: "#555" }]} />
+              </View>
+              {/* Needle */}
+              <View style={styles.redNeedleLeft} />
+            </View>
+
+            {/* Right Fuel Gauge */}
+            <View style={styles.gaugeBox}>
+              <View style={styles.gaugeHalfBox}>
+                <View style={[styles.gaugeArcFull, { borderColor: "#555" }]} />
+              </View>
+              <Text style={styles.fuelLabelE}>E</Text>
+              <Text style={styles.fuelLabelF}>F</Text>
+              {/* Needle */}
+              <View style={styles.redNeedleRight} />
+            </View>
+          </View>
+
+          {/* Left Menu Items OVERLAY */}
+          <View style={styles.leftMenuOverlay}>
+            <Pressable
+              onPress={() => {
+                fireHaptic("impactMedium");
+                void ensureBranchesLoaded().then(() => goToScreen("booking", { haptic: null }));
+              }}
+              style={({pressed}) => [styles.menuButton, pressed && styles.pressedMenuButton]}
+            >
+              <Text style={styles.menuButtonText}>ЗАПИСАТЬСЯ{"\n"}НА РЕМОНТ</Text>
+              <View style={styles.neonSeparator} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                fireHaptic("impactMedium");
+                void ensureVisitsLoaded().then(() => goToScreen("visits", { haptic: null }));
+              }}
+              style={({pressed}) => [styles.menuButton, pressed && styles.pressedMenuButton]}
+            >
+              <Text style={styles.menuButtonText}>ИСТОРИЯ{"\n"}РЕМОНТА</Text>
+              <View style={styles.neonSeparator} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                fireHaptic("impactMedium");
+                void ensureBonusHistoryLoaded().then(() => goToScreen("cashback", { haptic: null }));
+              }}
+              style={({pressed}) => [styles.menuButton, pressed && styles.pressedMenuButton]}
+            >
+              <Text style={styles.menuButtonText}>СИСТЕМА{"\n"}КЕШБЕКА</Text>
+              <View style={styles.neonSeparator} />
+            </Pressable>
+          </View>
+
+          {/* Bottom Right Chat Button */}
           <Pressable
-            style={({ pressed }) => [styles.actionTileBig, pressed && styles.pressedTile]}
+            style={({pressed}) => [styles.chatFloatingBtn, pressed && styles.pressedSurface]}
             onPress={() => {
-              fireHaptic("impactLight");
-              void ensureBranchesLoaded().then(() => goToScreen("booking", { haptic: null }));
+               fireHaptic("impactMedium");
+               void ensureChatLoaded();
+               goToScreen("chat", { haptic: null });
             }}
           >
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.1)", alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ fontSize: 20 }}>🛠️</Text>
-            </View>
-            <Text style={styles.actionTileLabelDark}>Запись на ремонт</Text>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-            onPress={() => {
-              fireHaptic("impactLight");
-              void ensureVisitsLoaded().then(() => goToScreen("visits", { haptic: null }));
-            }}
-          >
-            <Text style={{ fontSize: 24 }}>📅</Text>
-            <View>
-              <Text style={styles.actionTileLabel}>История визитов</Text>
-              <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>12 ВЫПОЛНЕНО</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [styles.actionTile, pressed && styles.pressedTile]}
-            onPress={() => {
-              fireHaptic("impactLight");
-              void ensureBonusHistoryLoaded().then(() => goToScreen("cashback", { haptic: null }));
-            }}
-          >
-            <Text style={{ fontSize: 24 }}>💳</Text>
-            <View>
-              <Text style={styles.actionTileLabel}>Кэшбэк система</Text>
-              <Text style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>СТАВКА 5%</Text>
+            <View style={styles.chatRingInner}>
+               <Text style={styles.chatText}>начать</Text>
+               <Text style={styles.chatText}>чат</Text>
             </View>
           </Pressable>
         </View>
-
-        {/* Status Card */}
-        <View style={styles.infoCard}>
-          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontSize: 18 }}>🚗</Text>
-          </View>
-          <View style={{ marginLeft: 16 }}>
-            <Text style={styles.infoTitle}>Следующее ТО</Text>
-            <Text style={styles.infoSubtitle}>Запланировано на 24 октября 2024</Text>
-          </View>
-        </View>
-
-        <View style={{ height: 120 }} />
       </View>
     );
   }
@@ -1317,6 +1364,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
   return (
     <View style={styles.screenWrap}>
       {/* Fixed Header */}
+      {screen !== "home" && (
       <View style={styles.header}>
         <Pressable onPress={() => fireHaptic("selection")} style={({ pressed }) => [pressed && styles.pressedSurface]}>
           <Text style={{ fontSize: 24, color: "rgba(255,255,255,0.4)" }}>☰</Text>
@@ -1327,6 +1375,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <Text style={styles.weatherText}>СПБ {weather ? `${weather.temp}°C` : "+15°C"}</Text>
         </View>
       </View>
+      )}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -1384,6 +1433,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       </KeyboardAvoidingView>
 
       {/* Bottom Navigation - Fixed outside Keyboard avoiding view */}
+      {screen !== "home" && (
       <View style={[styles.navBar, { paddingBottom: 12 }]}>
         <Pressable onPress={() => goToScreen("home")} style={styles.navItem} hitSlop={10}>
           <Text style={{ fontSize: 22, color: screen === "home" ? mobileTokens.color.secondary : "rgba(255,255,255,0.4)" }}>🏠</Text>
@@ -1402,6 +1452,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <Text style={[styles.navLabel, screen === "chat" && styles.navLabelActive]}>Профиль</Text>
         </Pressable>
       </View>
+      )}
     </View>
   );
 }
@@ -1602,6 +1653,242 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     color: mobileTokens.color.textPrimary
+  },
+  pixelPerfectRoot: {
+    flex: 1,
+    backgroundColor: "#000000",
+    width: "100%",
+    height: "100%"
+  },
+  backgroundImage: {
+    position: "absolute",
+    bottom: -150,
+    width: "100%",
+    height: "60%",
+    opacity: 0.6
+  },
+  pixelPerfectContainer: {
+    flex: 1,
+    paddingTop: 10,
+    zIndex: 10
+  },
+  pixelPerfectHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  headerSmallLightText: {
+    color: "#E0E0E0",
+    fontSize: 12,
+    fontWeight: "300",
+    letterSpacing: 1,
+    marginLeft: 6
+  },
+  neonArrowIcon: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "bold",
+    transform: [{ rotate: "-45deg" }, { scaleX: -1 }]
+  },
+  topDialContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    height: 250
+  },
+  zeroKmText: {
+    color: "#D0D0D0",
+    fontSize: 14,
+    fontWeight: "300",
+    letterSpacing: 2,
+    marginBottom: 10
+  },
+  turbineWidget: {
+    position: "relative",
+    width: 200,
+    height: 200,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  turbineArcRight: {
+    position: "absolute",
+    right: -20,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    borderLeftColor: "transparent",
+    borderTopColor: "transparent",
+    borderBottomColor: "transparent",
+    transform: [{ rotate: "-15deg" }]
+  },
+  distanceTextArc: {
+    position: "absolute",
+    right: -25,
+    top: 40,
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "300",
+    textAlign: "center"
+  },
+  turbineDisc: {
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: "#111",
+    borderWidth: 1,
+    borderColor: "#333",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+  },
+  turbineInnerPattern: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: 85,
+    borderWidth: 8,
+    borderColor: "#1E1E1E",
+    borderStyle: "dashed"
+  },
+  mainScore: {
+    color: "#FFFFFF",
+    fontSize: 54,
+    fontWeight: "300",
+    lineHeight: 60
+  },
+  scoreCaption: {
+    color: "#A0A0A0",
+    fontSize: 12,
+    fontWeight: "300"
+  },
+  userCarInfo: {
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20
+  },
+  userNameText: {
+    color: "#e2e2e2",
+    fontSize: 20,
+    fontWeight: "300",
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+    marginBottom: 4
+  },
+  carModelText: {
+    color: "#b0b0b0",
+    fontSize: 18,
+    fontWeight: "300",
+    textTransform: "uppercase",
+    letterSpacing: 2
+  },
+  gaugesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 10
+  },
+  gaugeBox: {
+    width: 80,
+    height: 60,
+    position: "relative",
+    alignItems: "center"
+  },
+  gaugeHalfBox: {
+     width: 70,
+     height: 35,
+     overflow: "hidden",
+     alignItems: "center"
+  },
+  gaugeArcFull: {
+     width: 70,
+     height: 70,
+     borderRadius: 35,
+     borderWidth: 2,
+     borderColor: "#666",
+     borderStyle: "dashed",
+     marginTop: 0
+  },
+  fuelLabelE: { position: "absolute", color: "#FFF", fontSize: 10, left: -5, top: 40 },
+  fuelLabelF: { position: "absolute", color: "#FFF", fontSize: 10, right: -5, top: 40, color: "#E30000" },
+  redNeedleLeft: {
+    position: "absolute",
+    bottom: 0,
+    width: 2,
+    height: 35,
+    backgroundColor: "#E30000",
+    left: 39,
+    transform: [{ rotate: "-60deg" }, { translateY: -15 }],
+  },
+  redNeedleRight: {
+    position: "absolute",
+    bottom: 0,
+    width: 2,
+    height: 35,
+    backgroundColor: "#E30000",
+    left: 39,
+    transform: [{ rotate: "50deg" }, { translateY: -15 }],
+  },
+  leftMenuOverlay: {
+    position: "absolute",
+    bottom: 80,
+    left: 0,
+    width: "50%",
+    paddingLeft: 20
+  },
+  menuButton: {
+    marginBottom: 20
+  },
+  pressedMenuButton: {
+    opacity: 0.7
+  },
+  menuButtonText: {
+    color: "#F0F0F0",
+    fontSize: 14,
+    fontWeight: "300",
+    letterSpacing: 1
+  },
+  neonSeparator: {
+    marginTop: 8,
+    height: 2,
+    backgroundColor: "#4DF0FF",
+    width: "120%", 
+    shadowColor: "#4DF0FF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 8
+  },
+  chatFloatingBtn: {
+    position: "absolute",
+    bottom: 60,
+    right: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#0a0a0a",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#4DF0FF",
+    shadowColor: "#ff8a5c",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
+    elevation: 10
+  },
+  chatRingInner: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  chatText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "300",
+    letterSpacing: 2
   },
   root: {
     flex: 1,
