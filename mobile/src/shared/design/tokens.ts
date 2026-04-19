@@ -1,21 +1,20 @@
 export const mobileTokens = {
   color: {
-    primary: "#FFFFFF",
-    primaryAlt: "#E6E6E6",
-    secondary: "#4DF0FF",
-    background: "#000000",
-    textPrimary: "#FFFFFF",
-    textSecondary: "#A3A3A3",
+    primary: "#fdfcfe", // Pure Silver
+    primaryAlt: "#FFFFFF",
+    secondary: "#a2e7ff", // Electric Blue
+    background: "#131313", // Obsidian Black
+    textPrimary: "#e2e2e2",
+    textSecondary: "#c4c7c8",
     success: "#32d74b",
     warning: "#ffd60a",
-    error: "#FF3333",
-    borderSoft: "rgba(255, 255, 255, 0.1)",
-    glass: "rgba(255, 255, 255, 0.03)",
-    glassStrong: "rgba(255, 255, 255, 0.08)",
-    overlay: "rgba(0, 0, 0, 0.85)",
-    borderEmphasis: "rgba(77, 240, 255, 0.3)",
-    rimLight: "rgba(255, 255, 255, 0.08)",
-    accentNeon: "#4DF0FF"
+    error: "#ff453a",
+    borderSoft: "rgba(255, 255, 255, 0.05)",
+    glass: "rgba(253, 252, 254, 0.05)",
+    glassStrong: "rgba(253, 252, 254, 0.12)",
+    overlay: "rgba(19, 19, 19, 0.95)",
+    borderEmphasis: "rgba(162, 231, 255, 0.2)",
+    rimLight: "rgba(255, 255, 255, 0.08)"
   },
   spacing: {
     4: 4,
@@ -34,7 +33,7 @@ export const mobileTokens = {
     round: 999
   },
   typography: {
-    titleLg: 48,
+    titleLg: 32,
     titleMd: 24,
     titleSm: 18,
     body: 16,
@@ -44,17 +43,17 @@ export const mobileTokens = {
   shadow: {
     glass: {
       shadowColor: "#000000",
-      shadowOpacity: 0.8,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 5
+      shadowOpacity: 0.6,
+      shadowRadius: 40,
+      shadowOffset: { width: 0, height: 20 },
+      elevation: 16
     },
     neon: {
-      shadowColor: "#4DF0FF",
-      shadowOpacity: 0.5,
-      shadowRadius: 15,
+      shadowColor: "#a2e7ff",
+      shadowOpacity: 0.2,
+      shadowRadius: 20,
       shadowOffset: { width: 0, height: 0 },
-      elevation: 10
+      elevation: 20
     },
     gold: {
       shadowColor: "#FFFFFF",
@@ -65,10 +64,10 @@ export const mobileTokens = {
     },
     soft: {
       shadowColor: "#000000",
-      shadowOpacity: 0.6,
-      shadowRadius: 15,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 4
+      shadowOpacity: 0.8,
+      shadowRadius: 30,
+      shadowOffset: { width: 0, height: 15 },
+      elevation: 6
     }
   }
 } as const;
@@ -76,41 +75,34 @@ export const mobileTokens = {
 export const mobileTypography = {
   headingLg: {
     fontSize: mobileTokens.typography.titleLg,
-    fontWeight: "300" as const,
+    fontWeight: "800" as const,
     color: mobileTokens.color.textPrimary,
-    letterSpacing: 1
+    letterSpacing: -0.5
   },
   headingMd: {
     fontSize: mobileTokens.typography.titleMd,
-    fontWeight: "300" as const,
+    fontWeight: "700" as const,
     color: mobileTokens.color.textPrimary,
-    textTransform: "uppercase" as const,
-    letterSpacing: 2
+    letterSpacing: -0.3
   },
   headingSm: {
     fontSize: mobileTokens.typography.titleSm,
-    fontWeight: "300" as const,
-    color: mobileTokens.color.textPrimary,
-    textTransform: "uppercase" as const,
-    letterSpacing: 1.5
+    fontWeight: "700" as const,
+    color: mobileTokens.color.textPrimary
   },
   body: {
     fontSize: mobileTokens.typography.body,
-    fontWeight: "300" as const,
-    color: mobileTokens.color.textPrimary,
-    letterSpacing: 0.5
+    fontWeight: "500" as const,
+    color: mobileTokens.color.textPrimary
   },
   bodySecondary: {
     fontSize: mobileTokens.typography.body,
-    fontWeight: "300" as const,
-    color: mobileTokens.color.textSecondary,
-    letterSpacing: 0.5
+    color: mobileTokens.color.textSecondary
   },
   caption: {
     fontSize: mobileTokens.typography.caption,
-    fontWeight: "300" as const,
     color: mobileTokens.color.textSecondary,
     textTransform: "uppercase" as const,
-    letterSpacing: 2
+    letterSpacing: 1
   }
 };
