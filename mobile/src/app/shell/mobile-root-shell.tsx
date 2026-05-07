@@ -209,6 +209,26 @@ export function MobileRootShell() {
     return () => clearInterval(interval);
   }, [session, accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // WEB PREVIEW: bypass auth — renders HomeTabScreen without a real session.
+  // API calls will fail silently (bonusBalance = 0, me = null), UI is fully functional.
+  // Remove this block once a proper web auth flow exists.
+  if (Platform.OS === 'web') {
+    const webPreviewSession: AuthSession = {
+      userId: 'web-preview',
+      role: 'client',
+      token: '',
+    };
+    return (
+      <SafeAreaView style={styles.root}>
+        <ClientHomeScreen
+          session={webPreviewSession}
+          accessToken=""
+          onLogout={() => {}}
+        />
+      </SafeAreaView>
+    );
+  }
+
   if (booting) {
     return <BootSplash />;
   }
