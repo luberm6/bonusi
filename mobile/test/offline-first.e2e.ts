@@ -189,7 +189,7 @@ async function run() {
   await sync.refreshReadCaches();
   const visitsAfterConflictSync = await store.getVisitsCache("client-1");
   const conflictVisit = visitsAfterConflictSync.find((v) => v.visitId === "v-conflict");
-  assert(conflictVisit, "conflict visit should stay in cache");
+  assert(Boolean(conflictVisit), "conflict visit should stay in cache");
   assert(
     (conflictVisit?.payload as { finalAmount?: number }).finalAmount === 999,
     "newer local/server-known visit snapshot should win over older incoming payload"

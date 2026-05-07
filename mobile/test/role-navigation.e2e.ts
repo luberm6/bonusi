@@ -43,8 +43,8 @@ async function run() {
   assert(shouldShowChatAttachButton() === false, "mobile attach button must be hidden when files are disabled");
   console.log("chat_attach_hidden_when_disabled=ok");
 
-  assert(mobileTokens.color.background === "#F8FAFC", "mobile background token mismatch");
-  assert(mobileTokens.radius[16] === 16, "radius token mismatch");
+  assert(String(mobileTokens.color.background) === "#131313", "mobile background token mismatch");
+  assert(Number(mobileTokens.radius[16]) === 12, "radius token mismatch");
   console.log("mobile_design_tokens=ok");
 }
 

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { DimensionValue } from "react-native";
 import type { BranchMapItem } from "../../../shared/types/map";
 import { mobileTokens, mobileTypography } from "../../../shared/design/tokens";
 import { ru } from "../../../shared/i18n/ru";
@@ -23,8 +24,8 @@ export function BranchMapPanel(props: Props) {
     const x = ((lng - bounds.minLng) / Math.max(bounds.maxLng - bounds.minLng, 0.000001)) * 100;
     const y = ((bounds.maxLat - lat) / Math.max(bounds.maxLat - bounds.minLat, 0.000001)) * 100;
     return {
-      left: `${clamp(x, 6, 94)}%`,
-      top: `${clamp(y, 10, 90)}%`
+      left: `${clamp(x, 6, 94)}%` as DimensionValue,
+      top: `${clamp(y, 10, 90)}%` as DimensionValue
     };
   };
 
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
     backgroundColor: "rgba(255,255,255,0.88)",
-    color: mobileTokens.color.text,
+    color: mobileTokens.color.textPrimary,
     overflow: "hidden"
   },
   editMarker: {

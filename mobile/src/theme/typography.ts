@@ -1,11 +1,6 @@
 import { Platform } from 'react-native';
 
-// Custom fonts (bare RN — link manually):
-// 1. Download from fonts.google.com: Orbitron (700, 900), Rajdhani (600, 700)
-// 2. Place .ttf in android/app/src/main/assets/fonts/
-// 3. iOS: add to Xcode project + Info.plist
-// File names must match exactly: Orbitron-Bold.ttf, Orbitron-Black.ttf,
-//   Rajdhani-SemiBold.ttf, Rajdhani-Bold.ttf
+// Bundled in assets/fonts and embedded by the expo-font config plugin.
 export const fonts = {
   orbitron700: 'Orbitron-Bold',
   orbitron900: 'Orbitron-Black',

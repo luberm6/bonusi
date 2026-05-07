@@ -79,7 +79,7 @@ async function run() {
   ]);
 
   const afterDelete = await store.getLocalMessageByClientMessageId("c1");
-  assert(afterDelete?.deletedAt, "server deletion should create tombstone");
+  assert(Boolean(afterDelete?.deletedAt), "server deletion should create tombstone");
   assert(afterDelete?.text === "", "deleted message should not keep visible text");
   console.log("message_delete_conflict_server_newer=ok");
 }

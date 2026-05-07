@@ -1,6 +1,7 @@
 import React from "react";
 import TestRenderer, { act } from "react-test-renderer";
 import { Text } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ClientHomeScreen } from "../src/modules/client/home/ClientHomeScreen";
 
 jest.mock("../src/shared/native/haptics", () => ({
@@ -39,6 +40,8 @@ function createFetchMock(responses: FetchResponseMap) {
 async function flush() {
   await act(async () => {
     await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await Promise.resolve();
   });
 }
 
@@ -56,12 +59,21 @@ function hasText(root: TestRenderer.ReactTestInstance, expected: string) {
     .some((node) => String(node.props.children ?? "").includes(expected));
 }
 
+function renderClientHome(props: React.ComponentProps<typeof ClientHomeScreen>) {
+  return TestRenderer.create(
+    <SafeAreaProvider>
+      <ClientHomeScreen {...props} />
+    </SafeAreaProvider>
+  );
+}
+
 describe("история посещений клиента", () => {
   const baseProps = {
     session: {
       userId: "client-1",
-      role: "client",
-      email: "client@example.com"
+      role: "client" as const,
+      email: "client@example.com",
+      token: "token"
     },
     accessToken: "token",
     onLogout: jest.fn()
@@ -125,11 +137,11 @@ describe("история посещений клиента", () => {
 
     let renderer!: TestRenderer.ReactTestRenderer;
     await act(async () => {
-      renderer = TestRenderer.create(<ClientHomeScreen {...baseProps} />);
+      renderer = renderClientHome(baseProps);
     });
     await flush();
 
-    const visitsButton = findPressableByLabel(renderer.root, "История посещений");
+    const visitsButton = findPressableByLabel(renderer.root, "История визитов");
     await act(async () => {
       visitsButton.props.onPress();
     });
@@ -165,11 +177,11 @@ describe("история посещений клиента", () => {
 
     let renderer!: TestRenderer.ReactTestRenderer;
     await act(async () => {
-      renderer = TestRenderer.create(<ClientHomeScreen {...baseProps} />);
+      renderer = renderClientHome(baseProps);
     });
     await flush();
 
-    const visitsButton = findPressableByLabel(renderer.root, "История посещений");
+    const visitsButton = findPressableByLabel(renderer.root, "История визитов");
     await act(async () => {
       visitsButton.props.onPress();
     });

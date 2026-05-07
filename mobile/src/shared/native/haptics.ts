@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import * as ReactNativeHapticFeedback from "react-native-haptic-feedback";
+import * as ExpoHaptics from "expo-haptics";
 
 export type HapticIntent =
   | "selection"
@@ -11,33 +11,36 @@ export type HapticIntent =
   | "notificationWarning"
   | "notificationError";
 
-const options = {
-  enableVibrateFallback: true,
-  ignoreAndroidSystemSettings: false
-} as const;
-
-function resolveTrigger():
-  | ((intent: HapticIntent, options: typeof options) => void)
-  | null {
-  const direct = (ReactNativeHapticFeedback as { trigger?: unknown }).trigger;
-  if (typeof direct === "function") {
-    return direct as (intent: HapticIntent, options: typeof options) => void;
-  }
-
-  const nested = (ReactNativeHapticFeedback as { default?: { trigger?: unknown } }).default?.trigger;
-  if (typeof nested === "function") {
-    return nested as (intent: HapticIntent, options: typeof options) => void;
-  }
-
-  return null;
-}
-
 export function fireHaptic(intent: HapticIntent): void {
   if (Platform.OS !== "ios" && Platform.OS !== "android") return;
-  const trigger = resolveTrigger();
-  if (!trigger) return;
+
   try {
-    trigger(intent, options);
+    switch (intent) {
+      case "selection":
+        void ExpoHaptics.selectionAsync();
+        break;
+      case "impactLight":
+        void ExpoHaptics.impactAsync(ExpoHaptics.ImpactFeedbackStyle.Light);
+        break;
+      case "impactMedium":
+        void ExpoHaptics.impactAsync(ExpoHaptics.ImpactFeedbackStyle.Medium);
+        break;
+      case "impactHeavy":
+        void ExpoHaptics.impactAsync(ExpoHaptics.ImpactFeedbackStyle.Heavy);
+        break;
+      case "soft":
+        void ExpoHaptics.impactAsync(ExpoHaptics.ImpactFeedbackStyle.Soft);
+        break;
+      case "notificationSuccess":
+        void ExpoHaptics.notificationAsync(ExpoHaptics.NotificationFeedbackType.Success);
+        break;
+      case "notificationWarning":
+        void ExpoHaptics.notificationAsync(ExpoHaptics.NotificationFeedbackType.Warning);
+        break;
+      case "notificationError":
+        void ExpoHaptics.notificationAsync(ExpoHaptics.NotificationFeedbackType.Error);
+        break;
+    }
   } catch {
     // Haptics should never block the primary user flow.
   }

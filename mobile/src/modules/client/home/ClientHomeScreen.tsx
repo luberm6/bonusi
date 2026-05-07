@@ -1540,6 +1540,397 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
 
+  // Secondary screens
+  screenHeader: {
+    minHeight: 56,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  backButton: {
+    minWidth: 72,
+    paddingVertical: 8,
+    paddingRight: 12
+  },
+  backButtonLabel: {
+    color: mobileTokens.color.secondary,
+    fontSize: 13,
+    fontWeight: "800"
+  },
+  pressedNav: {
+    opacity: 0.7
+  },
+  screenTitle: {
+    flex: 1,
+    textAlign: "center",
+    color: mobileTokens.color.textPrimary,
+    fontSize: 17,
+    fontWeight: "800"
+  },
+  backButtonPlaceholder: {
+    minWidth: 72
+  },
+  emptyCard: {
+    marginHorizontal: 16,
+    padding: 22,
+    gap: 8,
+    alignItems: "center"
+  },
+  emptyTitle: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 17,
+    fontWeight: "800",
+    textAlign: "center"
+  },
+  emptyDescription: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center"
+  },
+  listCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 18,
+    gap: 8
+  },
+  listTitle: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 16,
+    fontWeight: "800"
+  },
+  listSubtitle: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    lineHeight: 19
+  },
+  listValue: {
+    color: mobileTokens.color.secondary,
+    fontSize: 24,
+    fontWeight: "800"
+  },
+  listHint: {
+    color: "rgba(255,255,255,0.42)",
+    fontSize: 12,
+    lineHeight: 17
+  },
+  listTitleSkeleton: {
+    width: "55%",
+    height: 16,
+    borderRadius: 8
+  },
+  listSubtitleSkeleton: {
+    width: "78%",
+    height: 12,
+    borderRadius: 6
+  },
+  listValueSkeleton: {
+    width: "42%",
+    height: 20,
+    borderRadius: 10
+  },
+  listHintSkeleton: {
+    width: "88%",
+    height: 10,
+    borderRadius: 5
+  },
+  visitCardPressable: {
+    marginHorizontal: 0
+  },
+  visitServiceTags: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 4
+  },
+  visitServiceTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(162,231,255,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(162,231,255,0.16)"
+  },
+  visitServiceTagText: {
+    color: mobileTokens.color.secondary,
+    fontSize: 11,
+    fontWeight: "700"
+  },
+  visitSummaryRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 6
+  },
+  visitMetric: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.04)"
+  },
+  visitMetricLabel: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase"
+  },
+  visitMetricValue: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 15,
+    fontWeight: "800",
+    marginTop: 4
+  },
+  detailHeroCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    padding: 20,
+    gap: 6
+  },
+  detailHeroTitle: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 20,
+    fontWeight: "800"
+  },
+  detailHeroSubtitle: {
+    color: mobileTokens.color.secondary,
+    fontSize: 14,
+    fontWeight: "700"
+  },
+  detailHeroHint: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    lineHeight: 19
+  },
+  detailTotalsCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16
+  },
+  detailTotalsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  detailTotalCell: {
+    width: "47%",
+    minHeight: 74,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.04)"
+  },
+  detailTotalLabel: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 11,
+    lineHeight: 15
+  },
+  detailTotalValue: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 15,
+    fontWeight: "800",
+    marginTop: 6
+  },
+  detailSectionTitle: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+    color: mobileTokens.color.textPrimary,
+    fontSize: 16,
+    fontWeight: "800"
+  },
+  serviceCard: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    padding: 16,
+    gap: 8
+  },
+  serviceTitle: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 15,
+    fontWeight: "800"
+  },
+  serviceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 16
+  },
+  serviceLabel: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13
+  },
+  serviceValue: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 13,
+    fontWeight: "800"
+  },
+  cashbackCard: {
+    marginHorizontal: 16,
+    padding: 24,
+    gap: 10
+  },
+  cashbackTitle: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    textTransform: "uppercase"
+  },
+  cashbackValue: {
+    color: mobileTokens.color.secondary,
+    fontSize: 34,
+    fontWeight: "800"
+  },
+  cashbackHint: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    lineHeight: 20
+  },
+  cardActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8
+  },
+  cardButton: {
+    flexGrow: 1,
+    minWidth: 120
+  },
+  conversationTabs: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    gap: 8
+  },
+  conversationTab: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)"
+  },
+  conversationTabActive: {
+    backgroundColor: "rgba(162,231,255,0.14)",
+    borderColor: "rgba(162,231,255,0.24)"
+  },
+  conversationTabLabel: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  conversationTabLabelActive: {
+    color: mobileTokens.color.secondary
+  },
+  pressedTab: {
+    opacity: 0.75
+  },
+  chatPanel: {
+    marginHorizontal: 16,
+    padding: 14,
+    minHeight: 420
+  },
+  messagesList: {
+    flexGrow: 1,
+    gap: 10,
+    paddingBottom: 12
+  },
+  messagesEmpty: {
+    minHeight: 260,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6
+  },
+  messagesEmptyTitle: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 16,
+    fontWeight: "800"
+  },
+  messagesEmptyHint: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    textAlign: "center"
+  },
+  messageBubble: {
+    maxWidth: "82%",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 18
+  },
+  messageMine: {
+    alignSelf: "flex-end",
+    backgroundColor: "rgba(162,231,255,0.18)",
+    borderTopRightRadius: 6
+  },
+  messageOther: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderTopLeftRadius: 6
+  },
+  messageText: {
+    color: mobileTokens.color.textPrimary,
+    fontSize: 14,
+    lineHeight: 20
+  },
+  messageTextMine: {
+    color: mobileTokens.color.primaryAlt
+  },
+  messageMeta: {
+    color: "rgba(255,255,255,0.42)",
+    fontSize: 10,
+    marginTop: 4
+  },
+  messageMetaMine: {
+    textAlign: "right"
+  },
+  messageSkeletonLeft: {
+    width: "68%",
+    height: 52,
+    borderRadius: 18,
+    alignSelf: "flex-start"
+  },
+  messageSkeletonRight: {
+    width: "58%",
+    height: 52,
+    borderRadius: 18,
+    alignSelf: "flex-end"
+  },
+  messageSkeletonLeftWide: {
+    width: "76%",
+    height: 64,
+    borderRadius: 18,
+    alignSelf: "flex-start"
+  },
+  chatComposer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.06)"
+  },
+  chatInput: {
+    flex: 1,
+    minHeight: 44,
+    maxHeight: 120,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    color: mobileTokens.color.textPrimary,
+    fontSize: 14
+  },
+  sendButton: {
+    minWidth: 112
+  },
+  chatInputSkeleton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 16
+  },
+  chatButtonSkeleton: {
+    width: 112,
+    height: 44,
+    borderRadius: 16
+  },
+
   // Navigation
   navBar: {
     position: "absolute",

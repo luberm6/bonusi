@@ -1,6 +1,7 @@
 import React from "react";
 import { Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import { NavigationIndependentTree } from "@react-navigation/core";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,6 +31,7 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
+      id="ClientMainTabs"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -71,13 +73,15 @@ function MainTabs() {
 
 export function ClientNavigator() {
   return (
-    <NavigationContainer independent={true}>
-      <Stack.Navigator screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="VisitDetails" component={VisitDetailsScreen} />
-        <Stack.Screen name="BonusHistory" component={BonusHistoryScreen} />
-        <Stack.Screen name="Cashback" component={CashbackScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <NavigationIndependentTree>
+      <NavigationContainer>
+        <Stack.Navigator id="ClientRootStack" screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="VisitDetails" component={VisitDetailsScreen} />
+          <Stack.Screen name="BonusHistory" component={BonusHistoryScreen} />
+          <Stack.Screen name="Cashback" component={CashbackScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </NavigationIndependentTree>
   );
 }

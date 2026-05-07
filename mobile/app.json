@@ -1,4 +1,17 @@
 {
   "name": "AutoService",
-  "displayName": "AutoService"
+  "displayName": "AutoService",
+  "plugins": [
+    [
+      "expo-font",
+      {
+        "fonts": [
+          "./assets/fonts/Orbitron-Bold.ttf",
+          "./assets/fonts/Orbitron-Black.ttf",
+          "./assets/fonts/Rajdhani-SemiBold.ttf",
+          "./assets/fonts/Rajdhani-Bold.ttf"
+        ]
+      }
+    ]
+  ]
 }
