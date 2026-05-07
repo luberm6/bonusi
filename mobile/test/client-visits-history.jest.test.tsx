@@ -1,8 +1,113 @@
 import React from "react";
 import TestRenderer, { act } from "react-test-renderer";
-import { Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ClientHomeScreen } from "../src/modules/client/home/ClientHomeScreen";
+
+jest.mock("react-native", () => {
+  const React = require("react");
+
+  const createComponent =
+    (name: string) =>
+    ({ children, style, ...props }: { children?: React.ReactNode; style?: unknown }) =>
+      React.createElement(name, { ...props, style }, children);
+
+  const Pressable = ({ children, style, ...props }: { children?: React.ReactNode; style?: unknown }) =>
+    React.createElement(
+      "Pressable",
+      { ...props, style: typeof style === "function" ? style({ pressed: false }) : style },
+      children
+    );
+
+  const ScrollView = React.forwardRef(
+    ({ children, ...props }: { children?: React.ReactNode }, ref: React.Ref<unknown>) => {
+      React.useImperativeHandle(ref, () => ({
+        scrollToEnd: jest.fn()
+      }));
+      return React.createElement("ScrollView", props, children);
+    }
+  );
+
+  class AnimatedValue {
+    value: number;
+    constructor(initialValue: number) {
+      this.value = initialValue;
+    }
+    setValue(next: number) {
+      this.value = next;
+    }
+    interpolate() {
+      return this.value;
+    }
+  }
+
+  const animation = {
+    start: (callback?: () => void) => callback?.(),
+    stop: jest.fn()
+  };
+
+  return {
+    ActivityIndicator: createComponent("ActivityIndicator"),
+    BackHandler: {
+      addEventListener: jest.fn(() => ({ remove: jest.fn() }))
+    },
+    Dimensions: {
+      get: jest.fn(() => ({ width: 390, height: 844 }))
+    },
+    Easing: {
+      cubic: jest.fn(),
+      ease: jest.fn(),
+      in: jest.fn((value) => value),
+      inOut: jest.fn((value) => value),
+      out: jest.fn((value) => value)
+    },
+    Image: createComponent("Image"),
+    KeyboardAvoidingView: createComponent("KeyboardAvoidingView"),
+    PanResponder: {
+      create: jest.fn(() => ({ panHandlers: {} }))
+    },
+    Platform: {
+      OS: "ios",
+      select: (options: Record<string, unknown>) => options.ios ?? options.default
+    },
+    Pressable,
+    ScrollView,
+    StyleSheet: {
+      absoluteFillObject: {
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      },
+      create: <T extends object>(styles: T) => styles
+    },
+    Text: createComponent("Text"),
+    TextInput: createComponent("TextInput"),
+    TurboModuleRegistry: {
+      get: jest.fn(() => ({
+        getConstants: () => ({
+          initialWindowMetrics: {
+            frame: { x: 0, y: 0, width: 390, height: 844 },
+            insets: { top: 0, left: 0, right: 0, bottom: 0 }
+          }
+        })
+      })),
+      getEnforcing: jest.fn(() => ({
+        getConstants: () => ({})
+      }))
+    },
+    View: createComponent("View"),
+    Animated: {
+      Value: AnimatedValue,
+      View: createComponent("AnimatedView"),
+      loop: jest.fn(() => animation),
+      parallel: jest.fn(() => animation),
+      sequence: jest.fn(() => animation),
+      spring: jest.fn(() => animation),
+      timing: jest.fn(() => animation)
+    }
+  };
+});
 
 jest.mock("../src/shared/native/haptics", () => ({
   fireHaptic: jest.fn()
@@ -23,6 +128,13 @@ type FetchResponseMap = Record<string, unknown>;
 function createFetchMock(responses: FetchResponseMap) {
   return jest.fn(async (input: string) => {
     const normalized = String(input);
+    if (normalized.includes("api.open-meteo.com")) {
+      return new Response(JSON.stringify({ current_weather: { temperature: 15, weathercode: 1 } }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    }
+
     const entry = Object.entries(responses).find(([path]) => normalized.includes(path));
     if (!entry) {
       return new Response(JSON.stringify({ message: `unexpected url: ${normalized}` }), {
@@ -38,30 +150,55 @@ function createFetchMock(responses: FetchResponseMap) {
 }
 
 async function flush() {
-  await act(async () => {
-    await Promise.resolve();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await Promise.resolve();
-  });
+  for (let i = 0; i < 5; i += 1) {
+    await act(async () => {
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  }
 }
 
 function findPressableByLabel(root: TestRenderer.ReactTestInstance, label: string) {
-  return root.find((node) => {
+  const match = root.findAll((node) => {
     if (typeof node.props?.onPress !== "function") return false;
-    const texts = node.findAllByType(Text).map((child) => child.props.children).flat().join(" ");
+    const texts = collectNodeText(node);
     return texts.includes(label);
   });
+  if (match[0]) return match[0];
+
+  const visibleText = collectNodeText(root);
+  throw new Error(`Pressable with label "${label}" not found. Visible text: ${visibleText}`);
 }
 
 function hasText(root: TestRenderer.ReactTestInstance, expected: string) {
-  return root
-    .findAllByType(Text)
-    .some((node) => String(node.props.children ?? "").includes(expected));
+  return collectNodeText(root).includes(expected);
+}
+
+function collectNodeText(node: TestRenderer.ReactTestInstance): string {
+  return node.children.map(collectText).filter(Boolean).join(" ");
+}
+
+function collectText(value: TestRenderer.ReactTestInstance | unknown): string {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (!value) return "";
+  if (Array.isArray(value)) return value.map(collectText).filter(Boolean).join(" ");
+  if (typeof value === "object" && "children" in value && Array.isArray(value.children)) {
+    return value.children.map(collectText).filter(Boolean).join(" ");
+  }
+  if (React.isValidElement(value)) {
+    return collectText((value.props as { children?: unknown }).children);
+  }
+  return "";
 }
 
 function renderClientHome(props: React.ComponentProps<typeof ClientHomeScreen>) {
   return TestRenderer.create(
-    <SafeAreaProvider>
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 390, height: 844 },
+        insets: { top: 0, left: 0, right: 0, bottom: 0 }
+      }}
+    >
       <ClientHomeScreen {...props} />
     </SafeAreaProvider>
   );
@@ -80,7 +217,7 @@ describe("история посещений клиента", () => {
   };
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   test("показывает список посещений и открывает детали визита", async () => {
