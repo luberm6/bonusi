@@ -4,10 +4,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { mobileTokens } from "../../../shared/design/tokens";
+import { colors } from "../../../theme/colors";
 
-// Из-за того что файлы экранов еще не созданы в примере, 
-// мы импортируем заглушки или рендерим простые компоненты
 import { HomeTabScreen } from "./screens/HomeTabScreen";
 import { VisitsTabScreen } from "./screens/VisitsTabScreen";
 import { BookingTabScreen } from "./screens/BookingTabScreen";
@@ -23,40 +21,49 @@ const Stack = createNativeStackNavigator();
 function MainTabs() {
   const insets = useSafeAreaInsets();
   
+  const tabLabelStyle = {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase' as const,
+  };
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#131313",
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: "rgba(255, 255, 255, 0.05)",
-          height: Platform.OS === "ios" ? 90 : 70,
-          paddingBottom: Platform.OS === "ios" ? insets.bottom : 12,
+          borderTopColor: colors.border,
+          height: Platform.OS === "ios" ? 88 : 64,
+          paddingBottom: Platform.OS === "ios" ? insets.bottom : 8,
+          paddingTop: 8,
         },
-        tabBarActiveTintColor: mobileTokens.color.secondary,
-        tabBarInactiveTintColor: "rgba(255,255,255,0.4)",
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textDim,
+        tabBarLabelStyle: tabLabelStyle,
       }}
     >
-      <Tab.Screen 
-        name="HomeTab" 
-        component={HomeTabScreen} 
-        options={{ tabBarLabel: "Главная v2" }} 
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeTabScreen}
+        options={{ tabBarLabel: "DASHBOARD" }}
       />
-      <Tab.Screen 
-        name="VisitsTab" 
-        component={VisitsTabScreen} 
-        options={{ tabBarLabel: "История" }} 
+      <Tab.Screen
+        name="VisitsTab"
+        component={VisitsTabScreen}
+        options={{ tabBarLabel: "HISTORY" }}
       />
-      <Tab.Screen 
-        name="BookingTab" 
-        component={BookingTabScreen} 
-        options={{ tabBarLabel: "Сервис" }} 
+      <Tab.Screen
+        name="BookingTab"
+        component={BookingTabScreen}
+        options={{ tabBarLabel: "CONTACT" }}
       />
-      <Tab.Screen 
-        name="ChatTab" 
-        component={ChatTabScreen} 
-        options={{ tabBarLabel: "Профиль" }} 
+      <Tab.Screen
+        name="ChatTab"
+        component={ChatTabScreen}
+        options={{ tabBarLabel: "CHAT" }}
       />
     </Tab.Navigator>
   );
