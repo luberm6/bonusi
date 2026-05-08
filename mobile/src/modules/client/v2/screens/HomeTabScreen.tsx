@@ -66,11 +66,18 @@ export function HomeTabScreen({ navigation }: any) {
   return (
     <View style={s.root}>
 
-      {/* ── Полное фото авто (Bentley — нижняя часть) ── */}
+      {/* Фото авто — якорь снизу, пропорции сохранены.
+          Bentley руль внизу изображения всегда виден. */}
       <Image
         source={ASSETS.bgCar}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-        resizeMode="cover"
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: SW,
+          height: SW * (956 / 440),   // точные пропорции Figma-фрейма 440×956
+        }}
+        resizeMode="stretch"
       />
 
       {/* ── Сплошной чёрный фон для верхней зоны (гейдж) ── */}
