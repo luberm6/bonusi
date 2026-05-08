@@ -1,5 +1,6 @@
 pluginManagement {
     includeBuild("../node_modules/@react-native/gradle-plugin")
+    includeBuild("../node_modules/expo-modules-core/expo-module-gradle-plugin")
     repositories {
         google()
         mavenCentral()
