@@ -1,17 +1,28 @@
 {
-  "name": "AutoService",
-  "displayName": "AutoService",
-  "plugins": [
-    [
-      "expo-font",
-      {
-        "fonts": [
-          "./assets/fonts/Orbitron-Bold.ttf",
-          "./assets/fonts/Orbitron-Black.ttf",
-          "./assets/fonts/Rajdhani-SemiBold.ttf",
-          "./assets/fonts/Rajdhani-Bold.ttf"
-        ]
-      }
-    ]
-  ]
+  "expo": {
+    "name": "AutoService",
+    "slug": "autoservice",
+    "entryPoint": "./index.js",
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Orbitron-Bold.ttf",
+            "./assets/fonts/Orbitron-Black.ttf",
+            "./assets/fonts/Rajdhani-SemiBold.ttf",
+            "./assets/fonts/Rajdhani-Bold.ttf",
+            "./assets/fonts/Montserrat-Regular.ttf",
+            "./assets/fonts/Montserrat-Bold.ttf"
+          ]
+        }
+      ]
+    ],
+    "ios": {
+      "bundleIdentifier": "com.anonymous.autoservice"
+    },
+    "android": {
+      "package": "com.anonymous.autoservice"
+    }
+  }
 }

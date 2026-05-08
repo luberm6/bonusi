@@ -2,6 +2,7 @@
   "name": "autoservice-mobile",
   "version": "0.0.1",
   "private": true,
+  "main": "index.js",
   "scripts": {
     "android": "expo run:android",
     "apk:debug": "cd android && ./gradlew assembleDebug",
