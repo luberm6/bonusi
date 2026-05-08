@@ -197,16 +197,14 @@ export function HomeTabScreen({ navigation }: any) {
           ] as [string, () => void][]).map(([label, onPress]) => (
             <Pressable
               key={label}
-              style={({ pressed }) => [s.glowBtn, pressed && s.pressed]}
+              style={({ pressed }) => [s.underlineBtn, pressed && s.pressed]}
               onPress={onPress}
             >
-              <Image source={ASSETS.glowButton}
-                style={[StyleSheet.absoluteFillObject, { borderRadius: 14 }]}
-                resizeMode="stretch"
-              />
-              <Text style={{ color: '#fff', fontSize: sx(13), fontFamily: F, textAlign: 'center', lineHeight: 19 }}>
+              <Text style={{ color: '#fff', fontSize: sx(14), fontFamily: F, textAlign: 'left', lineHeight: 20 }}>
                 {label}
               </Text>
+              {/* Подчёркивание снизу как в Figma */}
+              <View style={s.underline} />
             </Pressable>
           ))}
         </View>
@@ -275,6 +273,16 @@ const s = StyleSheet.create({
     width: 124,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Кнопки как в Figma — только текст + подчёркивание снизу
+  underlineBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  underline: {
+    height: 1,
+    backgroundColor: 'rgba(0,188,212,0.7)',
+    marginTop: 4,
   },
   glowBtn: {
     justifyContent: 'center',
