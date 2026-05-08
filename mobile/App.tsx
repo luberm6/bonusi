@@ -15,9 +15,11 @@ export default function App() {
     [fonts.orbitron900]: require("./assets/fonts/Orbitron-Black.ttf"),
     [fonts.rajdhani600]: require("./assets/fonts/Rajdhani-SemiBold.ttf"),
     [fonts.rajdhani700]: require("./assets/fonts/Rajdhani-Bold.ttf"),
-    // Montserrat из @expo-google-fonts — надёжная загрузка на iOS и Android
+    // Montserrat: два варианта ключей — компонент сам решает какой сработал
     Montserrat_400Regular,
     Montserrat_700Bold,
+    'Mont-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
+    'Mont-Bold':    require('./assets/fonts/Montserrat-Bold.ttf'),
   });
 
   // Не блокируем рендер при ошибке — упадём на системный шрифт
