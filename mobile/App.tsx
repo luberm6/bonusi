@@ -10,7 +10,9 @@ export default function App() {
     [fonts.orbitron700]: require("./assets/fonts/Orbitron-Bold.ttf"),
     [fonts.orbitron900]: require("./assets/fonts/Orbitron-Black.ttf"),
     [fonts.rajdhani600]: require("./assets/fonts/Rajdhani-SemiBold.ttf"),
-    [fonts.rajdhani700]: require("./assets/fonts/Rajdhani-Bold.ttf")
+    [fonts.rajdhani700]: require("./assets/fonts/Rajdhani-Bold.ttf"),
+    "Montserrat-Regular": require("./assets/fonts/Montserrat-Regular.ttf"),
+    "Montserrat-Bold":    require("./assets/fonts/Montserrat-Bold.ttf"),
   });
 
   if (!fontsLoaded) return null;
