@@ -145,9 +145,9 @@ jobs:
           set -euo pipefail
           cd "${{ steps.detect.outputs.node_package_dir }}"
           if [[ -f package-lock.json ]]; then
-            npm ci
+            npm ci --legacy-peer-deps
           else
-            npm install --no-audit --no-fund
+            npm install --no-audit --no-fund --legacy-peer-deps
           fi
 
       - name: Generate debug keystore
