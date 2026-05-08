@@ -6,9 +6,10 @@ import {
   Image,
   ImageBackground,
   StyleSheet,
-  ScrollView,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useClientData } from '../ClientDataContext';
 
 // ─── Ассеты из Figma ─────────────────────────────────────────────────────────
@@ -20,14 +21,25 @@ const ASSETS = {
   glowButton:  require('../../../../../assets/images/glow_button.png'),
 } as const;
 
-// Figma baseline (iPhone 16 & 17 Pro Max)
+// Figma baseline: iPhone 16 & 17 Pro Max = 440 × 956 pt
 const FW = 440;
 const FH = 956;
 
+// Шрифт: Montserrat загружается через @expo-google-fonts/montserrat
+// Ключ должен совпадать с именем экспорта из пакета
+const FONT      = 'Montserrat_400Regular';
+const FONT_BOLD = 'Montserrat_700Bold';
+
 export function HomeTabScreen({ navigation }: any) {
   const { width: SW, height: SH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  // Реальная высота контента (без статус-бара и индикатора домой)
+  // Tab bar скрыт на HomeTab, поэтому вычитаем только safe area
+  const contentH = SH - insets.top - insets.bottom;
+
   const sx = (v: number) => (v * SW) / FW;
-  const sy = (v: number) => (v * SH) / FH;
+  const sy = (v: number) => (v * contentH) / FH;
 
   const {
     bonusBalance,
@@ -38,58 +50,58 @@ export function HomeTabScreen({ navigation }: any) {
   } = useClientData();
 
   const clientName =
-    me?.fullName?.trim()?.toUpperCase() || me?.email?.toUpperCase() || 'КЛИЕНТ';
+    me?.fullName?.trim()?.toUpperCase() ||
+    me?.email?.toUpperCase() ||
+    'КЛИЕНТ';
 
-  // Гейдж — размер и центр
-  const gaugeLeft   = sx(99);
-  const gaugeTop    = sy(84);
-  const gaugeSize   = sx(260);
-  const gaugeCenterX = gaugeLeft + gaugeSize / 2;   // центр по X
-  const gaugeCenterY = gaugeTop  + gaugeSize * 0.48; // центр по Y (~48% вниз)
+  // Геометрия гейджа
+  const gaugeSize = sx(260);
+  const gaugeL    = (SW - gaugeSize) / 2;   // центрируем горизонтально
+  const gaugeT    = sy(72);
+  const gaugeCX   = gaugeL + gaugeSize / 2;
+  const gaugeCY   = gaugeT + gaugeSize * 0.47;
 
-  const numFontSize = sx(52);
-  const numW        = sx(160);
-  const numH        = numFontSize * 1.2;
+  const numSize   = sx(54);
 
   return (
-    <ScrollView
-      style={s.root}
-      contentContainerStyle={{ minHeight: SH }}
-      showsVerticalScrollIndicator={false}
-      bounces={false}
-    >
-      {/* ── Фон ── */}
+    <View style={[s.root, { paddingTop: insets.top }]}>
+      {/* ① Фоновое фото — капли воды + автомобиль */}
       <ImageBackground
         source={ASSETS.bgWater}
         style={StyleSheet.absoluteFillObject}
         resizeMode="cover"
       />
 
-      {/* ── Верхняя панель: MAP ── */}
-      <View style={[s.mapRow, { top: sy(18), left: sx(20) }]}>
-        <Text style={[s.mapArrow, { fontSize: sx(20) }]}>↩</Text>
-        <Text style={[s.label, { fontSize: sx(14), marginLeft: sx(6) }]}>КАРТА</Text>
+      {/* ⑥ Тёмный градиент вверху — скрывает «D» и «POWER» с фото */}
+      <View style={[s.topOverlay, { height: sy(90) }]} />
+
+      {/* ③④ MAP (стрелка + надпись по-английски, как в Figma) */}
+      <View style={[s.mapRow, { top: sy(14), left: sx(20) }]}>
+        <Text style={[s.mapArrow, { fontSize: sx(18) }]}>→</Text>
+        <Text style={[s.label, { fontSize: sx(14), marginLeft: sx(6), letterSpacing: 1 }]}>
+          MAP
+        </Text>
       </View>
 
-      {/* ── 0 КМ (верх центр) ── */}
+      {/* «0 КМ» — верх центр */}
       <Text style={[s.label, {
         position: 'absolute',
-        top: sy(56),
+        top: sy(50),
         width: SW,
         textAlign: 'center',
         fontSize: sx(13),
-        letterSpacing: 1,
+        letterSpacing: 2,
       }]}>
         0 КМ
       </Text>
 
-      {/* ── Гейдж (пузыри) ── */}
+      {/* Гейдж (пузыри) */}
       <Image
         source={ASSETS.gaugeBubble}
         style={{
           position: 'absolute',
-          left: gaugeLeft,
-          top:  gaugeTop,
+          left: gaugeL,
+          top:  gaugeT,
           width:  gaugeSize,
           height: gaugeSize,
           borderRadius: gaugeSize / 2,
@@ -98,172 +110,162 @@ export function HomeTabScreen({ navigation }: any) {
         resizeMode="cover"
       />
 
-      {/* ── Количество бонусов (по центру гейджа) ── */}
-      <Text style={[s.bonusNum, {
-        position: 'absolute',
-        top:  gaugeCenterY - numH / 2 - sx(8),
-        left: gaugeCenterX - numW / 2,
-        width: numW,
-        fontSize: numFontSize,
-        lineHeight: numFontSize * 1.1,
-      }]}>
+      {/* ① Цифра бонусов — точно по центру гейджа */}
+      <Text
+        style={[s.bonusNum, {
+          position: 'absolute',
+          left: gaugeCX - sx(80),
+          top:  gaugeCY - numSize * 0.65,
+          width: sx(160),
+          fontSize: numSize,
+          lineHeight: numSize * 1.1,
+        }]}
+      >
         {bonusBalance}
       </Text>
 
-      {/* ── "бонусов" ── */}
+      {/* «бонусов» */}
       <Text style={[s.label, {
         position: 'absolute',
-        top: gaugeCenterY + numH / 2 - sx(4),
+        top: gaugeCY + numSize * 0.55,
         width: SW,
         textAlign: 'center',
         fontSize: sx(13),
-        letterSpacing: 2,
+        letterSpacing: 3,
       }]}>
         бонусов
       </Text>
 
-      {/* ── 157 КМ (правый край, рядом с дугой) ── */}
+      {/* «157 КМ» — справа от гейджа */}
       <View style={{
         position: 'absolute',
-        top: sy(178),
-        right: sx(14),
+        top: sy(165),
+        right: sx(18),
         alignItems: 'center',
       }}>
-        <Text style={[s.label, { fontSize: sx(15), fontWeight: '700' }]}>157</Text>
-        <Text style={[s.label, { fontSize: sx(12) }]}>КМ</Text>
+        <Text style={[s.labelBold, { fontSize: sx(16) }]}>157</Text>
+        <Text style={[s.label,     { fontSize: sx(11), letterSpacing: 1 }]}>КМ</Text>
       </View>
 
-      {/* ── Датчик температуры ── */}
+      {/* ⑤ Датчик температуры */}
       <Image source={ASSETS.tempGauge} style={{
         position: 'absolute',
-        left: sx(16),
-        top:  sy(360),
-        width:  sx(78),
-        height: sx(78),
+        left: sx(18),
+        top:  sy(340),
+        width:  sx(76),
+        height: sx(76),
       }} resizeMode="contain" />
 
-      {/* ── Имя клиента ── */}
+      {/* ⑤ Имя клиента — ниже гейджа с чётким отступом */}
       <Text style={[s.clientName, {
         position: 'absolute',
-        top:  sy(350),
+        top:  sy(340),
         width: SW,
         fontSize: sx(16),
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 4,
       }]} numberOfLines={1}>
         {clientName}
       </Text>
 
-      {/* ── Марка авто ── */}
+      {/* Модель авто */}
       <Text style={[s.label, {
         position: 'absolute',
-        top:  sy(372),
+        top:  sy(364),
         width: SW,
         textAlign: 'center',
         fontSize: sx(16),
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 4,
+        letterSpacing: 1,
       }]}>
         БМВ М5
       </Text>
 
-      {/* ── Датчик топлива ── */}
+      {/* ⑤ Датчик топлива */}
       <Image source={ASSETS.fuelGauge} style={{
         position: 'absolute',
-        right: sx(16),
-        top:   sy(375),
-        width:  sx(72),
-        height: sx(48),
+        right: sx(18),
+        top:   sy(346),
+        width:  sx(70),
+        height: sx(46),
       }} resizeMode="contain" />
 
-      {/* ─────────── Кнопки (нижняя зона) ─────────── */}
+      {/* ─── ② ⑧ Зона кнопок — якорь к низу экрана ─── */}
+      <View style={[s.buttonsZone, { height: sy(290) }]}>
+        {/* Полупрозрачная подложка */}
+        <View style={s.buttonsOverlay} />
 
-      {/* Полупрозрачная подложка под кнопками */}
-      <View style={{
-        position: 'absolute',
-        left: 0, right: 0,
-        top:  sy(680),
-        height: sy(276),
-        backgroundColor: 'rgba(0,0,0,0.45)',
-      }} />
+        {/* Три кнопки слева */}
+        <View style={s.leftCol}>
+          <Pressable
+            style={({ pressed }) => [s.glowBtn, pressed && s.pressed]}
+            onPress={() =>
+              void ensureBranchesLoaded().then(() => navigation.navigate('BookingTab'))
+            }
+          >
+            <Image source={ASSETS.glowButton} style={[StyleSheet.absoluteFillObject, s.glowImg]} />
+            <Text style={[s.btnText, { fontSize: sx(13) }]}>
+              {'ЗАПИСАТЬСЯ\nНА РЕМОНТ'}
+            </Text>
+          </Pressable>
 
-      {/* ЗАПИСАТЬСЯ НА РЕМОНТ */}
-      <Pressable
-        style={({ pressed }) => [
-          s.glowBtn,
-          { left: sx(12), top: sy(692), width: sx(150), height: sy(82) },
-          pressed && s.pressed,
-        ]}
-        onPress={() =>
-          void ensureBranchesLoaded().then(() => navigation.navigate('BookingTab'))
-        }
-      >
-        <Image source={ASSETS.glowButton} style={StyleSheet.absoluteFillObject} resizeMode="stretch" />
-        <Text style={[s.btnText, { fontSize: sx(13) }]}>{'ЗАПИСАТЬСЯ\nНА РЕМОНТ'}</Text>
-      </Pressable>
+          <Pressable
+            style={({ pressed }) => [s.glowBtn, pressed && s.pressed]}
+            onPress={() =>
+              void ensureVisitsLoaded().then(() => navigation.navigate('VisitsTab'))
+            }
+          >
+            <Image source={ASSETS.glowButton} style={[StyleSheet.absoluteFillObject, s.glowImg]} />
+            <Text style={[s.btnText, { fontSize: sx(13) }]}>
+              {'ИСТОРИЯ\nРЕМОНТА'}
+            </Text>
+          </Pressable>
 
-      {/* ИСТОРИЯ РЕМОНТА */}
-      <Pressable
-        style={({ pressed }) => [
-          s.glowBtn,
-          { left: sx(12), top: sy(782), width: sx(150), height: sy(82) },
-          pressed && s.pressed,
-        ]}
-        onPress={() =>
-          void ensureVisitsLoaded().then(() => navigation.navigate('VisitsTab'))
-        }
-      >
-        <Image source={ASSETS.glowButton} style={StyleSheet.absoluteFillObject} resizeMode="stretch" />
-        <Text style={[s.btnText, { fontSize: sx(13) }]}>{'ИСТОРИЯ\nРЕМОНТА'}</Text>
-      </Pressable>
+          <Pressable
+            style={({ pressed }) => [s.glowBtn, pressed && s.pressed]}
+            onPress={() =>
+              void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback'))
+            }
+          >
+            <Image source={ASSETS.glowButton} style={[StyleSheet.absoluteFillObject, s.glowImg]} />
+            <Text style={[s.btnText, { fontSize: sx(13) }]}>
+              {'СИСТЕМА\nКЭШБЕКА'}
+            </Text>
+          </Pressable>
+        </View>
 
-      {/* СИСТЕМА КЭШБЕКА */}
-      <Pressable
-        style={({ pressed }) => [
-          s.glowBtn,
-          { left: sx(12), top: sy(872), width: sx(150), height: sy(72) },
-          pressed && s.pressed,
-        ]}
-        onPress={() =>
-          void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback'))
-        }
-      >
-        <Image source={ASSETS.glowButton} style={StyleSheet.absoluteFillObject} resizeMode="stretch" />
-        <Text style={[s.btnText, { fontSize: sx(13) }]}>{'СИСТЕМА\nКЭШБЕКА'}</Text>
-      </Pressable>
-
-      {/* НАЧАТЬ ЧАТ (круглая кнопка) */}
-      <Pressable
-        style={({ pressed }) => [
-          s.fabBtn,
-          {
-            right: sx(18),
-            top:   sy(770),
-            width:  sx(112),
-            height: sx(112),
-            borderRadius: sx(56),
-          },
-          pressed && s.pressed,
-        ]}
-        onPress={() => navigation.navigate('ChatTab')}
-      >
-        <Text style={[s.btnText, { fontSize: sx(14), letterSpacing: 1 }]}>
-          {'НАЧАТЬ\nЧАТ'}
-        </Text>
-      </Pressable>
-    </ScrollView>
+        {/* Круглая кнопка ЧАТ справа */}
+        <View style={s.rightCol}>
+          <Pressable
+            style={({ pressed }) => [s.fabBtn, {
+              width:  sx(108),
+              height: sx(108),
+              borderRadius: sx(54),
+            }, pressed && s.pressed]}
+            onPress={() => navigation.navigate('ChatTab')}
+          >
+            <Text style={[s.btnText, { fontSize: sx(14), letterSpacing: 1 }]}>
+              {'НАЧАТЬ\nЧАТ'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
   );
 }
-
-const FONT = 'Montserrat-Regular';
 
 const s = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#000',
   },
+
+  // ⑥ Тёмная подложка сверху скрывает текст с фото
+  topOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+
   mapRow: {
     position: 'absolute',
     flexDirection: 'row',
@@ -272,52 +274,95 @@ const s = StyleSheet.create({
   mapArrow: {
     color: '#fff',
     fontFamily: FONT,
+    fontWeight: '700',
   },
   label: {
     color: '#fff',
     fontFamily: FONT,
   },
+  labelBold: {
+    color: '#fff',
+    fontFamily: FONT_BOLD,
+  },
   bonusNum: {
     color: '#fff',
-    fontFamily: FONT,
+    fontFamily: FONT_BOLD,
     textAlign: 'center',
     includeFontPadding: false,
-    textAlignVertical: 'center',
   },
   clientName: {
     color: '#fff',
-    fontFamily: FONT,
+    fontFamily: FONT_BOLD,
     textAlign: 'center',
-    fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
-  glowBtn: {
+
+  // ② Зона кнопок якорится к низу
+  buttonsZone: {
     position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 14,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
+    paddingTop: 12,
+  },
+  buttonsOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.42)',
+  },
+
+  leftCol: {
+    flex: 1,
+    justifyContent: 'space-around',
+    gap: 8,
+  },
+  rightCol: {
+    width: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
+  },
+
+  // ⑧ Кнопки с cyan-свечением как в Figma
+  glowBtn: {
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0,188,212,0.5)',
-    borderRadius: 12,
+    borderColor: 'rgba(0,188,212,0.7)',
+    borderRadius: 14,
+    overflow: 'hidden',
+    paddingVertical: 10,
+    shadowColor: '#00BCD4',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
+  glowImg: {
+    borderRadius: 14,
   },
   fabBtn: {
-    position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: 'rgba(125,172,197,0.9)',
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
     shadowColor: '#7DACC5',
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
+    shadowOpacity: 0.55,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
     elevation: 6,
   },
   btnText: {
     color: '#fff',
     fontFamily: FONT,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 19,
   },
   pressed: {
-    opacity: 0.65,
+    opacity: 0.6,
   },
 });

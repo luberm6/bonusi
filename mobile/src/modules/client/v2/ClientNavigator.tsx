@@ -50,7 +50,11 @@ function MainTabs() {
       <Tab.Screen
         name="HomeTab"
         component={HomeTabScreen}
-        options={{ tabBarLabel: "DASHBOARD" }}
+        options={{
+          tabBarLabel: "DASHBOARD",
+          // По дизайну: на главном экране tab bar скрыт
+          tabBarStyle: { display: 'none' },
+        }}
       />
       <Tab.Screen
         name="VisitsTab"
