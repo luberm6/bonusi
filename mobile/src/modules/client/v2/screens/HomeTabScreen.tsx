@@ -66,17 +66,20 @@ export function HomeTabScreen({ navigation }: any) {
   return (
     <View style={s.root}>
 
-      {/* ── Фото авто — только нижние 55% экрана ── */}
+      {/* ── Полное фото авто (Bentley — нижняя часть) ── */}
       <Image
         source={ASSETS.bgCar}
-        style={{
-          position: 'absolute',
-          left: 0, right: 0,
-          top: carPhotoTop,
-          bottom: 0,
-        }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         resizeMode="cover"
       />
+
+      {/* ── Сплошной чёрный фон для верхней зоны (гейдж) ── */}
+      <View style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0,
+        height: carPhotoTop,
+        backgroundColor: '#000000',
+      }} />
 
       {/* ── MAP (стрелка + надпись) ── */}
       <View style={[s.row, { top: sy(24), left: sx(24), gap: sx(8) }]}>
@@ -109,11 +112,23 @@ export function HomeTabScreen({ navigation }: any) {
         resizeMode="cover"
       />
 
+      {/* Тёмный овал в центре гейджа — скрывает текст спидометра (KMH и цифры)
+          который находится ВНУТРИ картинки gauge_bubble.png */}
+      <View style={{
+        position: 'absolute',
+        left: gaugeCX - sx(88),
+        top:  gaugeCY - sx(62),
+        width: sx(176),
+        height: sx(110),
+        borderRadius: sx(55),
+        backgroundColor: 'rgba(0,0,0,0.82)',
+      }} />
+
       {/* ── Цифра бонусов — строго по центру гейджа ── */}
       <Text style={{
         position: 'absolute',
         left: gaugeCX - sx(90),
-        top:  gaugeCY - numSize * 0.62,
+        top:  gaugeCY - numSize * 0.65,
         width: sx(180),
         textAlign: 'center',
         fontSize: numSize,
@@ -129,7 +144,7 @@ export function HomeTabScreen({ navigation }: any) {
       {/* ── «бонусов» ── */}
       <Text style={[s.text, {
         position: 'absolute',
-        top: gaugeCY + numSize * 0.52,
+        top: gaugeCY + numSize * 0.45,
         width: SW, textAlign: 'center',
         fontSize: sx(14), fontFamily: F, letterSpacing: 3,
       }]}>
@@ -261,7 +276,7 @@ const s = StyleSheet.create({
     minHeight: 240,
   },
   btnOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.44)',
   },
   colLeft: {
