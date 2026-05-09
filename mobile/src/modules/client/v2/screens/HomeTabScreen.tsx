@@ -53,7 +53,8 @@ export function HomeTabScreen({ navigation }: any) {
   const numSize   = sx(55);
 
   // Верх экрана (до начала фото авто) — 45% высоты
-  const topBlack = contentH * 0.455;
+  // Чёрный верх — только до конца гейджа (40% экрана)
+  const topBlack = contentH * 0.40;
 
   return (
     <View style={s.root}>
@@ -214,6 +215,9 @@ export function HomeTabScreen({ navigation }: any) {
               <Text style={{
                 color: '#fff', fontFamily: F,
                 fontSize: sx(14), lineHeight: 20,
+                textShadowColor: 'rgba(0,0,0,0.9)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 5,
               }}>
                 {label}
               </Text>
@@ -306,11 +310,13 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 14,
     paddingTop: 10,
-    minHeight: 240,
+    // Компактнее — руль виден выше кнопок
+    minHeight: 200,
   },
   btnOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.44)',
+    // Почти прозрачный — руль виден сквозь зону кнопок
+    backgroundColor: 'rgba(0,0,0,0.15)',
   },
   colLeft: {
     flex: 1,
