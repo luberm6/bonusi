@@ -3,6 +3,7 @@
     "name": "AutoService",
     "slug": "autoservice",
     "entryPoint": "./index.js",
+    "icon": "./assets/icon.png",
     "plugins": [
       [
         "expo-font",
