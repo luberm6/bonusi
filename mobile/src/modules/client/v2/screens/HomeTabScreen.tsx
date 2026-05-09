@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
-  View, Text, Pressable, Image,
+  View, Text, Pressable, Image, Animated, Easing,
   StyleSheet, useWindowDimensions, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,17 +52,60 @@ export function HomeTabScreen({ navigation }: any) {
   const gaugeCY   = gaugeT + gaugeSize / 2;
   const numSize   = sx(55);
 
-  // Верх экрана (до начала фото авто) — 45% высоты
-  // Чёрный верх — только до конца гейджа (40% экрана)
   const topBlack = contentH * 0.40;
+
+  // ── Startup glow animation ────────────────────────────────────────────────
+  // Single Animated.Value drives all derived values via interpolate.
+  // useNativeDriver:true → opacity + transform run on the GPU thread.
+  const boot = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(boot, {
+      toValue: 1,
+      duration: 1400,
+      easing: Easing.out(Easing.cubic), // fast start → smooth settle
+      useNativeDriver: true,
+    }).start();
+  }, []); // fires once on mount
+
+  // Gauge bubble: fades from 70% to 100% opacity (reveals full brightness)
+  const bubbleOpacity = boot.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.55, 1],
+  });
+
+  // Gauge bubble: subtle scale-in (0.95 → 1.0), barely perceptible
+  const gaugeScale = boot.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.95, 1],
+  });
+
+  // Cyan glow ring: peaks at 60% of animation, settles lower — "activation pulse"
+  const glowOpacity = boot.interpolate({
+    inputRange: [0, 0.55, 1],
+    outputRange: [0, 0.55, 0.22],
+  });
+
+  // Bonus number + "бонусов": delayed fade-in (feels like data loading)
+  const dataOpacity = boot.interpolate({
+    inputRange: [0, 0.35, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  // Bottom content (gauges, name, buttons): subtle slide-up fade-in
+  const contentOpacity = boot.interpolate({
+    inputRange: [0, 0.25, 1],
+    outputRange: [0, 0, 1],
+  });
+  const contentTranslateY = boot.interpolate({
+    inputRange: [0, 1],
+    outputRange: [10, 0],
+  });
 
   return (
     <View style={s.root}>
 
-      {/* ── Фото авто (руль Bentley) — точные пропорции нижней секции Figma.
-          Figma lower section: left=-230, top=141, w=927, h=649 в 440×956-фрейме.
-          Container aspect (927/649=1.428) ≈ image aspect (2022/1414=1.430) →
-          cover показывает почти весь оригинал без сильного кропа. */}
+      {/* ── Фото авто (руль Bentley) — Figma lower section proportions ── */}
       <Image
         source={ASSETS.bgCar}
         style={{
@@ -75,14 +118,14 @@ export function HomeTabScreen({ navigation }: any) {
         resizeMode="cover"
       />
 
-      {/* ── Сплошной чёрный верх (скрывает спидометр/POWER/D) ── */}
+      {/* ── Сплошной чёрный верх ── */}
       <View style={{
         position: 'absolute', top: 0, left: 0, right: 0,
         height: topBlack,
         backgroundColor: '#000',
       }} />
 
-      {/* ── MAP → открывает Яндекс.Карты (Центр Radius Service) ── */}
+      {/* ── MAP ── */}
       <Pressable
         style={[s.mapRow, { top: sy(16), left: sx(24) }]}
         onPress={() => Linking.openURL('https://yandex.com/maps/org/centr_radius_service/2364390942/')}
@@ -107,20 +150,48 @@ export function HomeTabScreen({ navigation }: any) {
         0 КМ
       </Text>
 
-      {/* ── Гейдж (пузыри) ── */}
-      <Image
-        source={ASSETS.gaugeBubble}
+      {/* ── Гейдж (пузыри) + startup glow ── */}
+      <Animated.View style={{
+        position: 'absolute',
+        left: gaugeL, top: gaugeT,
+        width: gaugeSize, height: gaugeSize,
+        opacity: bubbleOpacity,
+        transform: [{ scale: gaugeScale }],
+      }}>
+        <Image
+          source={ASSETS.gaugeBubble}
+          style={{
+            width: gaugeSize, height: gaugeSize,
+            borderRadius: gaugeSize / 2,
+            overflow: 'hidden',
+          }}
+          resizeMode="cover"
+        />
+      </Animated.View>
+
+      {/* ── Cyan glow ring — activation pulse around gauge ── */}
+      <Animated.View
+        pointerEvents="none"
         style={{
           position: 'absolute',
-          left: gaugeL, top: gaugeT,
-          width: gaugeSize, height: gaugeSize,
-          borderRadius: gaugeSize / 2,
-          overflow: 'hidden',
+          left: gaugeL - sx(6),
+          top: gaugeT - sx(6),
+          width: gaugeSize + sx(12),
+          height: gaugeSize + sx(12),
+          borderRadius: (gaugeSize + sx(12)) / 2,
+          borderWidth: 1.5,
+          borderColor: '#00BCD4',
+          // Static shadow — View opacity drives visibility
+          shadowColor: '#00BCD4',
+          shadowOpacity: 1,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: 12,
+          opacity: glowOpacity,
         }}
-        resizeMode="cover"
       />
 
-      {/* ── Тёмный овал в центре гейджа — скрывает спидометр KMH ── */}
+      {/* ── Тёмный овал в центре гейджа ── */}
       <View style={{
         position: 'absolute',
         left: gaugeCX - sx(82),
@@ -130,8 +201,8 @@ export function HomeTabScreen({ navigation }: any) {
         backgroundColor: 'rgba(0,0,0,0.85)',
       }} />
 
-      {/* ── Цифра бонусов ── */}
-      <Text style={{
+      {/* ── Цифра бонусов (delayed fade-in) ── */}
+      <Animated.Text style={{
         position: 'absolute',
         left: gaugeCX - sx(82),
         top:  gaugeCY - numSize * 0.68,
@@ -140,20 +211,22 @@ export function HomeTabScreen({ navigation }: any) {
         color: '#fff', fontFamily: FB,
         fontWeight: fontsReady ? undefined : '700',
         includeFontPadding: false,
+        opacity: dataOpacity,
       }}>
         {bonusBalance}
-      </Text>
+      </Animated.Text>
 
-      {/* ── «бонусов» ── */}
-      <Text style={{
+      {/* ── «бонусов» (delayed fade-in) ── */}
+      <Animated.Text style={{
         position: 'absolute',
         top: gaugeCY + numSize * 0.42,
         width: SW, textAlign: 'center',
         color: '#fff', fontFamily: F,
         fontSize: sx(13), letterSpacing: 2.5,
+        opacity: dataOpacity,
       }}>
         бонусов
-      </Text>
+      </Animated.Text>
 
       {/* ── «157 КМ» справа ── */}
       <View style={{
@@ -164,161 +237,156 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{ color: '#fff', fontSize: sx(11), fontFamily: F,  letterSpacing: 1 }}>КМ</Text>
       </View>
 
-      {/* ── Датчик температуры ── */}
-      <Image source={ASSETS.tempGauge} style={{
-        position: 'absolute',
-        left: sx(18), top: sy(368),
-        width: sx(76), height: sx(76),
-      }} resizeMode="contain" />
+      {/* ── Нижний блок: датчики, имя, модель, кнопки (slide-up fade) ── */}
+      <Animated.View style={{
+        position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+        opacity: contentOpacity,
+        transform: [{ translateY: contentTranslateY }],
+      }} pointerEvents="box-none">
 
-      {/* ── Имя клиента ── */}
-      <Text style={{
-        position: 'absolute',
-        top: sy(365), width: SW, textAlign: 'center',
-        color: '#fff', fontFamily: FB,
-        fontWeight: '700', fontSize: sx(16), letterSpacing: 1,
-        textShadowColor: 'rgba(0,0,0,0.95)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 6,
-      }} numberOfLines={1}>
-        {clientName}
-      </Text>
+        {/* Датчик температуры */}
+        <Image source={ASSETS.tempGauge} style={{
+          position: 'absolute',
+          left: sx(18), top: sy(368),
+          width: sx(76), height: sx(76),
+        }} resizeMode="contain" />
 
-      {/* ── Модель авто ── */}
-      <Text style={{
-        position: 'absolute',
-        top: sy(388), width: SW, textAlign: 'center',
-        color: '#fff', fontFamily: F,
-        fontSize: sx(15), letterSpacing: 1,
-        textShadowColor: 'rgba(0,0,0,0.95)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 6,
-      }}>
-        БМВ М5
-      </Text>
+        {/* Имя клиента */}
+        <Text style={{
+          position: 'absolute',
+          top: sy(365), width: SW, textAlign: 'center',
+          color: '#fff', fontFamily: FB,
+          fontWeight: '700', fontSize: sx(16), letterSpacing: 1,
+          textShadowColor: 'rgba(0,0,0,0.95)',
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 6,
+        }} numberOfLines={1}>
+          {clientName}
+        </Text>
 
-      {/* ── Датчик топлива ── */}
-      <Image source={ASSETS.fuelGauge} style={{
-        position: 'absolute',
-        right: sx(18), top: sy(376),
-        width: sx(70), height: sx(46),
-      }} resizeMode="contain" />
+        {/* Модель авто */}
+        <Text style={{
+          position: 'absolute',
+          top: sy(388), width: SW, textAlign: 'center',
+          color: '#fff', fontFamily: F,
+          fontSize: sx(15), letterSpacing: 1,
+          textShadowColor: 'rgba(0,0,0,0.95)',
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 6,
+        }}>
+          БМВ М5
+        </Text>
 
-      {/* ── Кнопки навигации (Figma: rounded rect, border #7dacc5) ── */}
-      {([
-        ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('Booking')), sy(717)],
-        ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('Visits')),    sy(786)],
-        ['СИСТЕМА\nКЭШБЕКА',     () => void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback')), sy(860)],
-      ] as [string, () => void, number][]).map(([label, onPress, top]) => (
+        {/* Датчик топлива */}
+        <Image source={ASSETS.fuelGauge} style={{
+          position: 'absolute',
+          right: sx(18), top: sy(376),
+          width: sx(70), height: sx(46),
+        }} resizeMode="contain" />
+
+        {/* Кнопки навигации */}
+        {([
+          ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('Booking')), sy(717)],
+          ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('Visits')),    sy(786)],
+          ['СИСТЕМА\nКЭШБЕКА',     () => void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback')), sy(860)],
+        ] as [string, () => void, number][]).map(([label, onPress, top]) => (
+          <Pressable
+            key={label}
+            style={({ pressed }) => [{
+              position: 'absolute',
+              left: sx(21), top,
+              width: sx(135), height: sy(59),
+              borderRadius: sx(15),
+              borderWidth: 1,
+              borderColor: '#7dacc5',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }, pressed && s.pressed]}
+            onPress={onPress}
+          >
+            <Text style={{
+              color: '#fff', fontFamily: F,
+              fontSize: sx(14), textAlign: 'center', lineHeight: 20,
+            }}>
+              {label}
+            </Text>
+          </Pressable>
+        ))}
+
+        {/* FAB outer ring */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            left: sx(309), top: sy(812),
+            width: sx(107), height: sx(107),
+            borderRadius: sx(53.5),
+            borderWidth: 1,
+            borderColor: 'rgba(125,172,197,0.55)',
+          }}
+        />
+        {/* FAB "НАЧАТЬ ЧАТ" */}
         <Pressable
-          key={label}
           style={({ pressed }) => [{
             position: 'absolute',
-            left: sx(21), top,
-            width: sx(135), height: sy(59),
-            borderRadius: sx(15),
-            borderWidth: 1,
-            borderColor: '#7dacc5',
+            left: sx(318), top: sy(822),
+            width: sx(88), height: sx(88),
+            borderRadius: sx(44),
+            borderWidth: 1.5,
+            borderColor: 'rgba(125,172,197,0.85)',
+            backgroundColor: 'rgba(0,0,0,0.2)',
             justifyContent: 'center',
             alignItems: 'center',
+            shadowColor: '#7DACC5',
+            shadowOpacity: 0.5,
+            shadowRadius: 12,
+            elevation: 5,
           }, pressed && s.pressed]}
-          onPress={onPress}
+          onPress={() => navigation.navigate('Chat')}
         >
           <Text style={{
             color: '#fff', fontFamily: F,
             fontSize: sx(14), textAlign: 'center', lineHeight: 20,
           }}>
-            {label}
+            {'НАЧАТЬ\nЧАТ'}
           </Text>
         </Pressable>
-      ))}
 
-      {/* ── FAB "НАЧАТЬ ЧАТ" (Figma: два концентрических кольца) ── */}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: sx(309), top: sy(812),
-          width: sx(107), height: sx(107),
-          borderRadius: sx(53.5),
-          borderWidth: 1,
-          borderColor: 'rgba(125,172,197,0.55)',
-        }}
-      />
-      <Pressable
-        style={({ pressed }) => [{
-          position: 'absolute',
-          left: sx(318), top: sy(822),
-          width: sx(88), height: sx(88),
-          borderRadius: sx(44),
-          borderWidth: 1.5,
-          borderColor: 'rgba(125,172,197,0.85)',
-          backgroundColor: 'rgba(0,0,0,0.2)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          shadowColor: '#7DACC5',
-          shadowOpacity: 0.5,
-          shadowRadius: 12,
-          elevation: 5,
-        }, pressed && s.pressed]}
-        onPress={() => navigation.navigate('Chat')}
-      >
-        <Text style={{
-          color: '#fff', fontFamily: F,
-          fontSize: sx(14), textAlign: 'center', lineHeight: 20,
-        }}>
-          {'НАЧАТЬ\nЧАТ'}
-        </Text>
-      </Pressable>
+      </Animated.View>
 
     </View>
   );
 }
 
-// ── MAP навигационная стрелка (точная копия Figma SVG Vector 5) ──────────────
+// ── MAP навигационная стрелка ─────────────────────────────────────────────────
 function MapArrow({ size }: { size: number }) {
-  const w = size;           // ширина ≈ 22px
-  const h = size * 0.849;   // высота пропорционально 26.28/30.97
-  const arm = w * 0.52;     // длина вертикальной части
-  const thick = w * 0.1;    // толщина линии
+  const w = size;
+  const h = size * 0.849;
+  const arm = w * 0.52;
+  const thick = w * 0.1;
 
   return (
     <View style={{ width: w, height: h }}>
-      {/* Вертикальная часть (ствол стрелки вверх) */}
       <View style={{
-        position: 'absolute',
-        left: 0, bottom: 0,
-        width: thick, height: arm,
-        backgroundColor: '#fff',
-        borderTopLeftRadius: thick,
-        borderTopRightRadius: thick,
+        position: 'absolute', left: 0, bottom: 0,
+        width: thick, height: arm, backgroundColor: '#fff',
+        borderTopLeftRadius: thick, borderTopRightRadius: thick,
       }} />
-      {/* Горизонтальная часть (вправо) */}
       <View style={{
-        position: 'absolute',
-        left: 0, top: 0,
-        width: w * 0.6, height: thick,
-        backgroundColor: '#fff',
-        borderTopRightRadius: thick / 2,
-        borderBottomRightRadius: thick / 2,
+        position: 'absolute', left: 0, top: 0,
+        width: w * 0.6, height: thick, backgroundColor: '#fff',
+        borderTopRightRadius: thick / 2, borderBottomRightRadius: thick / 2,
       }} />
-      {/* Угол (соединение) */}
       <View style={{
-        position: 'absolute',
-        left: 0, top: 0,
-        width: thick, height: thick,
-        backgroundColor: '#fff',
+        position: 'absolute', left: 0, top: 0,
+        width: thick, height: thick, backgroundColor: '#fff',
       }} />
-      {/* Наконечник стрелки → */}
       <View style={{
-        position: 'absolute',
-        right: 0, top: -w * 0.12,
+        position: 'absolute', right: 0, top: -w * 0.12,
         width: 0, height: 0,
-        borderTopWidth: h * 0.42,
-        borderBottomWidth: h * 0.42,
+        borderTopWidth: h * 0.42, borderBottomWidth: h * 0.42,
         borderLeftWidth: w * 0.42,
-        borderTopColor: 'transparent',
-        borderBottomColor: 'transparent',
+        borderTopColor: 'transparent', borderBottomColor: 'transparent',
         borderLeftColor: '#fff',
       }} />
     </View>
