@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
@@ -16,6 +17,7 @@ import { colors } from '../../../../theme/colors';
 export function ChatTabScreen({ navigation }: any) {
   const { messages, sendMessage, chatLoading, ensureChatLoaded, session } = useClientData();
   const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   React.useEffect(() => {
@@ -23,11 +25,21 @@ export function ChatTabScreen({ navigation }: any) {
   }, [ensureChatLoaded]);
 
   const handleSend = async () => {
-    if (!text.trim()) return;
-    const ok = await sendMessage(text.trim());
+    const msg = text.trim();
+    if (!msg || sending) return;
+    setSending(true);
+    setText(''); // очищаем сразу для отзывчивости
+    const ok = await sendMessage(msg);
+    setSending(false);
     if (ok) {
-      setText('');
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+    } else {
+      setText(msg); // возвращаем текст если не отправилось
+      Alert.alert(
+        'Не удалось отправить',
+        'Проверьте подключение к интернету и попробуйте ещё раз.',
+        [{ text: 'OK' }],
+      );
     }
   };
 
@@ -167,10 +179,14 @@ export function ChatTabScreen({ navigation }: any) {
           onSubmitEditing={handleSend}
         />
         <Pressable
-          style={({ pressed }) => [s.sendBtn, pressed && s.pressed]}
+          style={[s.sendBtn, (!text.trim() || sending) && s.sendBtnDisabled]}
           onPress={handleSend}
+          disabled={!text.trim() || sending}
         >
-          <Text style={s.sendIcon}>➤</Text>
+          {sending
+            ? <ActivityIndicator color="#000" size="small" />
+            : <Text style={s.sendIcon}>➤</Text>
+          }
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -393,6 +409,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 2,
+  },
+  sendBtnDisabled: {
+    backgroundColor: colors.textDim,
   },
   sendIcon: {
     color: '#000000',
