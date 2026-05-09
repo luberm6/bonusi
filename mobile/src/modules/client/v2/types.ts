@@ -74,6 +74,14 @@ export type ConversationRow = {
   lastMessage: { id: string; text: string | null; createdAt: string } | null;
 };
 
+export type MessageAttachment = {
+  id: string;
+  fileUrl: string;
+  fileType: 'image' | 'pdf';
+  fileName: string;
+  size: number;
+};
+
 export type MessageRow = {
   id: string;
   senderId: string;
@@ -81,4 +89,5 @@ export type MessageRow = {
   text: string | null;
   createdAt: string;
   readAt?: string | null;
+  attachments?: MessageAttachment[];
 };

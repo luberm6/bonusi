@@ -5,6 +5,7 @@
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
     "plugins": [
+      "expo-image-picker",
       [
         "expo-font",
         {
@@ -20,7 +21,11 @@
       ]
     ],
     "ios": {
-      "bundleIdentifier": "com.anonymous.autoservice"
+      "bundleIdentifier": "com.anonymous.autoservice",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Для отправки фото в чат",
+        "NSCameraUsageDescription": "Для съёмки фото и отправки в чат"
+      }
     },
     "android": {
       "package": "com.anonymous.autoservice"
