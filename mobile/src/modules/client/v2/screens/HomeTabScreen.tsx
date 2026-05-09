@@ -63,14 +63,27 @@ export function HomeTabScreen({ navigation }: any) {
           SafeAreaView в root shell уменьшает рабочую область до 863pt,
           но Figma baseline — 440×956. Растягиваем изображение на весь экран
           отрицательными отступами, чтобы руль был виден как в Figma. */}
+      {/* ── Верхний слой авто (за гейджем, скрыт чёрным оверлеем) ── */}
       <Image
         source={ASSETS.bgCar}
         style={{
           position: 'absolute',
-          top: -insets.top,
-          left: 0,
-          right: 0,
-          height: SH,
+          left: sx(-225),
+          top: sy(37) - insets.top,
+          width: sx(919),
+          height: sy(643),
+        }}
+        resizeMode="cover"
+      />
+      {/* ── Нижний слой авто (руль) — точные пропорции Figma ── */}
+      <Image
+        source={ASSETS.bgCar}
+        style={{
+          position: 'absolute',
+          left: sx(-230),
+          top: sy(141),
+          width: sx(927),
+          bottom: 0,
         }}
         resizeMode="cover"
       />
