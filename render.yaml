@@ -37,7 +37,7 @@ services:
       - key: CORS_EXTRA_ORIGINS
         value: ""
       - key: FILES_ENABLED
-        value: false
+        value: true
       - key: PUSH_ENABLED
         value: false
       - key: SMTP_ENABLED
