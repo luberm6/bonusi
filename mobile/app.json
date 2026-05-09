@@ -5,7 +5,14 @@
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
     "plugins": [
-      "expo-image-picker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
+          "cameraPermission": "Приложению нужен доступ к камере, чтобы вы могли сделать фото и отправить его в чат.",
+          "microphonePermission": "Приложению нужен доступ к микрофону для записи видео."
+        }
+      ],
       [
         "expo-font",
         {
@@ -23,8 +30,9 @@
     "ios": {
       "bundleIdentifier": "com.anonymous.autoservice",
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Для отправки фото в чат",
-        "NSCameraUsageDescription": "Для съёмки фото и отправки в чат"
+        "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
+        "NSCameraUsageDescription": "Приложению нужен доступ к камере, чтобы вы могли сделать фото и отправить его в чат.",
+        "NSMicrophoneUsageDescription": "Приложению нужен доступ к микрофону для записи видео."
       }
     },
     "android": {
