@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, Pressable, Image,
-  StyleSheet, useWindowDimensions, Platform, Linking,
+  StyleSheet, useWindowDimensions, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -204,51 +204,72 @@ export function HomeTabScreen({ navigation }: any) {
         width: sx(70), height: sx(46),
       }} resizeMode="contain" />
 
-      {/* ── Зона кнопок (якорь к низу) ── */}
-      <View style={[s.btnZone, { paddingBottom: Platform.OS === 'ios' ? 18 : 12 }]}>
-        <View style={s.btnOverlay} />
+      {/* ── Кнопки навигации (Figma: rounded rect, border #7dacc5) ── */}
+      {([
+        ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('BookingTab')), sy(717)],
+        ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('VisitsTab')),    sy(786)],
+        ['СИСТЕМА\nКЭШБЕКА',     () => void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback')), sy(860)],
+      ] as [string, () => void, number][]).map(([label, onPress, top]) => (
+        <Pressable
+          key={label}
+          style={({ pressed }) => [{
+            position: 'absolute',
+            left: sx(21), top,
+            width: sx(135), height: sy(59),
+            borderRadius: sx(15),
+            borderWidth: 1,
+            borderColor: '#7dacc5',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }, pressed && s.pressed]}
+          onPress={onPress}
+        >
+          <Text style={{
+            color: '#fff', fontFamily: F,
+            fontSize: sx(14), textAlign: 'center', lineHeight: 20,
+          }}>
+            {label}
+          </Text>
+        </Pressable>
+      ))}
 
-        <View style={s.colLeft}>
-          {([
-            ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('BookingTab'))],
-            ['ИСТОРИЯ\nРЕМОНТА',      () => void ensureVisitsLoaded().then(() => navigation.navigate('VisitsTab'))],
-            ['СИСТЕМА\nКЭШБЕКА',       () => void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback'))],
-          ] as [string, () => void][]).map(([label, onPress]) => (
-            <Pressable
-              key={label}
-              style={({ pressed }) => [s.underlineBtn, pressed && s.pressed]}
-              onPress={onPress}
-            >
-              <Text style={{
-                color: '#fff', fontFamily: F,
-                fontSize: sx(14), lineHeight: 20,
-                textShadowColor: 'rgba(0,0,0,0.9)',
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 5,
-              }}>
-                {label}
-              </Text>
-              <View style={s.underline} />
-            </Pressable>
-          ))}
-        </View>
-
-        <View style={s.colRight}>
-          <Pressable
-            style={({ pressed }) => [s.fabBtn, {
-              width: sx(108), height: sx(108), borderRadius: sx(54),
-            }, pressed && s.pressed]}
-            onPress={() => navigation.navigate('ChatTab')}
-          >
-            <Text style={{
-              color: '#fff', fontFamily: F,
-              fontSize: sx(14), textAlign: 'center', lineHeight: 20,
-            }}>
-              {'НАЧАТЬ\nЧАТ'}
-            </Text>
-          </Pressable>
-        </View>
-      </View>
+      {/* ── FAB "НАЧАТЬ ЧАТ" (Figma: два концентрических кольца) ── */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: sx(309), top: sy(812),
+          width: sx(107), height: sx(107),
+          borderRadius: sx(53.5),
+          borderWidth: 1,
+          borderColor: 'rgba(125,172,197,0.55)',
+        }}
+      />
+      <Pressable
+        style={({ pressed }) => [{
+          position: 'absolute',
+          left: sx(318), top: sy(822),
+          width: sx(88), height: sx(88),
+          borderRadius: sx(44),
+          borderWidth: 1.5,
+          borderColor: 'rgba(125,172,197,0.85)',
+          backgroundColor: 'rgba(0,0,0,0.2)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          shadowColor: '#7DACC5',
+          shadowOpacity: 0.5,
+          shadowRadius: 12,
+          elevation: 5,
+        }, pressed && s.pressed]}
+        onPress={() => navigation.navigate('ChatTab')}
+      >
+        <Text style={{
+          color: '#fff', fontFamily: F,
+          fontSize: sx(14), textAlign: 'center', lineHeight: 20,
+        }}>
+          {'НАЧАТЬ\nЧАТ'}
+        </Text>
+      </Pressable>
 
     </View>
   );
@@ -310,47 +331,6 @@ const s = StyleSheet.create({
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  btnZone: {
-    position: 'absolute',
-    bottom: 0, left: 0, right: 0,
-    flexDirection: 'row',
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    // Компактнее — руль виден выше кнопок
-    minHeight: 200,
-  },
-  btnOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    // Почти прозрачный — руль виден сквозь зону кнопок
-    backgroundColor: 'rgba(0,0,0,0.15)',
-  },
-  colLeft: {
-    flex: 1,
-    justifyContent: 'space-around',
-    gap: 8,
-  },
-  colRight: {
-    width: 124,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  underlineBtn: { paddingVertical: 8, paddingHorizontal: 4 },
-  underline: {
-    height: 1,
-    backgroundColor: 'rgba(0,188,212,0.7)',
-    marginTop: 4,
-  },
-  fabBtn: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(125,172,197,0.85)',
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    shadowColor: '#7DACC5',
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 5,
   },
   pressed: { opacity: 0.6 },
 });
