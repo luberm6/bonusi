@@ -236,6 +236,7 @@ export async function sendMessage(
     clientMessageId: string;
     text?: string;
     attachments?: Array<{ fileUrl: string; fileType: "image" | "pdf"; fileName: string; size: number }>;
+    isRepairHistory?: boolean;
   }
 ) {
   if (input.attachments?.length && !env.filesEnabled) {
