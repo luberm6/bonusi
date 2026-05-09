@@ -28,53 +28,54 @@ export function BookingTabScreen() {
 
       {/* ── Phone cards ── */}
       <View style={s.section}>
-        <Pressable style={({ pressed }) => [s.phoneCard, pressed && s.pressed]}>
+        <Pressable
+          style={({ pressed }) => [s.phoneCard, pressed && s.pressed]}
+          onPress={() => Linking.openURL('tel:+79313944747')}
+        >
           <View style={s.phoneIconWrap}>
             <Text style={{ fontSize: 20 }}>📞</Text>
           </View>
           <View style={s.phoneInfo}>
-            <Text style={s.phoneNumber}>+7 (700) 000-00-01</Text>
+            <Text style={s.phoneNumber}>+7 931 394 4747</Text>
             <Text style={s.phoneLabel}>ОСНОВНОЙ НОМЕР</Text>
           </View>
           <Text style={s.chevron}>›</Text>
         </Pressable>
-        <Pressable style={({ pressed }) => [s.phoneCard, pressed && s.pressed]}>
+        <Pressable
+          style={({ pressed }) => [s.phoneCard, pressed && s.pressed]}
+          onPress={() => Linking.openURL('tel:+79313954747')}
+        >
           <View style={s.phoneIconWrap}>
             <Text style={{ fontSize: 20 }}>📱</Text>
           </View>
           <View style={s.phoneInfo}>
-            <Text style={s.phoneNumber}>+7 (700) 000-00-02</Text>
+            <Text style={s.phoneNumber}>+7 931 395 4747</Text>
             <Text style={s.phoneLabel}>ДИСПЕТЧЕР СЕРВИСА</Text>
           </View>
           <Text style={s.chevron}>›</Text>
         </Pressable>
       </View>
 
-      {/* ── Messenger grid ── */}
+      {/* ── Соцсети ── */}
       <View style={s.section}>
-        <Text style={s.sectionLabel}>МЕССЕНДЖЕРЫ</Text>
+        <Text style={s.sectionLabel}>МЕССЕНДЖЕРЫ И СОЦСЕТИ</Text>
         <View style={s.messengerGrid}>
-          <Pressable style={({ pressed }) => [s.messengerCard, pressed && s.pressed]}>
-            <Text style={s.messengerIcon}>✈️</Text>
-            <Text style={s.messengerName}>TELEGRAM</Text>
-          </Pressable>
-          <Pressable style={({ pressed }) => [s.messengerCard, pressed && s.pressed]}>
+          <Pressable
+            style={({ pressed }) => [s.messengerCard, pressed && s.pressed]}
+            onPress={() => Linking.openURL('https://vk.ru/radius812')}
+          >
             <Text style={s.messengerIcon}>🔵</Text>
-            <Text style={s.messengerName}>VKONTAKTE</Text>
+            <Text style={s.messengerName}>ВКОНТАКТЕ</Text>
+            <Text style={s.messengerSub}>vk.ru/radius812</Text>
           </Pressable>
-        </View>
-      </View>
-
-      {/* ── Email + site ── */}
-      <View style={s.contactFooter}>
-        <View style={s.contactRow}>
-          <Text style={s.contactIcon}>✉️</Text>
-          <Text style={s.contactText}>service@precision.kz</Text>
-        </View>
-        <View style={s.contactDivider} />
-        <View style={s.contactRow}>
-          <Text style={s.contactIcon}>🌐</Text>
-          <Text style={s.contactText}>www.precision-service.kz</Text>
+          <Pressable
+            style={({ pressed }) => [s.messengerCard, pressed && s.pressed]}
+            onPress={() => Linking.openURL('tel:+79313944747')}
+          >
+            <Text style={s.messengerIcon}>✈️</Text>
+            <Text style={s.messengerName}>ПОЗВОНИТЬ</Text>
+            <Text style={s.messengerSub}>+7 931 394 4747</Text>
+          </Pressable>
         </View>
       </View>
     </ScrollView>
@@ -221,6 +222,12 @@ const s = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 2,
+  },
+  messengerSub: {
+    color: colors.textDim,
+    fontSize: 10,
+    marginTop: 2,
+    letterSpacing: 0.5,
   },
 
   contactFooter: {
