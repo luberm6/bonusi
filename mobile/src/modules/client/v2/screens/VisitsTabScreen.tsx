@@ -4,11 +4,13 @@ import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 
 export function VisitsTabScreen({ navigation }: any) {
-  const { visits, visitsLoading, ensureVisitsLoaded } = useClientData();
+  const { visits, visitsLoading, ensureVisitsLoaded,
+    repairDocuments, repairDocumentsLoading, ensureRepairDocumentsLoaded } = useClientData();
 
   React.useEffect(() => {
     ensureVisitsLoaded();
-  }, [ensureVisitsLoaded]);
+    ensureRepairDocumentsLoaded();
+  }, [ensureVisitsLoaded, ensureRepairDocumentsLoaded]);
 
   const total = visits?.length ?? 0;
   const totalSum = visits?.reduce((acc, v) => acc + (v.finalAmount ?? 0), 0) ?? 0;
@@ -40,16 +42,25 @@ export function VisitsTabScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Инфо о документах из чата */}
-        <View style={s.infoCard}>
-          <Text style={s.infoIcon}>📄</Text>
-          <View style={s.infoTexts}>
-            <Text style={s.infoTitle}>Документы из чата</Text>
-            <Text style={s.infoDesc}>
-              Заказ-наряды, отправленные мастером в чате и подтверждённые для сохранения, автоматически появляются в этом разделе
-            </Text>
-          </View>
-        </View>
+        {/* Документы из чата (помечены мастером "Сохранить в историю") */}
+        {repairDocumentsLoading ? null : repairDocuments && repairDocuments.length > 0 ? (
+          <>
+            <Text style={s.sectionLabel}>📋 ДОКУМЕНТЫ ИЗ ЧАТА</Text>
+            {repairDocuments.map((doc) => (
+              <View key={doc.id} style={s.docCard}>
+                <Text style={s.docDate}>
+                  {new Date(doc.createdAt).toLocaleDateString('ru-RU', {
+                    day: '2-digit', month: 'long', year: 'numeric',
+                  })}
+                </Text>
+                {doc.text ? <Text style={s.docText}>{doc.text}</Text> : null}
+                {doc.attachments?.map((att) => (
+                  <Text key={att.id} style={s.docAttachment}>📎 {att.fileName}</Text>
+                ))}
+              </View>
+            ))}
+          </>
+        ) : null}
 
         {/* Список заказ-нарядов */}
         {visitsLoading ? (
@@ -182,4 +193,24 @@ const s = StyleSheet.create({
   emptyTitle: { color: colors.textSub, fontSize: 16, fontWeight: '700' },
   emptyDesc: { color: colors.textDim, fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 19 },
   pressed: { opacity: 0.65 },
+
+  sectionLabel: {
+    color: colors.textDim, fontSize: 11, letterSpacing: 2,
+    fontWeight: '700', marginTop: 4,
+  },
+  docCard: {
+    backgroundColor: colors.surface, borderRadius: 14,
+    borderWidth: 1, borderColor: 'rgba(0,188,212,0.2)',
+    padding: 14, gap: 6,
+  },
+  docDate: { color: colors.textDim, fontSize: 11 },
+  docText: { color: colors.text, fontSize: 14, lineHeight: 20 },
+  docAttachment: { color: colors.accent, fontSize: 12 },
+
+  // infoCard removed — now replaced by actual docCards when data exists
+  infoCard: { display: 'none' },
+  infoIcon: { display: 'none' },
+  infoTexts: { display: 'none' },
+  infoTitle: { display: 'none' },
+  infoDesc: { display: 'none' },
 });

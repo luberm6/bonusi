@@ -7,6 +7,7 @@ const PHONE_2 = '+7 931 395 4747';
 const VK_URL  = 'https://vk.ru/radius812';
 const TG_URL  = 'https://t.me/CentrRadius';
 const WEBSITE = 'https://radius47.tilda.ws';
+const EMAIL   = 'info@radius47.ru';
 
 function TelegramLogo({ size = 40 }: { size?: number }) {
   return (
@@ -92,8 +93,20 @@ export function BookingTabScreen({ navigation }: any) {
         </Pressable>
       </View>
 
-      {/* ── Сайт ── */}
+      {/* ── Email и сайт ── */}
       <View style={s.infoBlock}>
+        <Pressable
+          style={({ pressed }) => [s.infoRow, pressed && s.pressed]}
+          onPress={() => Linking.openURL(`mailto:${EMAIL}`)}
+        >
+          <Text style={s.infoIcon}>✉️</Text>
+          <View style={s.infoTexts}>
+            <Text style={s.infoLabel}>Электронная почта</Text>
+            <Text style={s.infoValue}>{EMAIL}</Text>
+          </View>
+          <Text style={s.chevron}>›</Text>
+        </Pressable>
+        <View style={s.infoDivider} />
         <Pressable
           style={({ pressed }) => [s.infoRow, pressed && s.pressed]}
           onPress={() => Linking.openURL(WEBSITE)}

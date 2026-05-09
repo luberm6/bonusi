@@ -82,6 +82,14 @@ export type MessageAttachment = {
   size: number;
 };
 
+export type RepairDocumentRow = {
+  id: string;
+  text: string | null;
+  createdAt: string;
+  senderEmail: string;
+  attachments: MessageAttachment[];
+};
+
 export type MessageRow = {
   id: string;
   senderId: string;

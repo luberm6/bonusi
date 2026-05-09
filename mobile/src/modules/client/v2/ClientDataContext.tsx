@@ -1,14 +1,23 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 import { mobileEnv } from "../../../shared/config/mobile-env";
 import type { AuthSession } from "../../../app/navigation/role-navigation-resolver";
-import type { 
-  UserMe, 
-  BonusBalance, 
-  VisitRow, 
-  BonusHistoryRow, 
-  BranchRow, 
-  ConversationRow, 
-  MessageRow 
+import type {
+  UserMe,
+  BonusBalance,
+  VisitRow,
+  BonusHistoryRow,
+  BranchRow,
+  ConversationRow,
+  MessageRow,
+  RepairDocumentRow,
 } from "./types";
 
 type ToastState = { type: "success" | "error"; message: string } | null;
@@ -21,6 +30,8 @@ interface ClientDataContextValues {
   bonusBalance: number;
   visits: VisitRow[] | null;
   visitsLoading: boolean;
+  repairDocuments: RepairDocumentRow[] | null;
+  repairDocumentsLoading: boolean;
   bonusHistory: BonusHistoryRow[] | null;
   bonusHistoryLoading: boolean;
   branches: BranchRow[] | null;
@@ -32,6 +43,7 @@ interface ClientDataContextValues {
   toast: ToastState;
   
   ensureVisitsLoaded: () => Promise<void>;
+  ensureRepairDocumentsLoaded: () => Promise<void>;
   ensureBonusHistoryLoaded: () => Promise<void>;
   ensureBranchesLoaded: () => Promise<void>;
   ensureChatLoaded: () => Promise<void>;
@@ -76,6 +88,8 @@ export function ClientDataProvider(props: {
   const [bonusBalance, setBonusBalance] = useState<number>(0);
   const [visits, setVisits] = useState<VisitRow[] | null>(null);
   const [visitsLoading, setVisitsLoading] = useState(false);
+  const [repairDocuments, setRepairDocuments] = useState<RepairDocumentRow[] | null>(null);
+  const [repairDocumentsLoading, setRepairDocumentsLoading] = useState(false);
   const [bonusHistory, setBonusHistory] = useState<BonusHistoryRow[] | null>(null);
   const [bonusHistoryLoading, setBonusHistoryLoading] = useState(false);
   const [branches, setBranches] = useState<BranchRow[] | null>(null);
@@ -126,6 +140,23 @@ export function ClientDataProvider(props: {
       setVisitsLoading(false);
     }
   }, [visits, props.session.userId, props.accessToken, presentToast]);
+
+  const ensureRepairDocumentsLoaded = useCallback(async () => {
+    if (repairDocuments) return;
+    setRepairDocumentsLoading(true);
+    try {
+      const rows = await requestJson<RepairDocumentRow[]>(
+        `/clients/${encodeURIComponent(props.session.userId)}/repair-documents`,
+        props.accessToken
+      );
+      setRepairDocuments(rows);
+    } catch {
+      // Repair documents endpoint may not exist yet — fail silently
+      setRepairDocuments([]);
+    } finally {
+      setRepairDocumentsLoading(false);
+    }
+  }, [repairDocuments, props.session.userId, props.accessToken]);
 
   const ensureBonusHistoryLoaded = useCallback(async () => {
     if (bonusHistory) return;
@@ -193,17 +224,32 @@ export function ClientDataProvider(props: {
   }, [props.accessToken, presentToast]);
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!activeConversationId) return false;
+    let convId = activeConversationId;
+    if (!convId) {
+      try {
+        await requestJson("/chat/conversations/ensure", props.accessToken, { method: "POST", body: JSON.stringify({}) });
+        const convs = await requestJson<ConversationRow[]>("/chat/conversations", props.accessToken);
+        setConversations(convs);
+        convId = convs[0]?.id ?? null;
+        setActiveConversationId(convId);
+        if (convId) {
+          const rows = await requestJson<MessageRow[]>(`/chat/conversations/${encodeURIComponent(convId)}/messages`, props.accessToken);
+          setMessages(rows);
+        }
+      } catch {
+        return false;
+      }
+    }
+    if (!convId) return false;
     try {
-      await requestJson(`/chat/conversations/${encodeURIComponent(activeConversationId)}/messages`, props.accessToken, {
+      await requestJson(`/chat/conversations/${encodeURIComponent(convId)}/messages`, props.accessToken, {
         method: "POST",
         body: JSON.stringify({
-          clientMessageId: Date.now().toString(),
+          clientMessageId: generateUUID(),
           text
         })
       });
-      // Обновляем список локально
-      const rows = await requestJson<MessageRow[]>(`/chat/conversations/${encodeURIComponent(activeConversationId)}/messages`, props.accessToken);
+      const rows = await requestJson<MessageRow[]>(`/chat/conversations/${encodeURIComponent(convId)}/messages`, props.accessToken);
       setMessages(rows);
       return true;
     } catch {
@@ -237,11 +283,12 @@ export function ClientDataProvider(props: {
       onLogout: props.onLogout,
       me, bonusBalance,
       visits, visitsLoading,
+      repairDocuments, repairDocumentsLoading,
       bonusHistory, bonusHistoryLoading,
       branches, branchesLoading,
       conversations, activeConversationId, messages, chatLoading,
       toast,
-      ensureVisitsLoaded, ensureBonusHistoryLoaded, ensureBranchesLoaded, ensureChatLoaded,
+      ensureVisitsLoaded, ensureRepairDocumentsLoaded, ensureBonusHistoryLoaded, ensureBranchesLoaded, ensureChatLoaded,
       openConversation, sendMessage, presentToast
     }}>
       {props.children}

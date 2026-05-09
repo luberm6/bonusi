@@ -166,6 +166,12 @@ if (session) {
         <div class="workspace-chat-messages" id="msgs"></div>
         <div class="workspace-chat-compose">
           <textarea id="msg-text" class="input" rows="2" placeholder="Введите сообщение..."></textarea>
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+            <input type="checkbox" id="repair-history-chk" style="width:16px;height:16px;cursor:pointer;accent-color:#00bcd4;">
+            <label for="repair-history-chk" style="font-size:12px;color:#94a3b8;cursor:pointer;user-select:none;">
+              📋 Сохранить в историю ремонта
+            </label>
+          </div>
           <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
         </div>
       </div>
@@ -190,13 +196,16 @@ if (session) {
       const text = textInput.value.trim();
       if (!text) return;
       const draft = textInput.value;
+      const repairHistoryChk = document.getElementById("repair-history-chk");
+      const isRepairHistory = repairHistoryChk ? repairHistoryChk.checked : false;
       textInput.value = "";
+      if (repairHistoryChk) repairHistoryChk.checked = false;
       sendButton.disabled = true;
       sendButton.textContent = "Отправка...";
       try {
         await authFetchJson(`/chat/conversations/${conversationId}/messages`, {
           method: "POST",
-          body: { clientMessageId: crypto.randomUUID(), text }
+          body: { clientMessageId: crypto.randomUUID(), text, ...(isRepairHistory ? { isRepairHistory: true } : {}) }
         });
         const msgs = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
         lastMessageIds = "";

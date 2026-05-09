@@ -250,11 +250,11 @@ export async function sendMessage(
     await client.query("begin");
     const inserted = await client.query(
       `insert into public.messages
-       (conversation_id, sender_id, receiver_id, client_message_id, text, status)
-       values ($1, $2, $3, $4, $5, 'sent')
+       (conversation_id, sender_id, receiver_id, client_message_id, text, status, is_repair_history)
+       values ($1, $2, $3, $4, $5, 'sent', $6)
        on conflict (sender_id, client_message_id) do nothing
-       returning id, conversation_id, sender_id, receiver_id, client_message_id, text, status, read_at, created_at`,
-      [conversationId, actor.id, receiverId, input.clientMessageId, input.text ?? null]
+       returning id, conversation_id, sender_id, receiver_id, client_message_id, text, status, read_at, created_at, is_repair_history`,
+      [conversationId, actor.id, receiverId, input.clientMessageId, input.text ?? null, input.isRepairHistory ?? false]
     );
 
     let message: MessageRow;

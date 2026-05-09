@@ -60,7 +60,7 @@ export const env = {
   nominatimUserAgent: process.env.NOMINATIM_USER_AGENT ?? "autoservice-backend/1.0 (internal-autoservice)",
   nominatimTimeoutMs: parsePositiveNumber(process.env.NOMINATIM_TIMEOUT_MS, 7000),
   geocodeCacheTtlDays: parsePositiveNumber(process.env.GEOCODE_CACHE_TTL_DAYS, 30),
-  filesEnabled: parseBoolean(process.env.FILES_ENABLED, false),
+  filesEnabled: parseBoolean(process.env.FILES_ENABLED, true),
   pushEnabled: parseBoolean(process.env.PUSH_ENABLED, false),
   smtpEnabled: parseBoolean(process.env.SMTP_ENABLED, false),
   s3Endpoint: process.env.S3_ENDPOINT ?? "",
