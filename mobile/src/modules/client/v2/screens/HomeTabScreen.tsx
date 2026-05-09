@@ -59,12 +59,19 @@ export function HomeTabScreen({ navigation }: any) {
   return (
     <View style={s.root}>
 
-      {/* ── Фото авто — cover, центр на Bentley ──
-          2022×1414 ландшафтный PNG, cover кадрирует по высоте,
-          показывает центральную полосу (x≈640–1380) где находится руль */}
+      {/* ── Фото авто — cover, растянут на ПОЛНЫЙ экран (включая safe area) ──
+          SafeAreaView в root shell уменьшает рабочую область до 863pt,
+          но Figma baseline — 440×956. Растягиваем изображение на весь экран
+          отрицательными отступами, чтобы руль был виден как в Figma. */}
       <Image
         source={ASSETS.bgCar}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        style={{
+          position: 'absolute',
+          top: -insets.top,
+          left: 0,
+          right: 0,
+          height: SH,
+        }}
         resizeMode="cover"
       />
 
@@ -298,7 +305,7 @@ function MapArrow({ size }: { size: number }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000' },
+  root: { flex: 1, backgroundColor: '#000', overflow: 'visible' },
   mapRow: {
     position: 'absolute',
     flexDirection: 'row',
