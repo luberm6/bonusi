@@ -206,8 +206,8 @@ export function HomeTabScreen({ navigation }: any) {
 
       {/* ── Кнопки навигации (Figma: rounded rect, border #7dacc5) ── */}
       {([
-        ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('BookingTab')), sy(717)],
-        ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('VisitsTab')),    sy(786)],
+        ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('Booking')), sy(717)],
+        ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('Visits')),    sy(786)],
         ['СИСТЕМА\nКЭШБЕКА',     () => void ensureBonusHistoryLoaded().then(() => navigation.navigate('Cashback')), sy(860)],
       ] as [string, () => void, number][]).map(([label, onPress, top]) => (
         <Pressable

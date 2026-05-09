@@ -21,56 +21,19 @@ const Stack = createNativeStackNavigator();
 
 function MainTabs() {
   const insets = useSafeAreaInsets();
-  
-  const tabLabelStyle = {
-    fontSize: 10,
-    fontWeight: '600' as const,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase' as const,
-  };
 
   return (
     <Tab.Navigator
       id="ClientMainTabs"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          height: Platform.OS === "ios" ? 88 : 64,
-          paddingBottom: Platform.OS === "ios" ? insets.bottom : 8,
-          paddingTop: 8,
-        },
+        tabBarStyle: { display: 'none' },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textDim,
-        tabBarLabelStyle: tabLabelStyle,
       }}
     >
-      <Tab.Screen
-        name="HomeTab"
-        component={HomeTabScreen}
-        options={{
-          tabBarLabel: "DASHBOARD",
-          // По дизайну: на главном экране tab bar скрыт
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tab.Screen
-        name="VisitsTab"
-        component={VisitsTabScreen}
-        options={{ tabBarLabel: "HISTORY" }}
-      />
-      <Tab.Screen
-        name="BookingTab"
-        component={BookingTabScreen}
-        options={{ tabBarLabel: "CONTACT" }}
-      />
-      <Tab.Screen
-        name="ChatTab"
-        component={ChatTabScreen}
-        options={{ tabBarLabel: "CHAT" }}
-      />
+      <Tab.Screen name="HomeTab" component={HomeTabScreen} />
+      <Tab.Screen name="ChatTab" component={ChatTabScreen} />
     </Tab.Navigator>
   );
 }
@@ -81,6 +44,8 @@ export function ClientNavigator() {
       <NavigationContainer>
         <Stack.Navigator id="ClientRootStack" screenOptions={{ headerShown: false, animation: "slide_from_right" }}>
           <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="Booking" component={BookingTabScreen} />
+          <Stack.Screen name="Visits" component={VisitsTabScreen} />
           <Stack.Screen name="VisitDetails" component={VisitDetailsScreen} />
           <Stack.Screen name="BonusHistory" component={BonusHistoryScreen} />
           <Stack.Screen name="Cashback" component={CashbackScreen} />

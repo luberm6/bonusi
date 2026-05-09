@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, PanResponder } from 'react-native';
+import React from 'react';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking } from 'react-native';
 import { colors } from '../../../../theme/colors';
 
 const PHONE_1 = '+7 931 394 4747';
@@ -27,13 +27,8 @@ function VKLogo({ size = 40 }: { size?: number }) {
 }
 
 export function BookingTabScreen({ navigation }: any) {
-  const pan = useRef(PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gs) => gs.x0 < 40 && gs.dx > 10 && Math.abs(gs.dy) < 40,
-    onPanResponderRelease: (_, gs) => { if (gs.dx > 60) navigation.navigate('HomeTab'); },
-  })).current;
-
   return (
-    <View style={s.root} {...pan.panHandlers}>
+    <View style={s.root}>
       <View style={s.header}>
         <Pressable onPress={() => navigation?.goBack()} style={s.backBtn} hitSlop={8}>
           <Text style={s.backIcon}>‹</Text>
