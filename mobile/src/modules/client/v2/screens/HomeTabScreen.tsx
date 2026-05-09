@@ -237,6 +237,33 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{ color: '#fff', fontSize: sx(11), fontFamily: F,  letterSpacing: 1 }}>КМ</Text>
       </View>
 
+      {/* ── Белые дуги справа от пузырькового гейджа ── */}
+      {[sx(130), sx(142), sx(154)].map((r, i) => (
+        <View
+          key={i}
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            left: gaugeCX,
+            top: gaugeCY - r,
+            width: r + sx(16),
+            height: r * 2,
+            overflow: 'hidden',
+          }}
+        >
+          <View style={{
+            position: 'absolute',
+            left: -r,
+            top: 0,
+            width: r * 2,
+            height: r * 2,
+            borderRadius: r,
+            borderWidth: 1,
+            borderColor: `rgba(255,255,255,${0.45 - i * 0.12})`,
+          }} />
+        </View>
+      ))}
+
       {/* ── Нижний блок: датчики, имя, модель, кнопки (slide-up fade) ── */}
       <Animated.View style={{
         position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
@@ -244,11 +271,12 @@ export function HomeTabScreen({ navigation }: any) {
         transform: [{ translateY: contentTranslateY }],
       }} pointerEvents="box-none">
 
-        {/* Датчик температуры */}
+        {/* Датчик температуры — игла белая */}
         <Image source={ASSETS.tempGauge} style={{
           position: 'absolute',
           left: sx(18), top: sy(368),
           width: sx(76), height: sx(76),
+          tintColor: '#fff',
         }} resizeMode="contain" />
 
         {/* Имя клиента */}
@@ -277,11 +305,12 @@ export function HomeTabScreen({ navigation }: any) {
           БМВ М5
         </Text>
 
-        {/* Датчик топлива */}
+        {/* Датчик топлива — игла белая, выровнен по вертикали с tempGauge */}
         <Image source={ASSETS.fuelGauge} style={{
           position: 'absolute',
-          right: sx(18), top: sy(376),
-          width: sx(70), height: sx(46),
+          right: sx(18), top: sy(368),
+          width: sx(76), height: sx(76),
+          tintColor: '#fff',
         }} resizeMode="contain" />
 
         {/* Кнопки навигации */}
@@ -359,34 +388,54 @@ export function HomeTabScreen({ navigation }: any) {
 }
 
 // ── MAP навигационная стрелка ─────────────────────────────────────────────────
+// Пропорции взяты из Figma SVG viewBox 30.97 × 26.28:
+//  • стебель ~19% ширины (был 10% → выглядел тонкой ниткой)
+//  • наконечник ~48% ширины, центр на 31.6% высоты
+//  • вертикальный хвост начинается на 43% высоты
 function MapArrow({ size }: { size: number }) {
-  const w = size;
-  const h = size * 0.849;
-  const arm = w * 0.52;
-  const thick = w * 0.1;
+  const H = size;
+  const W = H * (30.97 / 26.28);  // aspect ratio из SVG
+  const stem = W * 0.19;           // жирный стебель
+
+  const headH       = H * 0.59;
+  const headW       = W * 0.48;
+  const headCenterY = H * 0.316;
+  const bodyTopY    = H * 0.216;
+  const bodyLen     = W * 0.52;
+  const tailTopY    = H * 0.432;
 
   return (
-    <View style={{ width: w, height: h }}>
+    <View style={{ width: W, height: H }}>
+      {/* Вертикальный хвост (нижний-левый) */}
       <View style={{
-        position: 'absolute', left: 0, bottom: 0,
-        width: thick, height: arm, backgroundColor: '#fff',
-        borderTopLeftRadius: thick, borderTopRightRadius: thick,
+        position: 'absolute', left: 0, top: tailTopY,
+        width: stem, height: H - tailTopY,
+        backgroundColor: '#fff',
+        borderBottomLeftRadius: stem / 2,
+        borderBottomRightRadius: stem / 2,
       }} />
+      {/* Горизонтальный стебель */}
       <View style={{
-        position: 'absolute', left: 0, top: 0,
-        width: w * 0.6, height: thick, backgroundColor: '#fff',
-        borderTopRightRadius: thick / 2, borderBottomRightRadius: thick / 2,
+        position: 'absolute', left: 0, top: bodyTopY,
+        width: bodyLen, height: stem,
+        backgroundColor: '#fff',
       }} />
+      {/* Вертикальный коннектор (угол L) */}
       <View style={{
-        position: 'absolute', left: 0, top: 0,
-        width: thick, height: thick, backgroundColor: '#fff',
+        position: 'absolute', left: 0, top: bodyTopY,
+        width: stem, height: tailTopY + stem - bodyTopY,
+        backgroundColor: '#fff',
       }} />
+      {/* Наконечник-треугольник вправо */}
       <View style={{
-        position: 'absolute', right: 0, top: -w * 0.12,
+        position: 'absolute', right: 0,
+        top: headCenterY - headH / 2,
         width: 0, height: 0,
-        borderTopWidth: h * 0.42, borderBottomWidth: h * 0.42,
-        borderLeftWidth: w * 0.42,
-        borderTopColor: 'transparent', borderBottomColor: 'transparent',
+        borderTopWidth: headH / 2,
+        borderBottomWidth: headH / 2,
+        borderLeftWidth: headW,
+        borderTopColor: 'transparent',
+        borderBottomColor: 'transparent',
         borderLeftColor: '#fff',
       }} />
     </View>
