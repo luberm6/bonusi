@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View, Text, Pressable, Image, Animated, Easing,
   StyleSheet, useWindowDimensions, Linking,
@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { useClientData } from '../ClientDataContext';
+import { fetchSpbWeather, type WeatherData, type WeatherIcon } from '../../../../shared/api/weather-api';
 
 // ─── Ассеты ──────────────────────────────────────────────────────────────────
 const ASSETS = {
@@ -43,6 +44,12 @@ export function HomeTabScreen({ navigation }: any) {
     me?.fullName?.trim()?.toUpperCase() ||
     me?.email?.toUpperCase() ||
     'КЛИЕНТ';
+
+  // Погода — загружается один раз при монтировании
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  useEffect(() => {
+    fetchSpbWeather().then(setWeather);
+  }, []);
 
   // Геометрия гейджа (Figma: left=109, top=84, w=240, h=234)
   const gaugeSize = sx(240);
@@ -139,6 +146,13 @@ export function HomeTabScreen({ navigation }: any) {
           MAP
         </Text>
       </Pressable>
+
+      {/* ── Виджет погоды (правый верхний угол) ── */}
+      {weather && (
+        <View style={{ position: 'absolute', top: sy(12), right: sx(18), alignItems: 'flex-end' }}>
+          <WeatherWidget weather={weather} sx={sx} F={F} />
+        </View>
+      )}
 
       {/* ── «0 КМ» ── */}
       <Text style={{
@@ -383,6 +397,172 @@ export function HomeTabScreen({ navigation }: any) {
 
       </Animated.View>
 
+    </View>
+  );
+}
+
+// ── Погодный виджет ───────────────────────────────────────────────────────────
+function WeatherIconGlyph({ icon, size }: { icon: WeatherIcon; size: number }) {
+  const color = '#fff';
+  const r = size / 2;
+
+  if (icon === 'sun') {
+    // Круг + 8 лучей
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+        {/* Лучи */}
+        {[0, 45, 90, 135].map((angle) => (
+          <View key={angle} style={{
+            position: 'absolute',
+            width: 1.5,
+            height: size * 0.38,
+            backgroundColor: color,
+            borderRadius: 1,
+            transform: [{ rotate: `${angle}deg` }],
+          }} />
+        ))}
+        {/* Диск */}
+        <View style={{
+          width: r,
+          height: r,
+          borderRadius: r / 2,
+          backgroundColor: color,
+        }} />
+      </View>
+    );
+  }
+
+  if (icon === 'rain') {
+    // Полукруг + 3 капли
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{
+          width: size * 0.78,
+          height: size * 0.42,
+          borderRadius: size * 0.3,
+          backgroundColor: color,
+          marginBottom: size * 0.06,
+        }} />
+        {[-size * 0.2, 0, size * 0.2].map((offset, i) => (
+          <View key={i} style={{
+            position: 'absolute',
+            bottom: 0,
+            left: r + offset - 1,
+            width: 2,
+            height: size * 0.28,
+            backgroundColor: color,
+            borderRadius: 1,
+            transform: [{ rotate: '-15deg' }],
+          }} />
+        ))}
+      </View>
+    );
+  }
+
+  if (icon === 'snow') {
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+        {[0, 60, 120].map((angle) => (
+          <View key={angle} style={{
+            position: 'absolute',
+            width: 1.5,
+            height: size * 0.85,
+            backgroundColor: color,
+            borderRadius: 1,
+            transform: [{ rotate: `${angle}deg` }],
+          }} />
+        ))}
+      </View>
+    );
+  }
+
+  if (icon === 'storm') {
+    // Молния — ломаная линия через 2 прямоугольника
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{
+          width: size * 0.32,
+          height: size * 0.5,
+          backgroundColor: color,
+          transform: [{ rotate: '20deg' }, { translateX: size * 0.08 }],
+          borderRadius: 1,
+        }} />
+        <View style={{
+          width: size * 0.32,
+          height: size * 0.5,
+          backgroundColor: color,
+          marginTop: -size * 0.18,
+          transform: [{ rotate: '20deg' }, { translateX: -size * 0.08 }],
+          borderRadius: 1,
+        }} />
+      </View>
+    );
+  }
+
+  if (icon === 'fog') {
+    // 3 горизонтальные полоски
+    return (
+      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', gap: size * 0.12 }}>
+        {[size * 0.9, size * 0.75, size * 0.55].map((w, i) => (
+          <View key={i} style={{
+            width: w,
+            height: 1.5,
+            backgroundColor: color,
+            borderRadius: 1,
+          }} />
+        ))}
+      </View>
+    );
+  }
+
+  // cloud / overcast — облако из 2 View
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{
+        width: size * 0.82,
+        height: size * 0.5,
+        borderRadius: size * 0.25,
+        backgroundColor: color,
+        marginTop: size * 0.12,
+      }} />
+      <View style={{
+        position: 'absolute',
+        top: size * 0.05,
+        left: size * 0.15,
+        width: size * 0.42,
+        height: size * 0.42,
+        borderRadius: size * 0.21,
+        backgroundColor: color,
+      }} />
+    </View>
+  );
+}
+
+function WeatherWidget({
+  weather,
+  sx,
+  F,
+}: {
+  weather: WeatherData;
+  sx: (v: number) => number;
+  F: string | undefined;
+}) {
+  const iconSize = sx(18);
+  const tempText = weather.temperatureC !== null
+    ? `${weather.temperatureC > 0 ? '+' : ''}${weather.temperatureC}°`
+    : '—';
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: sx(5) }}>
+      <WeatherIconGlyph icon={weather.icon} size={iconSize} />
+      <Text style={{
+        color: '#fff',
+        fontFamily: F,
+        fontSize: sx(14),
+        letterSpacing: 0.5,
+      }}>
+        {tempText}
+      </Text>
     </View>
   );
 }

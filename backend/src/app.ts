@@ -15,6 +15,7 @@ import { healthRouter } from "./modules/health/health.route.js";
 import { servicesRouter } from "./modules/services/services.routes.js";
 import { usersRouter } from "./modules/users/users.routes.js";
 import { visitsRouter } from "./modules/visits/visits.routes.js";
+import { weatherRouter } from "./modules/weather/weather.routes.js";
 
 function isTrustedRenderPair(origin: string, requestHost: string | undefined) {
   if (!origin || !requestHost) return false;
@@ -103,6 +104,7 @@ export function buildApp() {
   app.use("/api/v1", servicesRouter);
   app.use("/api/v1", visitsRouter);
   app.use("/api/v1", bonusesRouter);
+  app.use("/api/v1", weatherRouter);
   app.use(errorMiddleware);
 
   return app;
