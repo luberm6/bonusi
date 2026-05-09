@@ -283,8 +283,9 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{ color: '#fff', fontSize: sx(11), fontFamily: F,  letterSpacing: 1 }}>КМ</Text>
       </View>
 
-      {/* ── Белые дуги справа от пузырькового гейджа ── */}
-      {[sx(130), sx(142), sx(154)].map((r, i) => (
+      {/* ── Тонкие дуги справа от bubble: subtle dashboard decoration ── */}
+      {/* Клип-ширина sx(52) << r → видно ~25° дуги сверху и снизу, не полуокружность */}
+      {[sx(126), sx(137)].map((r, i) => (
         <View
           key={i}
           pointerEvents="none"
@@ -292,7 +293,7 @@ export function HomeTabScreen({ navigation }: any) {
             position: 'absolute',
             left: gaugeCX,
             top: gaugeCY - r,
-            width: r + sx(16),
+            width: sx(52),
             height: r * 2,
             overflow: 'hidden',
           }}
@@ -305,7 +306,7 @@ export function HomeTabScreen({ navigation }: any) {
             height: r * 2,
             borderRadius: r,
             borderWidth: 1,
-            borderColor: `rgba(255,255,255,${0.45 - i * 0.12})`,
+            borderColor: `rgba(255,255,255,${0.22 - i * 0.08})`,
           }} />
         </View>
       ))}
@@ -376,6 +377,11 @@ export function HomeTabScreen({ navigation }: any) {
               borderColor: '#7dacc5',
               justifyContent: 'center',
               alignItems: 'center',
+              shadowColor: '#7DACC5',
+              shadowOpacity: 0.65,
+              shadowRadius: 18,
+              shadowOffset: { width: 0, height: 0 },
+              elevation: 8,
             }, pressed && s.pressed]}
             onPress={onPress}
           >
@@ -388,7 +394,7 @@ export function HomeTabScreen({ navigation }: any) {
           </Pressable>
         ))}
 
-        {/* FAB outer ring */}
+        {/* FAB outer ring — glow ring вокруг кнопки чата */}
         <View
           pointerEvents="none"
           style={{
@@ -397,7 +403,12 @@ export function HomeTabScreen({ navigation }: any) {
             width: sx(107), height: sx(107),
             borderRadius: sx(53.5),
             borderWidth: 1,
-            borderColor: 'rgba(125,172,197,0.55)',
+            borderColor: 'rgba(125,172,197,0.70)',
+            shadowColor: '#7DACC5',
+            shadowOpacity: 0.50,
+            shadowRadius: 22,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 8,
           }}
         />
         {/* FAB "НАЧАТЬ ЧАТ" */}
@@ -408,14 +419,15 @@ export function HomeTabScreen({ navigation }: any) {
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
             borderWidth: 1.5,
-            borderColor: 'rgba(125,172,197,0.85)',
+            borderColor: 'rgba(125,172,197,0.90)',
             backgroundColor: 'rgba(0,0,0,0.2)',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: '#7DACC5',
-            shadowOpacity: 0.5,
-            shadowRadius: 12,
-            elevation: 5,
+            shadowOpacity: 0.80,
+            shadowRadius: 26,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 10,
           }, pressed && s.pressed]}
           onPress={() => navigation.navigate('Chat')}
         >
