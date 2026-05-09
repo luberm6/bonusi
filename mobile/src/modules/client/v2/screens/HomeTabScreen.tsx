@@ -147,12 +147,10 @@ export function HomeTabScreen({ navigation }: any) {
         </Text>
       </Pressable>
 
-      {/* ── Виджет погоды (правый верхний угол) ── */}
-      {weather && (
-        <View style={{ position: 'absolute', top: sy(12), right: sx(18), alignItems: 'flex-end' }}>
-          <WeatherWidget weather={weather} sx={sx} F={F} />
-        </View>
-      )}
+      {/* ── Виджет погоды (правый верхний угол) — рендерится всегда ── */}
+      <View style={{ position: 'absolute', top: sy(12), right: sx(18), alignItems: 'flex-end' }}>
+        <WeatherWidget weather={weather} sx={sx} F={F} FB={FB} />
+      </View>
 
       {/* ── «0 КМ» ── */}
       <Text style={{
@@ -542,24 +540,36 @@ function WeatherWidget({
   weather,
   sx,
   F,
+  FB,
 }: {
-  weather: WeatherData;
+  weather: WeatherData | null;
   sx: (v: number) => number;
   F: string | undefined;
+  FB: string | undefined;
 }) {
   const iconSize = sx(18);
-  const tempText = weather.temperatureC !== null
-    ? `${weather.temperatureC > 0 ? '+' : ''}${weather.temperatureC}°`
-    : '—';
+  const tempText = weather?.temperatureC != null
+    ? `${weather.temperatureC > 0 ? '+' : ''}${weather.temperatureC}°C`
+    : '—°C';
+  const icon = weather?.icon ?? 'cloud';
+
+  const shadow = {
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  };
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: sx(5) }}>
-      <WeatherIconGlyph icon={weather.icon} size={iconSize} />
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <WeatherIconGlyph icon={icon} size={iconSize} />
       <Text style={{
         color: '#fff',
-        fontFamily: F,
-        fontSize: sx(14),
+        fontFamily: FB,
+        fontWeight: '700',
+        fontSize: sx(15),
         letterSpacing: 0.5,
+        marginLeft: sx(5),
+        ...shadow,
       }}>
         {tempText}
       </Text>
