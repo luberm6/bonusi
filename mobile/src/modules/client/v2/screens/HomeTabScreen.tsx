@@ -74,23 +74,18 @@ export function HomeTabScreen({ navigation }: any) {
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
-      // После reveal стартует бесконечный цикл дыхания пузырей.
-      // pulse 0→1→0 каждые 2×2000 мс — синусоидальный, без паузы.
+      // Бесшовный loop: одна timing 0→1 за 6000мс, Easing.linear.
+      // outputRange симметричный [1.0, 1.018, 1.0] → при сбросе pulse с 1→0
+      // scale остаётся 1.0 с обеих сторон → нет прыжка.
+      // Easing.linear убирает замедление на концах → нет паузы.
+      // Sequence НЕ используется → нет JS-кадра между итерациями.
       Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulse, {
-            toValue: 1,
-            duration: 2000,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulse, {
-            toValue: 0,
-            duration: 2000,
-            easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
-          }),
-        ])
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 6000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
       ).start();
     });
   }, []);
@@ -107,10 +102,12 @@ export function HomeTabScreen({ navigation }: any) {
     outputRange: [0.95, 1],
   });
 
-  // Bubble loop: ±1.8% breathing scale, starts at 1.0 (seamless after startup)
+  // Bubble loop: симметричный [1.0→1.018→1.0] за 6с, Easing.linear.
+  // pulse=0 → scale=1.0, pulse=1 → scale=1.0: loop-reset невидим.
+  // Середина цикла (pulse=0.5) — пик масштаба 1.018 (±1.8%).
   const pulseScale = pulse.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1.0, 1.018],
+    inputRange: [0, 0.5, 1],
+    outputRange: [1.0, 1.018, 1.0],
   });
 
   // Cyan glow ring: peaks at 60% of animation, settles lower — "activation pulse"
