@@ -122,14 +122,14 @@ const s = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 10,
   },
-  backBtn: { width: 36, alignItems: 'flex-start' },
-  backIcon: { color: colors.text, fontSize: 32, lineHeight: 36 },
+  backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
   headerTitle: {
     flex: 1,
     color: colors.accent,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     textAlign: 'center',
   },
 

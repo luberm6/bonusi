@@ -274,7 +274,7 @@ export function HomeTabScreen({ navigation }: any) {
           shadowRadius: 12,
           elevation: 5,
         }, pressed && s.pressed]}
-        onPress={() => navigation.navigate('ChatTab')}
+        onPress={() => navigation.navigate('Chat')}
       >
         <Text style={{
           color: '#fff', fontFamily: F,
