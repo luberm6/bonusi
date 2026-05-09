@@ -360,7 +360,7 @@ export function HomeTabScreen({ navigation }: any) {
           tintColor: '#fff',
         }} resizeMode="contain" />
 
-        {/* Кнопки навигации */}
+        {/* Кнопки навигации — текст + подчёркивание с glow, без рамки */}
         {([
           ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('Booking')), sy(717)],
           ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('Visits')),    sy(786)],
@@ -371,26 +371,29 @@ export function HomeTabScreen({ navigation }: any) {
             style={({ pressed }) => [{
               position: 'absolute',
               left: sx(21), top,
-              width: sx(135), height: sy(59),
-              borderRadius: sx(15),
-              borderWidth: 1,
-              borderColor: '#7dacc5',
+              width: sx(150), height: sy(59),
               justifyContent: 'center',
-              alignItems: 'center',
-              shadowColor: '#7DACC5',
-              shadowOpacity: 0.65,
-              shadowRadius: 18,
-              shadowOffset: { width: 0, height: 0 },
-              elevation: 8,
+              alignItems: 'flex-start',
             }, pressed && s.pressed]}
             onPress={onPress}
           >
             <Text style={{
               color: '#fff', fontFamily: F,
-              fontSize: sx(14), textAlign: 'center', lineHeight: 20,
+              fontSize: sx(14), textAlign: 'left', lineHeight: 20,
             }}>
               {label}
             </Text>
+            {/* Подчёркивание с cyan glow */}
+            <View style={{
+              height: 1,
+              width: sx(115),
+              backgroundColor: '#7DACC5',
+              marginTop: sx(5),
+              shadowColor: '#7DACC5',
+              shadowOpacity: 1,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 0 },
+            }} />
           </Pressable>
         ))}
 
