@@ -59,23 +59,10 @@ export function HomeTabScreen({ navigation }: any) {
   return (
     <View style={s.root}>
 
-      {/* ── Фото авто — cover, растянут на ПОЛНЫЙ экран (включая safe area) ──
-          SafeAreaView в root shell уменьшает рабочую область до 863pt,
-          но Figma baseline — 440×956. Растягиваем изображение на весь экран
-          отрицательными отступами, чтобы руль был виден как в Figma. */}
-      {/* ── Верхний слой авто (за гейджем, скрыт чёрным оверлеем) ── */}
-      <Image
-        source={ASSETS.bgCar}
-        style={{
-          position: 'absolute',
-          left: sx(-225),
-          top: sy(37) - insets.top,
-          width: sx(919),
-          height: sy(643),
-        }}
-        resizeMode="cover"
-      />
-      {/* ── Нижний слой авто (руль) — точные пропорции Figma ── */}
+      {/* ── Фото авто (руль Bentley) — точные пропорции нижней секции Figma.
+          Figma lower section: left=-230, top=141, w=927, h=649 в 440×956-фрейме.
+          Container aspect (927/649=1.428) ≈ image aspect (2022/1414=1.430) →
+          cover показывает почти весь оригинал без сильного кропа. */}
       <Image
         source={ASSETS.bgCar}
         style={{
@@ -83,7 +70,7 @@ export function HomeTabScreen({ navigation }: any) {
           left: sx(-230),
           top: sy(141),
           width: sx(927),
-          bottom: 0,
+          height: sy(649),
         }}
         resizeMode="cover"
       />
