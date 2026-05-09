@@ -1,36 +1,41 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 
-const FEATURES = [
+const STEPS = [
   {
+    num: '1',
     icon: '🔧',
-    title: 'Service',
-    description: 'Проходите техническое обслуживание и ремонт в наших сервисных центрах',
+    title: 'Делаете ремонт',
+    desc: 'Проходите техническое обслуживание или ремонт в Центре Radius Service',
   },
   {
-    icon: '⚡',
-    title: 'Earn 5%',
-    description: 'Получайте 5% от суммы каждого визита в виде бонусных баллов на счёт',
+    num: '2',
+    icon: '💰',
+    title: 'Получаете бонусы',
+    desc: '5% от стоимости выполненных ремонтных работ начисляется бонусными баллами на ваш счёт',
   },
   {
-    icon: '🎟',
-    title: 'Redeem',
-    description: 'Оплачивайте бонусами до 50% стоимости следующего обслуживания',
+    num: '3',
+    icon: '🎁',
+    title: 'Оплачиваете бонусами',
+    desc: 'Накопленные баллы можно использовать для оплаты следующего визита',
   },
 ];
 
 const DETAILS = [
-  { label: 'Ставка кэшбэка', value: '5%' },
-  { label: 'Срок действия баллов', value: '12 месяцев' },
-  { label: 'Мин. сумма списания', value: '500 ₸' },
-  { label: 'Макс. оплата баллами', value: '50% от суммы' },
+  { label: 'Начисление',        value: '5% от суммы работ' },
+  { label: 'Срок действия',     value: '12 месяцев' },
+  { label: 'Начисление на',     value: 'Только ремонт' },
+  { label: 'Запчасти',          value: 'Не начисляется' },
 ];
 
 export function CashbackScreen({ navigation }: any) {
+  const { bonusBalance } = useClientData();
+
   return (
     <View style={s.root}>
-      {/* ── Header ── */}
       <View style={s.header}>
         <Pressable onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
           <Text style={s.backIcon}>‹</Text>
@@ -39,204 +44,150 @@ export function CashbackScreen({ navigation }: any) {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Hero title ── */}
-        <View style={s.heroBlock}>
-          <Text style={s.heroLine}>
-            <Text style={s.heroWhite}>How our </Text>
-            <Text style={s.heroCyan}>loyalty program</Text>
-            <Text style={s.heroWhite}> works</Text>
-          </Text>
-          <Text style={s.heroSub}>
-            Простая система накопления и использования бонусных баллов
-          </Text>
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* Текущий баланс */}
+        <View style={s.balanceCard}>
+          <View style={s.balanceLeft}>
+            <Text style={s.balanceLabel}>ВАШ БАЛАНС</Text>
+            <Text style={s.balanceValue}>{bonusBalance}</Text>
+            <Text style={s.balanceSub}>бонусных баллов</Text>
+          </View>
+          <View style={s.balanceRight}>
+            <Text style={s.rateLabel}>СТАВКА</Text>
+            <Text style={s.rateValue}>5%</Text>
+            <Text style={s.rateSub}>с ремонтных работ</Text>
+          </View>
         </View>
 
-        {/* ── Feature cards ── */}
-        {FEATURES.map((f) => (
-          <View key={f.title} style={s.featureCard}>
-            <View style={s.featureIconWrap}>
-              <Text style={{ fontSize: 22 }}>{f.icon}</Text>
+        {/* Как работает */}
+        <Text style={s.sectionTitle}>КАК ЭТО РАБОТАЕТ</Text>
+        {STEPS.map((step) => (
+          <View key={step.num} style={s.stepCard}>
+            <View style={s.stepNum}>
+              <Text style={s.stepNumText}>{step.num}</Text>
             </View>
-            <View style={s.featureInfo}>
-              <Text style={s.featureTitle}>{f.title}</Text>
-              <Text style={s.featureDesc}>{f.description}</Text>
+            <View style={s.stepIcon}>
+              <Text style={{ fontSize: 22 }}>{step.icon}</Text>
+            </View>
+            <View style={s.stepInfo}>
+              <Text style={s.stepTitle}>{step.title}</Text>
+              <Text style={s.stepDesc}>{step.desc}</Text>
             </View>
           </View>
         ))}
 
-        {/* ── Program Details ── */}
+        {/* Условия */}
+        <Text style={s.sectionTitle}>УСЛОВИЯ ПРОГРАММЫ</Text>
         <View style={s.detailsCard}>
-          <View style={s.detailsHeader}>
-            <Text style={{ fontSize: 16 }}>ℹ</Text>
-            <Text style={s.detailsLabel}>PROGRAM DETAILS</Text>
-          </View>
-          <View style={s.detailsDivider} />
           {DETAILS.map((d, i) => (
             <View key={d.label} style={[s.detailRow, i < DETAILS.length - 1 && s.detailRowBorder]}>
-              <Text style={s.detailRowLabel}>{d.label}</Text>
-              <Text style={s.detailRowValue}>{d.value}</Text>
+              <Text style={s.detailLabel}>{d.label}</Text>
+              <Text style={s.detailValue}>{d.value}</Text>
             </View>
           ))}
         </View>
+
+        {/* Важно */}
+        <View style={s.noteCard}>
+          <Text style={s.noteTitle}>⚠️  Важно знать</Text>
+          <Text style={s.noteText}>
+            Бонусы начисляются только на стоимость ремонтных работ.{'\n'}
+            На стоимость запасных частей и материалов бонусы не начисляются.{'\n\n'}
+            Баллы сгорают через 12 месяцев с момента последнего начисления.
+          </Text>
+        </View>
+
       </ScrollView>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
+  root: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 14,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backIcon: {
-    color: colors.accent,
-    fontSize: 28,
-    lineHeight: 30,
-    fontWeight: '300',
-  },
-  headerTitle: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
+  backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
+  headerTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 2 },
 
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 48,
-    gap: 12,
-  },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 48, gap: 12 },
 
-  heroBlock: {
-    paddingVertical: 8,
-    marginBottom: 4,
-  },
-  heroLine: {
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 30,
-  },
-  heroWhite: {
-    color: colors.text,
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  heroCyan: {
-    color: colors.accent,
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  heroSub: {
-    color: colors.textSub,
-    fontSize: 13,
-    lineHeight: 20,
-    marginTop: 8,
-  },
-
-  featureCard: {
+  // Баланс
+  balanceCard: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
+    borderColor: 'rgba(0,188,212,0.3)',
+    padding: 20,
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 14,
-  },
-  featureIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.surface3,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  balanceLeft: { flex: 1 },
+  balanceLabel: { color: colors.textDim, fontSize: 10, letterSpacing: 2, fontWeight: '700' },
+  balanceValue: { color: colors.accent, fontSize: 48, fontWeight: '700', lineHeight: 54 },
+  balanceSub: { color: colors.textSub, fontSize: 13 },
+  balanceRight: {
+    alignItems: 'center',
+    backgroundColor: colors.surface3,
+    borderRadius: 14,
+    padding: 16,
+    minWidth: 90,
+  },
+  rateLabel: { color: colors.textDim, fontSize: 9, letterSpacing: 2, fontWeight: '700' },
+  rateValue: { color: colors.accent, fontSize: 36, fontWeight: '700', lineHeight: 42 },
+  rateSub: { color: colors.textSub, fontSize: 10, textAlign: 'center', marginTop: 2 },
+
+  sectionTitle: {
+    color: colors.textDim, fontSize: 11, letterSpacing: 2,
+    fontWeight: '700', marginTop: 8, marginBottom: 4,
+  },
+
+  // Шаги
+  stepCard: {
+    backgroundColor: colors.surface, borderRadius: 16,
+    borderWidth: 1, borderColor: colors.border,
+    padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 12,
+  },
+  stepNum: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0, marginTop: 2,
+  },
+  stepNumText: { color: '#000', fontSize: 14, fontWeight: '700' },
+  stepIcon: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: colors.surface3, alignItems: 'center', justifyContent: 'center',
     flexShrink: 0,
   },
-  featureInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  featureTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  featureDesc: {
-    color: colors.textSub,
-    fontSize: 13,
-    lineHeight: 19,
-  },
+  stepInfo: { flex: 1 },
+  stepTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  stepDesc: { color: colors.textSub, fontSize: 13, lineHeight: 19, marginTop: 4 },
 
+  // Условия
   detailsCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  detailsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 16,
-  },
-  detailsLabel: {
-    color: colors.textSub,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  detailsDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginHorizontal: 16,
+    backgroundColor: colors.surface, borderRadius: 16,
+    borderWidth: 1, borderColor: colors.border, overflow: 'hidden',
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
   },
-  detailRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  detailRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
+  detailLabel: { color: colors.textSub, fontSize: 13 },
+  detailValue: { color: colors.text, fontSize: 13, fontWeight: '700' },
+
+  // Важно
+  noteCard: {
+    backgroundColor: 'rgba(255,193,7,0.08)',
+    borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,193,7,0.25)',
+    padding: 16, gap: 8,
   },
-  detailRowLabel: {
-    color: colors.textSub,
-    fontSize: 13,
-  },
-  detailRowValue: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+  noteTitle: { color: '#FFC107', fontSize: 14, fontWeight: '700' },
+  noteText: { color: colors.textSub, fontSize: 13, lineHeight: 20 },
 });

@@ -10,12 +10,11 @@ export function VisitsTabScreen({ navigation }: any) {
     ensureVisitsLoaded();
   }, [ensureVisitsLoaded]);
 
-  const completedCount = visits?.length ?? 0;
-  const integrityPct = Math.min(100, 60 + completedCount * 4);
+  const total = visits?.length ?? 0;
+  const totalSum = visits?.reduce((acc, v) => acc + (v.finalAmount ?? 0), 0) ?? 0;
 
   return (
     <View style={s.root}>
-      {/* ── Header ── */}
       <View style={s.header}>
         <Pressable onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
           <Text style={s.backIcon}>‹</Text>
@@ -24,82 +23,93 @@ export function VisitsTabScreen({ navigation }: any) {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── System Integrity card ── */}
-        <View style={s.integrityCard}>
-          <View style={s.integrityRingWrap}>
-            {/* Ring */}
-            <View style={s.integrityRingOuter}>
-              <View style={s.integrityRingInner}>
-                <Text style={s.integrityPct}>{integrityPct}%</Text>
-              </View>
-            </View>
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* Сводка */}
+        <View style={s.summaryCard}>
+          <View style={s.summaryItem}>
+            <Text style={s.summaryValue}>{total}</Text>
+            <Text style={s.summaryLabel}>Заказ-нарядов</Text>
           </View>
-          <View style={s.integrityInfo}>
-            <Text style={s.integrityTitle}>SYSTEM INTEGRITY</Text>
-            <Text style={s.integrityStatus}>Optimal Performance</Text>
-            <View style={s.integrityBar}>
-              <View style={[s.integrityBarFill, { width: `${integrityPct}%` }]} />
-            </View>
-            <Text style={s.integrityHint}>{completedCount} ВИЗИТОВ ВЫПОЛНЕНО</Text>
+          <View style={s.summaryDivider} />
+          <View style={s.summaryItem}>
+            <Text style={s.summaryValue}>
+              {totalSum > 0 ? `${totalSum.toLocaleString('ru')} ₽` : '—'}
+            </Text>
+            <Text style={s.summaryLabel}>Общая сумма</Text>
           </View>
         </View>
 
-        {/* ── Visit list ── */}
+        {/* Инфо о документах из чата */}
+        <View style={s.infoCard}>
+          <Text style={s.infoIcon}>📄</Text>
+          <View style={s.infoTexts}>
+            <Text style={s.infoTitle}>Документы из чата</Text>
+            <Text style={s.infoDesc}>
+              Заказ-наряды, отправленные мастером в чате и подтверждённые для сохранения, автоматически появляются в этом разделе
+            </Text>
+          </View>
+        </View>
+
+        {/* Список заказ-нарядов */}
         {visitsLoading ? (
           <View style={s.loaderWrap}>
-            <Text style={s.loaderText}>Загрузка истории...</Text>
+            <Text style={s.loaderText}>Загрузка заказ-нарядов...</Text>
           </View>
         ) : visits && visits.length > 0 ? (
-          visits.map((v) => (
-            <View key={v.id} style={s.visitCard}>
-              <View style={s.visitRow}>
-                {/* File icon */}
-                <View style={s.fileIconWrap}>
-                  <Text style={{ fontSize: 22 }}>📄</Text>
+          visits.map((v, idx) => (
+            <Pressable
+              key={v.id}
+              style={({ pressed }) => [s.orderCard, pressed && s.pressed]}
+              onPress={() => navigation.navigate('VisitDetails', { visitId: v.id })}
+            >
+              {/* Шапка */}
+              <View style={s.orderHeader}>
+                <View style={s.orderNumWrap}>
+                  <Text style={s.orderNumLabel}>ЗАКАЗ-НАРЯД</Text>
+                  <Text style={s.orderNum}>#{String(idx + 1).padStart(3, '0')}</Text>
                 </View>
-
-                {/* Info */}
-                <View style={s.visitInfo}>
-                  <Text style={s.visitDate}>
-                    {new Date(v.visitDate).toLocaleDateString('ru-RU', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </Text>
-                  <Text style={s.visitTitle}>{v.branchName || 'Услуги сервиса'}</Text>
-                  <Text style={s.visitSubtitle}>
-                    {v.serviceNames?.join(', ') ||
-                      (v.servicesCount ? `${v.servicesCount} услуг` : 'Ремонтные работы')}
-                  </Text>
+                <View style={s.statusBadge}>
+                  <Text style={s.statusText}>ВЫПОЛНЕН</Text>
                 </View>
               </View>
 
-              {/* Bottom row */}
-              <View style={s.visitFooter}>
-                <View style={s.completedBadge}>
-                  <Text style={s.completedBadgeText}>COMPLETED</Text>
+              {/* Дата */}
+              <Text style={s.orderDate}>
+                {new Date(v.visitDate).toLocaleDateString('ru-RU', {
+                  day: '2-digit', month: 'long', year: 'numeric',
+                })}
+              </Text>
+
+              {/* Название */}
+              <Text style={s.orderTitle}>{v.branchName || 'Ремонтные работы'}</Text>
+
+              {/* Услуги */}
+              {v.serviceNames && v.serviceNames.length > 0 && (
+                <Text style={s.orderServices} numberOfLines={2}>
+                  {v.serviceNames.join(' · ')}
+                </Text>
+              )}
+
+              {/* Сумма */}
+              <View style={s.orderFooter}>
+                <View>
+                  {v.bonusAccrualAmount ? (
+                    <Text style={s.bonusLine}>+{v.bonusAccrualAmount} баллов начислено</Text>
+                  ) : null}
                 </View>
-                <Pressable
-                  style={({ pressed }) => [s.viewBtn, pressed && s.pressed]}
-                  onPress={() => navigation.navigate('VisitDetails', { visitId: v.id })}
-                >
-                  <Text style={s.viewBtnText}>VIEW</Text>
-                </Pressable>
+                {v.finalAmount ? (
+                  <Text style={s.orderSum}>{v.finalAmount.toLocaleString('ru')} ₽</Text>
+                ) : null}
               </View>
-            </View>
+            </Pressable>
           ))
         ) : (
           <View style={s.emptyWrap}>
-            <Text style={s.emptyIcon}>🔧</Text>
-            <Text style={s.emptyTitle}>Нет истории визитов</Text>
-            <Text style={s.emptySubtext}>
-              Вы ещё не посещали наши сервисные центры.
+            <Text style={s.emptyIcon}>📋</Text>
+            <Text style={s.emptyTitle}>Заказ-нарядов пока нет</Text>
+            <Text style={s.emptyDesc}>
+              После выполнения ремонта здесь появятся все ваши заказ-наряды
             </Text>
           </View>
         )}
@@ -109,234 +119,67 @@ export function VisitsTabScreen({ navigation }: any) {
 }
 
 const s = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
+  root: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 14,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backIcon: {
-    color: colors.accent,
-    fontSize: 28,
-    lineHeight: 30,
-    fontWeight: '300',
-  },
-  headerTitle: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
+  backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
+  headerTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 2 },
 
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 48,
-    gap: 12,
-  },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 48, gap: 12 },
 
-  // Integrity card
-  integrityCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 4,
+  // Сводка
+  summaryCard: {
+    backgroundColor: colors.surface, borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(0,188,212,0.2)',
+    flexDirection: 'row', overflow: 'hidden',
   },
-  integrityRingWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  integrityRingOuter: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 3,
-    borderColor: colors.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.accent,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  integrityRingInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.surface2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  integrityPct: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  integrityInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  integrityTitle: {
-    color: colors.textDim,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  integrityStatus: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  integrityBar: {
-    height: 3,
-    backgroundColor: colors.surface3,
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginTop: 4,
-  },
-  integrityBarFill: {
-    height: 3,
-    backgroundColor: colors.accent,
-    borderRadius: 2,
-  },
-  integrityHint: {
-    color: colors.textDim,
-    fontSize: 9,
-    letterSpacing: 1.5,
-    fontWeight: '600',
-    marginTop: 2,
-  },
+  summaryItem: { flex: 1, alignItems: 'center', paddingVertical: 20 },
+  summaryValue: { color: colors.accent, fontSize: 28, fontWeight: '700' },
+  summaryLabel: { color: colors.textDim, fontSize: 11, marginTop: 4, letterSpacing: 1 },
+  summaryDivider: { width: 1, backgroundColor: colors.border, marginVertical: 12 },
 
-  // Visit card
-  visitCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    gap: 12,
+  // Инфо
+  infoCard: {
+    backgroundColor: 'rgba(0,188,212,0.06)',
+    borderRadius: 14, borderWidth: 1, borderColor: 'rgba(0,188,212,0.2)',
+    padding: 14, flexDirection: 'row', gap: 12, alignItems: 'flex-start',
   },
-  visitRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  fileIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: colors.surface3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  visitInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  visitDate: {
-    color: colors.textDim,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  visitTitle: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  visitSubtitle: {
-    color: colors.textSub,
-    fontSize: 12,
-  },
+  infoIcon: { fontSize: 24, marginTop: 2 },
+  infoTexts: { flex: 1 },
+  infoTitle: { color: colors.text, fontSize: 13, fontWeight: '700' },
+  infoDesc: { color: colors.textSub, fontSize: 12, lineHeight: 18, marginTop: 4 },
 
-  visitFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  // Карточка заказ-наряда
+  orderCard: {
+    backgroundColor: colors.surface, borderRadius: 16,
+    borderWidth: 1, borderColor: colors.border, padding: 16, gap: 8,
   },
-  completedBadge: {
-    backgroundColor: 'rgba(0,188,212,0.15)',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  orderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  orderNumWrap: {},
+  orderNumLabel: { color: colors.textDim, fontSize: 9, letterSpacing: 2, fontWeight: '700' },
+  orderNum: { color: colors.accent, fontSize: 18, fontWeight: '700', letterSpacing: 1 },
+  statusBadge: {
+    backgroundColor: 'rgba(0,188,212,0.12)',
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
-  completedBadgeText: {
-    color: colors.accent,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-  },
-  viewBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-  },
-  viewBtnText: {
-    color: '#000000',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-  },
+  statusText: { color: colors.accent, fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
+  orderDate: { color: colors.textDim, fontSize: 11 },
+  orderTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
+  orderServices: { color: colors.textSub, fontSize: 12, lineHeight: 18 },
+  orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+  bonusLine: { color: colors.accent, fontSize: 12 },
+  orderSum: { color: colors.text, fontSize: 18, fontWeight: '700' },
 
-  loaderWrap: {
-    paddingTop: 40,
-    alignItems: 'center',
-  },
-  loaderText: {
-    color: colors.textDim,
-    fontSize: 13,
-    letterSpacing: 1,
-  },
-
-  emptyWrap: {
-    paddingTop: 60,
-    alignItems: 'center',
-    gap: 8,
-  },
-  emptyIcon: {
-    fontSize: 40,
-  },
-  emptyTitle: {
-    color: colors.textSub,
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 1,
-  },
-  emptySubtext: {
-    color: colors.textDim,
-    fontSize: 12,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-    lineHeight: 18,
-  },
-
-  pressed: {
-    opacity: 0.65,
-  },
+  loaderWrap: { paddingTop: 40, alignItems: 'center' },
+  loaderText: { color: colors.textDim, fontSize: 13, letterSpacing: 1 },
+  emptyWrap: { paddingTop: 60, alignItems: 'center', gap: 10 },
+  emptyIcon: { fontSize: 44 },
+  emptyTitle: { color: colors.textSub, fontSize: 16, fontWeight: '700' },
+  emptyDesc: { color: colors.textDim, fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 19 },
+  pressed: { opacity: 0.65 },
 });

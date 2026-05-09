@@ -8,6 +8,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
@@ -31,6 +32,54 @@ export function ChatTabScreen({ navigation }: any) {
   };
 
   const myId = session?.userId;
+
+  // Когда мастер прикрепляет документ — этот диалог показывается клиенту
+  // (на стороне клиента — кнопка для запроса документа у мастера)
+  const handleAttach = () => {
+    Alert.alert(
+      'Запрос документа',
+      'Вы можете запросить у мастера документ. Укажите тип:',
+      [
+        {
+          text: 'Заказ-наряд',
+          onPress: () => {
+            sendMessage('[Клиент запрашивает заказ-наряд]');
+          },
+        },
+        {
+          text: 'Смета на ремонт',
+          onPress: () => {
+            sendMessage('[Клиент запрашивает смету]');
+          },
+        },
+        { text: 'Отмена', style: 'cancel' },
+      ],
+    );
+  };
+
+  // Диалог подтверждения сохранения документа в историю ремонта
+  // Вызывается когда мастер присылает документ в чат
+  const handleDocumentReceived = (messageText: string, messageId: string) => {
+    Alert.alert(
+      'Сохранить в историю ремонта?',
+      `Мастер прислал документ:\n"${messageText}"\n\nСохранить его в Историю ремонта?`,
+      [
+        {
+          text: 'Да, сохранить',
+          onPress: () => {
+            // TODO: вызов API для сохранения документа в историю
+            // await markMessageAsRepairHistory(messageId);
+            Alert.alert('Сохранено', 'Документ добавлен в Историю ремонта');
+          },
+        },
+        {
+          text: 'Нет (предварительный)',
+          style: 'destructive',
+          onPress: () => { /* не сохраняем */ },
+        },
+      ],
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -104,7 +153,7 @@ export function ChatTabScreen({ navigation }: any) {
 
       {/* ── Composer ── */}
       <View style={s.composer}>
-        <Pressable style={s.attachBtn} hitSlop={8}>
+        <Pressable style={s.attachBtn} hitSlop={8} onPress={handleAttach}>
           <Text style={{ fontSize: 20 }}>📎</Text>
         </Pressable>
         <TextInput
