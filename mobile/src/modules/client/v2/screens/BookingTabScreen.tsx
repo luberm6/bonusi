@@ -8,16 +8,42 @@ const VK_URL  = 'https://vk.ru/radius812';
 const TG_URL  = 'https://t.me/CentrRadius';
 const WEBSITE = 'https://radius47.tilda.ws';
 
-export function BookingTabScreen() {
+function TelegramLogo({ size = 40 }: { size?: number }) {
   return (
+    <View style={[s.logoBox, { width: size, height: size, borderRadius: size / 2, backgroundColor: '#2AABEE' }]}>
+      {/* Paper plane — horizontal right arrow + diagonal */}
+      <View style={{ width: size * 0.52, height: size * 0.08, backgroundColor: '#fff', borderRadius: 2, transform: [{ rotate: '-35deg' }, { translateX: size * 0.02 }, { translateY: -size * 0.02 }] }} />
+      <View style={{ width: size * 0.32, height: size * 0.08, backgroundColor: '#fff', borderRadius: 2, transform: [{ rotate: '20deg' }, { translateX: -size * 0.01 }, { translateY: size * 0.1 }] }} />
+    </View>
+  );
+}
+
+function VKLogo({ size = 40 }: { size?: number }) {
+  return (
+    <View style={[s.logoBox, { width: size, height: size, borderRadius: size * 0.22, backgroundColor: '#0077FF' }]}>
+      <Text style={{ color: '#fff', fontSize: size * 0.38, fontWeight: '800', letterSpacing: -0.5 }}>VK</Text>
+    </View>
+  );
+}
+
+export function BookingTabScreen({ navigation }: any) {
+  return (
+    <View style={s.root}>
+      <View style={s.header}>
+        <Pressable onPress={() => navigation?.goBack()} style={s.backBtn} hitSlop={8}>
+          <Text style={s.backIcon}>‹</Text>
+        </Pressable>
+        <Text style={s.headerTitle}>ЗАПИСАТЬСЯ НА РЕМОНТ</Text>
+        <View style={{ width: 36 }} />
+      </View>
+
     <ScrollView
-      style={s.root}
+      style={{ flex: 1 }}
       contentContainerStyle={s.content}
       showsVerticalScrollIndicator={false}
     >
       {/* ── Заголовок ── */}
       <View style={s.titleBlock}>
-        <Text style={s.title}>ЗАПИСАТЬСЯ НА РЕМОНТ</Text>
         <Text style={s.subtitle}>Позвоните нам или напишите в мессенджер</Text>
       </View>
 
@@ -51,7 +77,7 @@ export function BookingTabScreen() {
           style={({ pressed }) => [s.socialCard, pressed && s.pressed]}
           onPress={() => Linking.openURL(TG_URL)}
         >
-          <Text style={s.socialEmoji}>✈️</Text>
+          <TelegramLogo size={44} />
           <Text style={s.socialName}>Telegram</Text>
           <Text style={s.socialHandle}>@CentrRadius</Text>
         </Pressable>
@@ -60,7 +86,7 @@ export function BookingTabScreen() {
           style={({ pressed }) => [s.socialCard, pressed && s.pressed]}
           onPress={() => Linking.openURL(VK_URL)}
         >
-          <Text style={s.socialEmoji}>🔵</Text>
+          <VKLogo size={44} />
           <Text style={s.socialName}>ВКонтакте</Text>
           <Text style={s.socialHandle}>radius812</Text>
         </Pressable>
@@ -81,20 +107,35 @@ export function BookingTabScreen() {
         </Pressable>
       </View>
     </ScrollView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingTop: 60, paddingBottom: 48 },
+  content: { paddingTop: 16, paddingBottom: 48 },
 
-  titleBlock: { paddingHorizontal: 24, marginBottom: 32 },
-  title: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 10,
+  },
+  backBtn: { width: 36, alignItems: 'flex-start' },
+  backIcon: { color: colors.text, fontSize: 32, lineHeight: 36 },
+  headerTitle: {
+    flex: 1,
     color: colors.accent,
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '700',
     letterSpacing: 1.5,
+    textAlign: 'center',
   },
+
+  logoBox: { justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+
+  titleBlock: { paddingHorizontal: 24, marginBottom: 24 },
   subtitle: {
     color: colors.textSub,
     fontSize: 14,
@@ -161,7 +202,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  socialEmoji: { fontSize: 32 },
   socialName: {
     color: colors.text,
     fontSize: 14,
