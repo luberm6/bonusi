@@ -61,19 +61,39 @@ export function HomeTabScreen({ navigation }: any) {
 
   const topBlack = contentH * 0.40;
 
-  // ── Startup glow animation ────────────────────────────────────────────────
-  // Single Animated.Value drives all derived values via interpolate.
-  // useNativeDriver:true → opacity + transform run on the GPU thread.
-  const boot = useRef(new Animated.Value(0)).current;
+  // ── Startup + loop animation ─────────────────────────────────────────────
+  // boot (0→1, one-shot): управляет стартовым reveal всех элементов
+  // pulse (0→1→0→…, infinite): плавное живое дыхание пузырькового круга
+  const boot  = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(boot, {
       toValue: 1,
       duration: 1400,
-      easing: Easing.out(Easing.cubic), // fast start → smooth settle
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start();
-  }, []); // fires once on mount
+    }).start(() => {
+      // После reveal стартует бесконечный цикл дыхания пузырей.
+      // pulse 0→1→0 каждые 2×2000 мс — синусоидальный, без паузы.
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, {
+            toValue: 1,
+            duration: 2000,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulse, {
+            toValue: 0,
+            duration: 2000,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    });
+  }, []);
 
   // Gauge bubble: fades from 70% to 100% opacity (reveals full brightness)
   const bubbleOpacity = boot.interpolate({
@@ -81,10 +101,16 @@ export function HomeTabScreen({ navigation }: any) {
     outputRange: [0.55, 1],
   });
 
-  // Gauge bubble: subtle scale-in (0.95 → 1.0), barely perceptible
+  // Gauge bubble: startup scale-in (0.95 → 1.0)
   const gaugeScale = boot.interpolate({
     inputRange: [0, 1],
     outputRange: [0.95, 1],
+  });
+
+  // Bubble loop: ±1.8% breathing scale, starts at 1.0 (seamless after startup)
+  const pulseScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1.0, 1.018],
   });
 
   // Cyan glow ring: peaks at 60% of animation, settles lower — "activation pulse"
@@ -162,7 +188,8 @@ export function HomeTabScreen({ navigation }: any) {
         0 КМ
       </Text>
 
-      {/* ── Гейдж (пузыри) + startup glow ── */}
+      {/* ── Гейдж (пузыри): startup reveal + бесконечное дыхание ── */}
+      {/* Внешний View: startup opacity + startup scale (boot-driven) */}
       <Animated.View style={{
         position: 'absolute',
         left: gaugeL, top: gaugeT,
@@ -170,15 +197,22 @@ export function HomeTabScreen({ navigation }: any) {
         opacity: bubbleOpacity,
         transform: [{ scale: gaugeScale }],
       }}>
-        <Image
-          source={ASSETS.gaugeBubble}
-          style={{
-            width: gaugeSize, height: gaugeSize,
-            borderRadius: gaugeSize / 2,
-            overflow: 'hidden',
-          }}
-          resizeMode="cover"
-        />
+        {/* Внутренний View: loop breathing scale (pulse-driven, ±1.8%) */}
+        {/* Стартует с 1.0 — точно там, где заканчивается gaugeScale → нет прыжка */}
+        <Animated.View style={{
+          width: gaugeSize, height: gaugeSize,
+          transform: [{ scale: pulseScale }],
+        }}>
+          <Image
+            source={ASSETS.gaugeBubble}
+            style={{
+              width: gaugeSize, height: gaugeSize,
+              borderRadius: gaugeSize / 2,
+              overflow: 'hidden',
+            }}
+            resizeMode="cover"
+          />
+        </Animated.View>
       </Animated.View>
 
       {/* ── Cyan glow ring — activation pulse around gauge ── */}
