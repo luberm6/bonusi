@@ -6,8 +6,7 @@ const PHONE_1 = '+7 931 394 4747';
 const PHONE_2 = '+7 931 395 4747';
 const VK_URL  = 'https://vk.ru/radius812';
 const TG_URL  = 'https://t.me/CentrRadius';
-const EMAIL   = 'radius812@mail.ru';        // ← уточни или замени
-const WEBSITE = 'https://vk.ru/radius812';  // ← уточни или замени
+const WEBSITE = 'https://radius47.tilda.ws';
 
 export function BookingTabScreen() {
   return (
@@ -67,22 +66,8 @@ export function BookingTabScreen() {
         </Pressable>
       </View>
 
-      {/* ── Почта и сайт ── */}
+      {/* ── Сайт ── */}
       <View style={s.infoBlock}>
-        <Pressable
-          style={({ pressed }) => [s.infoRow, pressed && s.pressed]}
-          onPress={() => Linking.openURL(`mailto:${EMAIL}`)}
-        >
-          <Text style={s.infoIcon}>✉️</Text>
-          <View style={s.infoTexts}>
-            <Text style={s.infoLabel}>Электронная почта</Text>
-            <Text style={s.infoValue}>{EMAIL}</Text>
-          </View>
-          <Text style={s.chevron}>›</Text>
-        </Pressable>
-
-        <View style={s.infoDivider} />
-
         <Pressable
           style={({ pressed }) => [s.infoRow, pressed && s.pressed]}
           onPress={() => Linking.openURL(WEBSITE)}
@@ -90,7 +75,7 @@ export function BookingTabScreen() {
           <Text style={s.infoIcon}>🌐</Text>
           <View style={s.infoTexts}>
             <Text style={s.infoLabel}>Официальный сайт</Text>
-            <Text style={s.infoValue}>vk.ru/radius812</Text>
+            <Text style={s.infoValue}>radius47.tilda.ws</Text>
           </View>
           <Text style={s.chevron}>›</Text>
         </Pressable>
