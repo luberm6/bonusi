@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, Pressable, Image,
-  StyleSheet, useWindowDimensions, Platform,
+  StyleSheet, useWindowDimensions, Platform, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -74,8 +74,12 @@ export function HomeTabScreen({ navigation }: any) {
         backgroundColor: '#000',
       }} />
 
-      {/* ── MAP навигационная стрелка (SVG→View approximation) ── */}
-      <View style={[s.mapRow, { top: sy(16), left: sx(24) }]}>
+      {/* ── MAP → открывает Яндекс.Карты (Центр Radius Service) ── */}
+      <Pressable
+        style={[s.mapRow, { top: sy(16), left: sx(24) }]}
+        onPress={() => Linking.openURL('https://yandex.com/maps/org/centr_radius_service/2364390942/')}
+        hitSlop={12}
+      >
         <MapArrow size={sx(22)} />
         <Text style={{
           color: '#fff', fontFamily: F,
@@ -83,7 +87,7 @@ export function HomeTabScreen({ navigation }: any) {
         }}>
           MAP
         </Text>
-      </View>
+      </Pressable>
 
       {/* ── «0 КМ» ── */}
       <Text style={{

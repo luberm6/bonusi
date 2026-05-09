@@ -70,11 +70,11 @@ export function BookingTabScreen() {
           </Pressable>
           <Pressable
             style={({ pressed }) => [s.messengerCard, pressed && s.pressed]}
-            onPress={() => Linking.openURL('tel:+79313944747')}
+            onPress={() => Linking.openURL('https://t.me/CentrRadius')}
           >
             <Text style={s.messengerIcon}>✈️</Text>
-            <Text style={s.messengerName}>ПОЗВОНИТЬ</Text>
-            <Text style={s.messengerSub}>+7 931 394 4747</Text>
+            <Text style={s.messengerName}>TELEGRAM</Text>
+            <Text style={s.messengerSub}>@CentrRadius</Text>
           </Pressable>
         </View>
       </View>
