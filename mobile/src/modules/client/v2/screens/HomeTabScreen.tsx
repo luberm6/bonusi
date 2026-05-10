@@ -20,6 +20,12 @@ const ASSETS = {
 const FW = 440;
 const FH = 956;
 
+// Флаг живёт весь JS-bundle (= одна сессия приложения).
+// Сбрасывается только при полном перезапуске — useRef не подходит,
+// потому что сбрасывается при размонтировании компонента.
+let sessionCountUpDone = false;
+let sessionCountUpTarget = -1;
+
 export function HomeTabScreen({ navigation }: any) {
   const { width: SW, height: SH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -65,31 +71,30 @@ export function HomeTabScreen({ navigation }: any) {
   // ── Одноразовая count-up анимация бонусного числа ────────────────────────
   // Если bonusBalance = 0 → показываем 0 статично.
   // Если bonusBalance > 0 → один раз анимируем от 0 до N (0.8–1с).
-  // При повторном открытии экрана анимация НЕ повторяется.
+  // Count-up: один раз за сессию (sessionCountUpDone — module-level).
+  // useRef сбрасывается при размонтировании → не подходит для этой логики.
   const [displayBonus, setDisplayBonus] = useState(0);
-  const bonusAnimRef = useRef<{ lastTarget: number; done: boolean }>({ lastTarget: -1, done: false });
-  const bonusAnim    = useRef(new Animated.Value(0)).current;
+  const bonusAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const target = Number(bonusBalance) || 0;
-    const prev   = bonusAnimRef.current;
 
-    if (target === prev.lastTarget) return; // значение не изменилось
-    prev.lastTarget = target;
+    if (target === sessionCountUpTarget) return; // значение не изменилось
+    sessionCountUpTarget = target;
 
     if (target === 0) {
       setDisplayBonus(0);
       return;
     }
 
-    if (prev.done) {
-      // Уже анимировали — просто показать новое значение без анимации
+    if (sessionCountUpDone) {
+      // Уже анимировали в этой сессии → показать статично
       setDisplayBonus(target);
       return;
     }
 
-    // Первый раз с ненулевым значением — count-up
-    prev.done = true;
+    // Первый раз с ненулевым значением за сессию → count-up
+    sessionCountUpDone = true;
     bonusAnim.setValue(0);
     const listenerId = bonusAnim.addListener(({ value }) => setDisplayBonus(Math.round(value)));
     Animated.timing(bonusAnim, {
