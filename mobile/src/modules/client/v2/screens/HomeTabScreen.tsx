@@ -433,51 +433,61 @@ export function HomeTabScreen({ navigation }: any) {
             }}>
               {label}
             </Text>
-            {/* Underline glow: ambient halo + bright core */}
-            {/* Слой 1: ambient — шире, плотнее, сильный shadow */}
-            <View style={{
-              height: 6,
-              width: sx(120),
-              borderRadius: 3,
-              backgroundColor: 'rgba(125,172,197,0.55)',
-              marginTop: sx(5),
-              shadowColor: '#7DACC5',
-              shadowOpacity: 1,
-              shadowRadius: 32,
-              shadowOffset: { width: 0, height: 0 },
-            }} />
-            {/* Слой 2: core-линия — яркая, перекрывает центр слоя 1 */}
-            <View style={{
-              height: 2,
-              width: sx(112),
-              borderRadius: 1,
-              backgroundColor: '#BDE8F5',
-              marginTop: -4,
-              shadowColor: '#7DACC5',
-              shadowOpacity: 1,
-              shadowRadius: 14,
-              shadowOffset: { width: 0, height: 0 },
-            }} />
+            {/* Underline bloom — 5-слойная симуляция Gaussian light falloff.
+                Каждый слой вдвое плотнее и уже предыдущего — от широкого
+                атмосферного halo до яркой thin core-линии. */}
+            <View style={{ marginTop: sx(5), height: 28, alignSelf: 'flex-start', width: sx(140) }}>
+              {/* L5: атмосферный outer bloom */}
+              <View style={{ position:'absolute', top:2,  left:0,      width:sx(140), height:22, borderRadius:11, backgroundColor:'rgba(125,172,197,0.05)' }} />
+              {/* L4 */}
+              <View style={{ position:'absolute', top:7,  left:sx(3),  width:sx(134), height:14, borderRadius:7,  backgroundColor:'rgba(125,172,197,0.10)' }} />
+              {/* L3 */}
+              <View style={{ position:'absolute', top:11, left:sx(6),  width:sx(128), height:6,  borderRadius:3,  backgroundColor:'rgba(125,172,197,0.20)' }} />
+              {/* L2: pre-core */}
+              <View style={{ position:'absolute', top:13, left:sx(8),  width:sx(122), height:2.5,borderRadius:1.5,backgroundColor:'rgba(125,172,197,0.55)' }} />
+              {/* L1: bright core line */}
+              <View style={{ position:'absolute', top:13.5,left:sx(9), width:sx(116), height:1,  borderRadius:0.5,backgroundColor:'#D4EEFF' }} />
+            </View>
           </Pressable>
         ))}
 
-        {/* FAB "НАЧАТЬ ЧАТ" — одно кольцо с максимальным glow */}
+        {/* FAB halo — 4 концентрических слоя ambient glow ДО кнопки.
+            Симулируют bloom/рассеяние света в воздухе вокруг кольца.
+            Render до Pressable → рисуются ЗА кнопкой (нижний z-order). */}
+        {([
+          { off: 36, opacity: 0.04 },
+          { off: 22, opacity: 0.09 },
+          { off: 11, opacity: 0.16 },
+          { off:  4, opacity: 0.26 },
+        ] as { off: number; opacity: number }[]).map(({ off, opacity }) => (
+          <View key={off} pointerEvents="none" style={{
+            position: 'absolute',
+            left: sx(318 - off),
+            top:  sy(822) - sx(off),
+            width:  sx(88 + off * 2),
+            height: sx(88 + off * 2),
+            borderRadius: sx(44 + off),
+            backgroundColor: `rgba(125,172,197,${opacity})`,
+          }} />
+        ))}
+
+        {/* FAB "НАЧАТЬ ЧАТ" — тонкое кольцо + небольшой shadow для core ring */}
         <Pressable
           style={({ pressed }) => [{
             position: 'absolute',
             left: sx(318), top: sy(822),
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
-            borderWidth: 2,
-            borderColor: '#7DACC5',
-            backgroundColor: 'rgba(125,172,197,0.08)',
+            borderWidth: 1.5,
+            borderColor: '#8FBDD6',
+            backgroundColor: 'rgba(125,172,197,0.06)',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: '#7DACC5',
-            shadowOpacity: 1,
-            shadowRadius: 50,
+            shadowOpacity: 0.90,
+            shadowRadius: 18,
             shadowOffset: { width: 0, height: 0 },
-            elevation: 14,
+            elevation: 10,
           }, pressed && s.pressed]}
           onPress={() => navigation.navigate('Chat')}
         >
