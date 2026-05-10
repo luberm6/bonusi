@@ -430,82 +430,51 @@ export function HomeTabScreen({ navigation }: any) {
             }}>
               {label}
             </Text>
-            {/* Underline — два слоя: ambient halo + яркая core-линия */}
-            {/* Слой 1: широкое ambient свечение (полупрозрачный фон + большой shadow) */}
+            {/* Underline glow: ambient halo + bright core */}
+            {/* Слой 1: ambient — шире, плотнее, сильный shadow */}
             <View style={{
-              height: 4,
+              height: 6,
               width: sx(120),
-              borderRadius: 2,
-              backgroundColor: 'rgba(125,172,197,0.30)',
+              borderRadius: 3,
+              backgroundColor: 'rgba(125,172,197,0.55)',
               marginTop: sx(5),
               shadowColor: '#7DACC5',
               shadowOpacity: 1,
-              shadowRadius: 24,
+              shadowRadius: 32,
               shadowOffset: { width: 0, height: 0 },
             }} />
-            {/* Слой 2: яркая тонкая core-линия (overlap на слой 1) */}
+            {/* Слой 2: core-линия — яркая, перекрывает центр слоя 1 */}
             <View style={{
-              height: 1.5,
+              height: 2,
               width: sx(112),
               borderRadius: 1,
-              backgroundColor: '#A8D4E8',
-              marginTop: -2.75,
+              backgroundColor: '#BDE8F5',
+              marginTop: -4,
               shadowColor: '#7DACC5',
               shadowOpacity: 1,
-              shadowRadius: 10,
+              shadowRadius: 14,
               shadowOffset: { width: 0, height: 0 },
             }} />
           </Pressable>
         ))}
 
-        {/* FAB: слой 1 — широкий ambient glow (самый нижний) */}
-        <View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            left: sx(299), top: sy(802),
-            width: sx(127), height: sx(127),
-            borderRadius: sx(63.5),
-            backgroundColor: 'rgba(125,172,197,0.10)',
-            shadowColor: '#7DACC5',
-            shadowOpacity: 1,
-            shadowRadius: 40,
-            shadowOffset: { width: 0, height: 0 },
-          }}
-        />
-        {/* FAB: слой 2 — outer ring */}
-        <View
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            left: sx(309), top: sy(812),
-            width: sx(107), height: sx(107),
-            borderRadius: sx(53.5),
-            borderWidth: 1,
-            borderColor: 'rgba(125,172,197,0.85)',
-            shadowColor: '#7DACC5',
-            shadowOpacity: 0.80,
-            shadowRadius: 30,
-            shadowOffset: { width: 0, height: 0 },
-          }}
-        />
-        {/* FAB "НАЧАТЬ ЧАТ" — слой 3: кнопка с усиленным glow */}
+        {/* FAB "НАЧАТЬ ЧАТ" — одно кольцо с максимальным glow */}
         <Pressable
           style={({ pressed }) => [{
             position: 'absolute',
             left: sx(318), top: sy(822),
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
-            borderWidth: 1.5,
+            borderWidth: 2,
             borderColor: '#7DACC5',
-            backgroundColor: 'rgba(0,0,0,0.25)',
+            backgroundColor: 'rgba(125,172,197,0.08)',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: '#7DACC5',
             shadowOpacity: 1,
-            shadowRadius: 36,
+            shadowRadius: 50,
             shadowOffset: { width: 0, height: 0 },
-            elevation: 12,
+            elevation: 14,
           }, pressed && s.pressed]}
           onPress={() => navigation.navigate('Chat')}
         >
