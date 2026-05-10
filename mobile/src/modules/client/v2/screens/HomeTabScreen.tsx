@@ -425,12 +425,26 @@ export function HomeTabScreen({ navigation }: any) {
             }}>
               {label}
             </Text>
-            {/* Подчёркивание с cyan glow */}
+            {/* Underline — два слоя: ambient halo + яркая core-линия */}
+            {/* Слой 1: широкое ambient свечение (полупрозрачный фон + большой shadow) */}
             <View style={{
-              height: 1,
-              width: sx(115),
-              backgroundColor: '#7DACC5',
+              height: 4,
+              width: sx(120),
+              borderRadius: 2,
+              backgroundColor: 'rgba(125,172,197,0.30)',
               marginTop: sx(5),
+              shadowColor: '#7DACC5',
+              shadowOpacity: 1,
+              shadowRadius: 24,
+              shadowOffset: { width: 0, height: 0 },
+            }} />
+            {/* Слой 2: яркая тонкая core-линия (overlap на слой 1) */}
+            <View style={{
+              height: 1.5,
+              width: sx(112),
+              borderRadius: 1,
+              backgroundColor: '#A8D4E8',
+              marginTop: -2.75,
               shadowColor: '#7DACC5',
               shadowOpacity: 1,
               shadowRadius: 10,
@@ -439,7 +453,22 @@ export function HomeTabScreen({ navigation }: any) {
           </Pressable>
         ))}
 
-        {/* FAB outer ring — glow ring вокруг кнопки чата */}
+        {/* FAB: слой 1 — широкий ambient glow (самый нижний) */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            left: sx(299), top: sy(802),
+            width: sx(127), height: sx(127),
+            borderRadius: sx(63.5),
+            backgroundColor: 'rgba(125,172,197,0.10)',
+            shadowColor: '#7DACC5',
+            shadowOpacity: 1,
+            shadowRadius: 40,
+            shadowOffset: { width: 0, height: 0 },
+          }}
+        />
+        {/* FAB: слой 2 — outer ring */}
         <View
           pointerEvents="none"
           style={{
@@ -448,15 +477,14 @@ export function HomeTabScreen({ navigation }: any) {
             width: sx(107), height: sx(107),
             borderRadius: sx(53.5),
             borderWidth: 1,
-            borderColor: 'rgba(125,172,197,0.70)',
+            borderColor: 'rgba(125,172,197,0.85)',
             shadowColor: '#7DACC5',
-            shadowOpacity: 0.50,
-            shadowRadius: 22,
+            shadowOpacity: 0.80,
+            shadowRadius: 30,
             shadowOffset: { width: 0, height: 0 },
-            elevation: 8,
           }}
         />
-        {/* FAB "НАЧАТЬ ЧАТ" */}
+        {/* FAB "НАЧАТЬ ЧАТ" — слой 3: кнопка с усиленным glow */}
         <Pressable
           style={({ pressed }) => [{
             position: 'absolute',
@@ -464,15 +492,15 @@ export function HomeTabScreen({ navigation }: any) {
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
             borderWidth: 1.5,
-            borderColor: 'rgba(125,172,197,0.90)',
-            backgroundColor: 'rgba(0,0,0,0.2)',
+            borderColor: '#7DACC5',
+            backgroundColor: 'rgba(0,0,0,0.25)',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: '#7DACC5',
-            shadowOpacity: 0.80,
-            shadowRadius: 26,
+            shadowOpacity: 1,
+            shadowRadius: 36,
             shadowOffset: { width: 0, height: 0 },
-            elevation: 10,
+            elevation: 12,
           }, pressed && s.pressed]}
           onPress={() => navigation.navigate('Chat')}
         >
