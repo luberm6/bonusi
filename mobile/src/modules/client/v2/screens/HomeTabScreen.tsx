@@ -196,31 +196,27 @@ export function HomeTabScreen({ navigation }: any) {
         resizeMode="cover"
       />
 
-      {/* ── Cinematic diagonal ambient plane ──────────────────────────────────
-          Очень мягкий диагональный градиент от тёмно-синего/графитового
-          (правый верх) до абсолютного чёрного (левый низ).
-          Opacity 0.18 — эффект почти подсознательный: добавляет глубину
-          и ощущение стеклянной отражающей поверхности панели Bentley.
-          Rendered между bg_car и topBlack — работает как atmospheric base. */}
-      <LinearGradient
-        colors={['rgba(28,42,58,0.0)', 'rgba(22,35,50,0.35)', 'rgba(0,0,0,0.0)']}
-        locations={[0, 0.45, 1]}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          opacity: 0.75,
-        }}
-        pointerEvents="none"
-      />
-
       {/* ── Сплошной чёрный верх ── */}
       <View style={{
         position: 'absolute', top: 0, left: 0, right: 0,
         height: topBlack,
         backgroundColor: '#000',
       }} />
+
+      {/* ── Cinematic diagonal ambient plane ─────────────────────────────────
+          ВАЖНО: стоит ПОСЛЕ topBlack, иначе чёрный прямоугольник его перекрывает.
+          start=right-top: rgba(45,60,78,0.55) — graphite-steel, заметный на #000
+          end=left-bottom: transparent — плавно растворяется
+          Эффект: верхний правый угол получает стальной/графитовый tint,
+          нижний левый остаётся глубоким чёрным. Создаёт ощущение глубины панели. */}
+      <LinearGradient
+        colors={['rgba(45,60,78,0.55)', 'rgba(22,35,50,0.18)', 'rgba(0,0,0,0.0)']}
+        locations={[0, 0.55, 1]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        pointerEvents="none"
+      />
 
       {/* ── MAP ── */}
       <Pressable
