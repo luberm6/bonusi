@@ -3,6 +3,7 @@ import {
   View, Text, Pressable, Image, Animated, Easing,
   StyleSheet, useWindowDimensions, Linking,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { useClientData } from '../ClientDataContext';
@@ -193,6 +194,25 @@ export function HomeTabScreen({ navigation }: any) {
           height: sy(649),
         }}
         resizeMode="cover"
+      />
+
+      {/* ── Cinematic diagonal ambient plane ──────────────────────────────────
+          Очень мягкий диагональный градиент от тёмно-синего/графитового
+          (правый верх) до абсолютного чёрного (левый низ).
+          Opacity 0.18 — эффект почти подсознательный: добавляет глубину
+          и ощущение стеклянной отражающей поверхности панели Bentley.
+          Rendered между bg_car и topBlack — работает как atmospheric base. */}
+      <LinearGradient
+        colors={['rgba(28,42,58,0.0)', 'rgba(22,35,50,0.35)', 'rgba(0,0,0,0.0)']}
+        locations={[0, 0.45, 1]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
+          opacity: 0.75,
+        }}
+        pointerEvents="none"
       />
 
       {/* ── Сплошной чёрный верх ── */}
