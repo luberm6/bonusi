@@ -59,7 +59,49 @@ export function HomeTabScreen({ navigation }: any) {
   const gaugeCY   = gaugeT + gaugeSize / 2;
   const numSize   = sx(55);
 
-  const topBlack = contentH * 0.40;
+  // Чёрная зона сверху: минимум 42%, но всегда закрывает весь круг пузырьков + отступ
+  const topBlack = Math.max(contentH * 0.42, gaugeT + gaugeSize + sy(12));
+
+  // ── Одноразовая count-up анимация бонусного числа ────────────────────────
+  // Если bonusBalance = 0 → показываем 0 статично.
+  // Если bonusBalance > 0 → один раз анимируем от 0 до N (0.8–1с).
+  // При повторном открытии экрана анимация НЕ повторяется.
+  const [displayBonus, setDisplayBonus] = useState(0);
+  const bonusAnimRef = useRef<{ lastTarget: number; done: boolean }>({ lastTarget: -1, done: false });
+  const bonusAnim    = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const target = Number(bonusBalance) || 0;
+    const prev   = bonusAnimRef.current;
+
+    if (target === prev.lastTarget) return; // значение не изменилось
+    prev.lastTarget = target;
+
+    if (target === 0) {
+      setDisplayBonus(0);
+      return;
+    }
+
+    if (prev.done) {
+      // Уже анимировали — просто показать новое значение без анимации
+      setDisplayBonus(target);
+      return;
+    }
+
+    // Первый раз с ненулевым значением — count-up
+    prev.done = true;
+    bonusAnim.setValue(0);
+    const listenerId = bonusAnim.addListener(({ value }) => setDisplayBonus(Math.round(value)));
+    Animated.timing(bonusAnim, {
+      toValue: target,
+      duration: 900,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start(() => {
+      bonusAnim.removeListener(listenerId);
+      setDisplayBonus(target);
+    });
+  }, [bonusBalance]);
 
   // ── Startup + loop animation ─────────────────────────────────────────────
   // boot (0→1, one-shot): управляет стартовым reveal всех элементов
@@ -195,20 +237,23 @@ export function HomeTabScreen({ navigation }: any) {
         transform: [{ scale: gaugeScale }],
       }}>
         {/* Внутренний View: loop breathing scale (pulse-driven, ±1.8%) */}
-        {/* Стартует с 1.0 — точно там, где заканчивается gaugeScale → нет прыжка */}
         <Animated.View style={{
           width: gaugeSize, height: gaugeSize,
           transform: [{ scale: pulseScale }],
         }}>
-          <Image
-            source={ASSETS.gaugeBubble}
-            style={{
-              width: gaugeSize, height: gaugeSize,
-              borderRadius: gaugeSize / 2,
-              overflow: 'hidden',
-            }}
-            resizeMode="cover"
-          />
+          {/* Clip-View: на iOS overflow:hidden на Image ненадёжен —
+              используем отдельный View с borderRadius для надёжной обрезки */}
+          <View style={{
+            width: gaugeSize, height: gaugeSize,
+            borderRadius: gaugeSize / 2,
+            overflow: 'hidden',
+          }}>
+            <Image
+              source={ASSETS.gaugeBubble}
+              style={{ width: gaugeSize, height: gaugeSize }}
+              resizeMode="cover"
+            />
+          </View>
         </Animated.View>
       </Animated.View>
 
@@ -244,7 +289,7 @@ export function HomeTabScreen({ navigation }: any) {
         backgroundColor: 'rgba(0,0,0,0.85)',
       }} />
 
-      {/* ── Цифра бонусов (delayed fade-in) ── */}
+      {/* ── Цифра бонусов (delayed fade-in, count-up один раз) ── */}
       <Animated.Text style={{
         position: 'absolute',
         left: gaugeCX - sx(82),
@@ -256,7 +301,7 @@ export function HomeTabScreen({ navigation }: any) {
         includeFontPadding: false,
         opacity: dataOpacity,
       }}>
-        {bonusBalance}
+        {displayBonus}
       </Animated.Text>
 
       {/* ── «бонусов» (delayed fade-in) ── */}
