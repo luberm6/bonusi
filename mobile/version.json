@@ -2,7 +2,7 @@
   "android": {
     "versionCode": 1,
     "versionName": "1.0.1",
-    "apkUrl": "https://github.com/luberm6/bonusi/releases/download/latest/bonusi-debug.apk",
+    "apkUrl": "https://github.com/luberm6/bonusi/releases/download/latest/bonusi-release.apk",
     "releaseNotes": "— Предварительная архитектура системных обновлений\n— Улучшена стабильность навигации\n— Обновлен брендинг Центра Радиус"
   },
   "ios": {

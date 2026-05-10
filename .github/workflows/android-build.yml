@@ -165,12 +165,12 @@ jobs:
             -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Build debug APK
+      - name: Build release APK
         shell: bash
         run: |
           cd "${{ steps.detect.outputs.android_dir }}"
           chmod +x ./gradlew
-          ./gradlew --no-daemon clean assembleDebug --stacktrace --warning-mode all \
+          ./gradlew --no-daemon clean assembleRelease --stacktrace --warning-mode all \
             2>&1 | tee /tmp/gradle-build.log
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
@@ -187,15 +187,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/debug/app-debug.apk"
-          test -f "$APK_PATH" || { echo "::error::Debug APK not found at $APK_PATH"; exit 1; }
+          APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/release/app-release.apk"
+          test -f "$APK_PATH" || { echo "::error::Release APK not found at $APK_PATH"; exit 1; }
 
       - name: Send APK to Telegram
         shell: bash
         run: |
-          APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/debug/app-debug.apk"
-          zip -j /tmp/bonusi-debug.zip "${APK_PATH}"
+          APK_PATH="${{ steps.detect.outputs.android_dir }}/app/build/outputs/apk/release/app-release.apk"
+          zip -j /tmp/bonusi-release.zip "${APK_PATH}"
           curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
             -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -F "caption=Новая сборка Bonusi 🤖" \
-            -F "document=@/tmp/bonusi-debug.zip;filename=bonusi-debug.zip"
+            -F "caption=Новая сборка Bonusi (release) 🤖" \
+            -F "document=@/tmp/bonusi-release.zip;filename=bonusi-release.zip"
