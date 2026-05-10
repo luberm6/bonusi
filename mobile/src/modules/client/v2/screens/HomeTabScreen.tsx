@@ -285,13 +285,16 @@ export function HomeTabScreen({ navigation }: any) {
       />
 
       {/* ── Тёмный овал в центре гейджа ── */}
+      {/* gauge_bubble.png содержит «65 KMH» в центре изображения.
+          При opacity < 1 они просвечивали под бонусами.
+          Полная непрозрачность (#000) полностью скрывает встроенный текст. */}
       <View style={{
         position: 'absolute',
         left: gaugeCX - sx(82),
         top:  gaugeCY - sx(58),
         width: sx(164), height: sx(100),
         borderRadius: sx(50),
-        backgroundColor: 'rgba(0,0,0,0.85)',
+        backgroundColor: '#000',
       }} />
 
       {/* ── Цифра бонусов (delayed fade-in, count-up один раз) ── */}
