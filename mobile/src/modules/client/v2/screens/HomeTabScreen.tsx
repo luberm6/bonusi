@@ -430,7 +430,7 @@ export function HomeTabScreen({ navigation }: any) {
           tintColor: '#fff',
         }} resizeMode="contain" />
 
-        {/* Кнопки навигации — текст + подчёркивание с glow, без рамки */}
+        {/* Кнопки навигации — текст + underline glow, без рамок */}
         {([
           ['ЗАПИСАТЬСЯ\nНА РЕМОНТ', () => void ensureBranchesLoaded().then(() => navigation.navigate('Booking')), sy(717)],
           ['ИСТОРИЯ\nРЕМОНТА',     () => void ensureVisitsLoaded().then(() => navigation.navigate('Visits')),    sy(786)],
@@ -441,9 +441,10 @@ export function HomeTabScreen({ navigation }: any) {
             style={({ pressed }) => [{
               position: 'absolute',
               left: sx(21), top,
-              width: sx(150), height: sy(59),
-              justifyContent: 'center',
+              width: sx(150), height: sy(64),
+              justifyContent: 'flex-start',
               alignItems: 'flex-start',
+              paddingTop: sy(8),
             }, pressed && s.pressed]}
             onPress={onPress}
           >
@@ -453,33 +454,39 @@ export function HomeTabScreen({ navigation }: any) {
             }}>
               {label}
             </Text>
-            {/* Underline bloom — 5-слойная симуляция Gaussian light falloff.
-                Каждый слой вдвое плотнее и уже предыдущего — от широкого
-                атмосферного halo до яркой thin core-линии. */}
-            <View style={{ marginTop: sx(5), height: 28, alignSelf: 'flex-start', width: sx(140) }}>
-              {/* L5: атмосферный outer bloom */}
-              <View style={{ position:'absolute', top:2,  left:0,      width:sx(140), height:22, borderRadius:11, backgroundColor:'rgba(125,172,197,0.05)' }} />
-              {/* L4 */}
-              <View style={{ position:'absolute', top:7,  left:sx(3),  width:sx(134), height:14, borderRadius:7,  backgroundColor:'rgba(125,172,197,0.10)' }} />
-              {/* L3 */}
-              <View style={{ position:'absolute', top:11, left:sx(6),  width:sx(128), height:6,  borderRadius:3,  backgroundColor:'rgba(125,172,197,0.20)' }} />
-              {/* L2: pre-core */}
-              <View style={{ position:'absolute', top:13, left:sx(8),  width:sx(122), height:2.5,borderRadius:1.5,backgroundColor:'rgba(125,172,197,0.55)' }} />
-              {/* L1: bright core line */}
-              <View style={{ position:'absolute', top:13.5,left:sx(9), width:sx(116), height:1,  borderRadius:0.5,backgroundColor:'#D4EEFF' }} />
+            {/* Underline: bloom halo + core line, прямо под текстом */}
+            <View style={{ marginTop: 5, alignSelf: 'flex-start' }}>
+              {/* Bloom halo — абс. позиция, шире и выше core */}
+              <View style={{
+                position: 'absolute',
+                top: -4, left: -3,
+                height: 10, width: sx(116),
+                borderRadius: 5,
+                backgroundColor: 'rgba(125,172,197,0.22)',
+              }} />
+              {/* Core underline */}
+              <View style={{
+                height: 1.5, width: sx(110),
+                borderRadius: 1,
+                backgroundColor: '#A8D4E8',
+                shadowColor: '#7DACC5',
+                shadowOpacity: 1,
+                shadowRadius: 9,
+                shadowOffset: { width: 0, height: 0 },
+              }} />
             </View>
           </Pressable>
         ))}
 
-        {/* FAB halo — 4 концентрических слоя ambient glow ДО кнопки.
-            Симулируют bloom/рассеяние света в воздухе вокруг кольца.
-            Render до Pressable → рисуются ЗА кнопкой (нижний z-order). */}
+        {/* FAB halo: BORDER-only кольца снаружи кнопки (no fill).
+            Заполненные круги давали ~45% суммарную заливку — теперь
+            только borderWidth, без backgroundColor. */}
         {([
-          { off: 36, opacity: 0.04 },
-          { off: 22, opacity: 0.09 },
-          { off: 11, opacity: 0.16 },
-          { off:  4, opacity: 0.26 },
-        ] as { off: number; opacity: number }[]).map(({ off, opacity }) => (
+          { off:  7, bw: 1,   bc: 'rgba(125,172,197,0.45)' },
+          { off: 16, bw: 1,   bc: 'rgba(125,172,197,0.25)' },
+          { off: 28, bw: 1,   bc: 'rgba(125,172,197,0.13)' },
+          { off: 44, bw: 1.5, bc: 'rgba(125,172,197,0.06)' },
+        ] as { off: number; bw: number; bc: string }[]).map(({ off, bw, bc }) => (
           <View key={off} pointerEvents="none" style={{
             position: 'absolute',
             left: sx(318 - off),
@@ -487,11 +494,12 @@ export function HomeTabScreen({ navigation }: any) {
             width:  sx(88 + off * 2),
             height: sx(88 + off * 2),
             borderRadius: sx(44 + off),
-            backgroundColor: `rgba(125,172,197,${opacity})`,
+            borderWidth: bw,
+            borderColor: bc,
           }} />
         ))}
 
-        {/* FAB "НАЧАТЬ ЧАТ" — тонкое кольцо + небольшой shadow для core ring */}
+        {/* FAB "НАЧАТЬ ЧАТ": прозрачный центр, яркий border + shadow-glow */}
         <Pressable
           style={({ pressed }) => [{
             position: 'absolute',
@@ -499,13 +507,13 @@ export function HomeTabScreen({ navigation }: any) {
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
             borderWidth: 1.5,
-            borderColor: '#8FBDD6',
-            backgroundColor: 'rgba(125,172,197,0.06)',
+            borderColor: '#7DACC5',
+            backgroundColor: 'transparent',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: '#7DACC5',
-            shadowOpacity: 0.90,
-            shadowRadius: 18,
+            shadowOpacity: 1,
+            shadowRadius: 22,
             shadowOffset: { width: 0, height: 0 },
             elevation: 10,
           }, pressed && s.pressed]}
