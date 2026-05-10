@@ -3,9 +3,9 @@ import {
   View, Text, Pressable, Image, Animated, Easing,
   StyleSheet, useWindowDimensions, Linking,
 } from 'react-native';
-// expo-linear-gradient removed: ViewManagerAdapter_ExpoLinearGradient
-// не регистрируется на реальных устройствах без пересборки dev client.
-// Ambient plane реализован через View-блобы — работает везде без нативных зависимостей.
+import { LinearGradient } from 'expo-linear-gradient';
+// ExpoLinearGradient скомпилирован в нативный бинарник при rebuild --device.
+// Используем LinearGradient для настоящего diagonal gradient без круглых артефактов.
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { useClientData } from '../ClientDataContext';
@@ -205,29 +205,23 @@ export function HomeTabScreen({ navigation }: any) {
         backgroundColor: '#000',
       }} />
 
-      {/* ── Diagonal ambient plane — View-блобы (без нативных зависимостей) ──
-          ВАЖНО: стоит ПОСЛЕ topBlack → рендерится поверх чёрного фона.
-          Два мягких круглых блоба в правом верхнем углу создают graphite/steel tint.
-          Центр большого блоба ≈ (SW*0.82, SW*0.30) — верхний правый квадрант.
-          Левый низ экрана — чистый чёрный (блобы туда не достают). */}
-      <View pointerEvents="none" style={{
-        position: 'absolute',
-        right: -(SW * 0.33),
-        top:   -(SW * 0.21),
-        width:  SW * 1.02,
-        height: SW * 1.02,
-        borderRadius: SW * 0.51,
-        backgroundColor: 'rgba(38,55,72,0.38)',
-      }} />
-      <View pointerEvents="none" style={{
-        position: 'absolute',
-        right: SW * 0.0,
-        top:   SW * 0.02,
-        width:  SW * 0.52,
-        height: SW * 0.46,
-        borderRadius: SW * 0.23,
-        backgroundColor: 'rgba(50,70,92,0.20)',
-      }} />
+      {/* ── Diagonal ambient plane — LinearGradient ─────────────────────────
+          Стоит ПОСЛЕ topBlack → видим поверх чёрного фона.
+          start: правый верх (x=1, y=0) → graphite-steel tint
+          end:   левый низ  (x=0, y=1) → прозрачный (чёрный фон)
+          Никаких кругов или radial shapes — чистый linear diagonal. */}
+      <LinearGradient
+        colors={[
+          'rgba(42,58,76,0.50)',
+          'rgba(25,38,52,0.22)',
+          'rgba(0,0,0,0.0)',
+        ]}
+        locations={[0, 0.50, 1]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        pointerEvents="none"
+      />
 
       {/* ── MAP ── */}
       <Pressable
