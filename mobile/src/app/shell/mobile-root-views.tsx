@@ -2,7 +2,9 @@ import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -190,7 +192,11 @@ export function LoginView(props: {
   onSubmit: () => void;
 }) {
   return (
-    <View style={styles.centeredShell}>
+    <KeyboardAvoidingView
+      style={styles.centeredShell}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'android' ? 24 : 0}
+    >
       <GlassCard elevated animated style={styles.loginCard}>
         <Text style={styles.brandMark}>CRS</Text>
         <Text style={styles.loginTitle}>Вход в приложение</Text>
@@ -226,7 +232,7 @@ export function LoginView(props: {
           />
         </View>
       </GlassCard>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

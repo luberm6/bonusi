@@ -14,7 +14,7 @@ import { fetchSpbWeather, type WeatherData, type WeatherIcon } from '../../../..
 // ─── Ассеты ──────────────────────────────────────────────────────────────────
 const ASSETS = {
   bgCar:       require('../../../../../assets/images/bg_car.jpg'),
-  gaugeBubble: require('../../../../../assets/images/gauge_bubble.png'),
+  gaugeBubble: require('../../../../../assets/images/gauge_bubble.gif'),
   tempGauge:   require('../../../../../assets/images/temp_gauge.png'),
   fuelGauge:   require('../../../../../assets/images/fuel_gauge.png'),
 } as const;
@@ -212,11 +212,11 @@ export function HomeTabScreen({ navigation }: any) {
           Никаких кругов или radial shapes — чистый linear diagonal. */}
       <LinearGradient
         colors={[
-          'rgba(42,58,76,0.50)',
-          'rgba(25,38,52,0.22)',
+          'rgba(70,95,120,0.72)',
+          'rgba(40,58,78,0.30)',
           'rgba(0,0,0,0.0)',
         ]}
-        locations={[0, 0.50, 1]}
+        locations={[0, 0.52, 1]}
         start={{ x: 1, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -483,10 +483,10 @@ export function HomeTabScreen({ navigation }: any) {
             Заполненные круги давали ~45% суммарную заливку — теперь
             только borderWidth, без backgroundColor. */}
         {([
-          { off:  7, bw: 1,   bc: 'rgba(125,172,197,0.45)' },
-          { off: 16, bw: 1,   bc: 'rgba(125,172,197,0.25)' },
-          { off: 28, bw: 1,   bc: 'rgba(125,172,197,0.13)' },
-          { off: 44, bw: 1.5, bc: 'rgba(125,172,197,0.06)' },
+          { off:  8, bw: 1.5, bc: 'rgba(125,172,197,0.70)' },
+          { off: 18, bw: 1,   bc: 'rgba(125,172,197,0.40)' },
+          { off: 32, bw: 1,   bc: 'rgba(125,172,197,0.20)' },
+          { off: 50, bw: 1.5, bc: 'rgba(125,172,197,0.09)' },
         ] as { off: number; bw: number; bc: string }[]).map(({ off, bw, bc }) => (
           <View key={off} pointerEvents="none" style={{
             position: 'absolute',
@@ -500,23 +500,23 @@ export function HomeTabScreen({ navigation }: any) {
           }} />
         ))}
 
-        {/* FAB "НАЧАТЬ ЧАТ": прозрачный центр, яркий border + shadow-glow */}
+        {/* FAB "НАЧАТЬ ЧАТ": усиленный glow */}
         <Pressable
           style={({ pressed }) => [{
             position: 'absolute',
             left: sx(318), top: sy(822),
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
-            borderWidth: 1.5,
-            borderColor: '#7DACC5',
+            borderWidth: 2,
+            borderColor: '#9DCFE8',
             backgroundColor: 'transparent',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: '#7DACC5',
             shadowOpacity: 1,
-            shadowRadius: 22,
+            shadowRadius: 32,
             shadowOffset: { width: 0, height: 0 },
-            elevation: 10,
+            elevation: 14,
           }, pressed && s.pressed]}
           onPress={() => navigation.navigate('Chat')}
         >
