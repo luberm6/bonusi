@@ -83,7 +83,7 @@ visitsRouter.get(
        from public.messages m
        join public.users u on u.id = m.sender_id
        left join public.attachments a on a.message_id = m.id
-       where m.receiver_id = $1
+       where (m.receiver_id = $1 or m.sender_id = $1)
          and m.is_repair_history = true
        group by m.id, u.email
        order by m.created_at desc

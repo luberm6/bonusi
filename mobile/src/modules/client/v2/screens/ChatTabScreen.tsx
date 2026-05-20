@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   ActionSheetIOS,
   Image as RNImage,
+  Linking,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useClientData } from '../ClientDataContext';
@@ -47,6 +48,23 @@ export function ChatTabScreen({ navigation }: any) {
   }, [ensureChatLoaded]);
 
   const myId = session?.userId;
+
+  const handleOpenAttachment = async (fileUrl?: string) => {
+    if (!fileUrl) {
+      Alert.alert('Ошибка', 'Ссылка на файл отсутствует.');
+      return;
+    }
+    try {
+      const supported = await Linking.canOpenURL(fileUrl);
+      if (supported) {
+        await Linking.openURL(fileUrl);
+      } else {
+        Alert.alert('Ошибка', 'Не удалось открыть этот тип файла.');
+      }
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось открыть файл.');
+    }
+  };
 
   // ── Загрузка файла на сервер ──────────────────────────────────────────────
   const uploadFile = async (convId: string, messageId: string, file: PendingFile) => {
@@ -196,16 +214,29 @@ export function ChatTabScreen({ navigation }: any) {
   };
 
   const handleAttach = () => {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['Отмена', 'Фото из галереи', 'Сделать фото'],
-        cancelButtonIndex: 0,
-      },
-      (idx) => {
-        if (idx === 1) pickFromLibrary();
-        if (idx === 2) takePhoto();
-      }
-    );
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Отмена', 'Фото из галереи', 'Сделать фото'],
+          cancelButtonIndex: 0,
+        },
+        (idx) => {
+          if (idx === 1) pickFromLibrary();
+          if (idx === 2) takePhoto();
+        }
+      );
+    } else {
+      Alert.alert(
+        'Прикрепить файл',
+        'Выберите источник',
+        [
+          { text: 'Отмена', style: 'cancel' },
+          { text: 'Фото из галереи', onPress: pickFromLibrary },
+          { text: 'Сделать фото', onPress: takePhoto },
+        ],
+        { cancelable: true }
+      );
+    }
   };
 
   return (
@@ -252,17 +283,26 @@ export function ChatTabScreen({ navigation }: any) {
                   ) : null}
                   {m.attachments?.map((att) =>
                     att.fileType === 'image' ? (
-                      <RNImage
+                      <Pressable
                         key={att.id}
-                        source={{ uri: att.fileUrl }}
-                        style={s.attachmentImage}
-                        resizeMode="cover"
-                      />
+                        onPress={() => handleOpenAttachment(att.fileUrl)}
+                        style={({ pressed }) => [pressed && s.pressed]}
+                      >
+                        <RNImage
+                          source={{ uri: att.fileUrl }}
+                          style={s.attachmentImage}
+                          resizeMode="cover"
+                        />
+                      </Pressable>
                     ) : (
-                      <View key={att.id} style={s.attachmentPdf}>
+                      <Pressable
+                        key={att.id}
+                        onPress={() => handleOpenAttachment(att.fileUrl)}
+                        style={({ pressed }) => [s.attachmentPdf, pressed && s.pressed]}
+                      >
                         <Text style={s.attachmentPdfIcon}>📄</Text>
                         <Text style={s.attachmentPdfName} numberOfLines={1}>{att.fileName}</Text>
-                      </View>
+                      </Pressable>
                     )
                   )}
                   <Text style={s.bubbleTime}>
@@ -346,6 +386,7 @@ const s = StyleSheet.create({
   messageList: { flex: 1 },
   messageListContent: { padding: 16, paddingBottom: 8, gap: 8 },
 
+  pressed: { opacity: 0.65 },
   bubbleWrap: { marginVertical: 2 },
   bubbleWrapLeft: { alignItems: 'flex-start' },
   bubbleWrapRight: { alignItems: 'flex-end' },

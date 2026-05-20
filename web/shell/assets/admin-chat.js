@@ -1,4 +1,4 @@
-import { authFetchJson } from "/assets/app.js";
+import { authFetchJson, featureFlags } from "/assets/app.js";
 import {
   formatWorkspaceError,
   initAdminWorkspace,
@@ -49,7 +49,17 @@ if (session) {
       const isNew = !prevMessageIds.has(message.id);
       const node = document.createElement("div");
       node.className = `workspace-msg ${mine ? "mine" : "other"}${isNew ? " msg-new" : ""}`;
-      node.innerHTML = `${message.text || ""}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
+      let attachmentsHtml = "";
+      if (message.attachments && message.attachments.length > 0) {
+        attachmentsHtml = message.attachments.map(att => {
+          if (att.fileType === "image" || (att.fileType && att.fileType.startsWith("image/"))) {
+            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${att.fileUrl}" target="_blank"><img src="${att.fileUrl}" style="max-width:200px;max-height:150px;border-radius:6px;display:block;"></a></div>`;
+          } else {
+            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${att.fileUrl}" target="_blank" style="color:#00bcd4;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;">📄 ${att.fileName || 'Документ'}</a></div>`;
+          }
+        }).join("");
+      }
+      node.innerHTML = `${message.text || ""}${attachmentsHtml}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
       msgs.appendChild(node);
     }
     prevMessageIds = new Set(messages.map((m) => m.id));
@@ -165,14 +175,27 @@ if (session) {
       <div class="workspace-chat-board">
         <div class="workspace-chat-messages" id="msgs"></div>
         <div class="workspace-chat-compose">
-          <textarea id="msg-text" class="input" rows="2" placeholder="Введите сообщение..."></textarea>
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-            <input type="checkbox" id="repair-history-chk" style="width:16px;height:16px;cursor:pointer;accent-color:#00bcd4;">
-            <label for="repair-history-chk" style="font-size:12px;color:#94a3b8;cursor:pointer;user-select:none;">
-              📋 Сохранить в историю ремонта
-            </label>
+          <div id="file-preview-bar" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:4px;margin-bottom:8px;">
+            <span id="file-preview-icon" style="font-size:16px;">📄</span>
+            <span id="file-preview-name" style="font-size:12px;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+            <button id="file-cancel-btn" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;padding:4px;">✕</button>
           </div>
-          <button class="btn btn-primary" id="send-btn" style="align-self:flex-end">Отправить</button>
+          <textarea id="msg-text" class="input" rows="2" placeholder="Введите сообщение..."></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;width:100%;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" id="repair-history-chk" style="width:16px;height:16px;cursor:pointer;accent-color:#00bcd4;">
+              <label for="repair-history-chk" style="font-size:12px;color:#94a3b8;cursor:pointer;user-select:none;">
+                📋 Сохранить в историю ремонта
+              </label>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="file" id="file-input" style="display:none;">
+              <button class="btn btn-outline" id="attach-btn" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;display:${featureFlags.filesEnabled ? 'flex' : 'none'};align-items:center;gap:4px;">
+                📎 Прикрепить файл
+              </button>
+              <button class="btn btn-primary" id="send-btn">Отправить</button>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -185,41 +208,124 @@ if (session) {
   const bindMessageComposer = (conversationId) => {
     const sendButton = document.getElementById("send-btn");
     const textInput = document.getElementById("msg-text");
+    const fileInput = document.getElementById("file-input");
+    const attachBtn = document.getElementById("attach-btn");
+    const filePreviewBar = document.getElementById("file-preview-bar");
+    const filePreviewName = document.getElementById("file-preview-name");
+    const filePreviewIcon = document.getElementById("file-preview-icon");
+    const fileCancelBtn = document.getElementById("file-cancel-btn");
+    let selectedFile = null;
+
+    const readAsBase64 = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(",")[1];
+          resolve(base64);
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+      });
+    };
 
     const syncSendState = () => {
-      sendButton.disabled = !textInput.value.trim();
+      sendButton.disabled = !textInput.value.trim() && !selectedFile;
     };
     syncSendState();
     textInput.addEventListener("input", syncSendState);
 
+    attachBtn.addEventListener("click", () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        showToast("Файл слишком большой. Максимальный размер 10 МБ", "error");
+        fileInput.value = "";
+        return;
+      }
+      selectedFile = file;
+      filePreviewName.textContent = file.name;
+      if (file.type && file.type.startsWith("image/")) {
+        filePreviewIcon.textContent = "🖼️";
+      } else {
+        filePreviewIcon.textContent = "📄";
+      }
+      filePreviewBar.style.display = "flex";
+      syncSendState();
+    });
+
+    fileCancelBtn.addEventListener("click", () => {
+      selectedFile = null;
+      fileInput.value = "";
+      filePreviewBar.style.display = "none";
+      syncSendState();
+    });
+
     sendButton.addEventListener("click", async () => {
       const text = textInput.value.trim();
-      if (!text) return;
-      const draft = textInput.value;
+      if (!text && !selectedFile) return;
+
+      const draftText = textInput.value;
+      const draftFile = selectedFile;
       const repairHistoryChk = document.getElementById("repair-history-chk");
       const isRepairHistory = repairHistoryChk ? repairHistoryChk.checked : false;
+
       textInput.value = "";
+      selectedFile = null;
+      fileInput.value = "";
+      filePreviewBar.style.display = "none";
       if (repairHistoryChk) repairHistoryChk.checked = false;
       sendButton.disabled = true;
       sendButton.textContent = "Отправка...";
+
       try {
-        await authFetchJson(`/chat/conversations/${conversationId}/messages`, {
+        const messageText = text || (draftFile ? draftFile.name : "");
+        const responseData = await authFetchJson(`/chat/conversations/${conversationId}/messages`, {
           method: "POST",
-          body: { clientMessageId: crypto.randomUUID(), text, ...(isRepairHistory ? { isRepairHistory: true } : {}) }
+          body: {
+            clientMessageId: crypto.randomUUID(),
+            text: messageText,
+            ...(isRepairHistory && draftFile ? { isRepairHistory: true } : {})
+          }
         });
+
+        const messageId = responseData?.message?.id;
+        if (draftFile && messageId) {
+          const contentBase64 = await readAsBase64(draftFile);
+          await authFetchJson("/files/upload", {
+            method: "POST",
+            body: {
+              messageId,
+              fileName: draftFile.name,
+              fileType: draftFile.type || "application/octet-stream",
+              size: draftFile.size,
+              contentBase64
+            }
+          });
+        }
+
         const msgs = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
         lastMessageIds = "";
         renderMessagesOnly(msgs);
-        // После отправки всегда скроллим вниз
         const msgsEl = document.getElementById("msgs");
         if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
         showToast("Сообщение отправлено");
       } catch (error) {
-        textInput.value = draft; // возвращаем текст при ошибке
+        textInput.value = draftText;
+        selectedFile = draftFile;
+        if (draftFile) {
+          filePreviewName.textContent = draftFile.name;
+          filePreviewIcon.textContent = (draftFile.type && draftFile.type.startsWith("image/")) ? "🖼️" : "📄";
+          filePreviewBar.style.display = "flex";
+        }
         showToast(chatErrorText(error, "Не удалось отправить сообщение. Попробуйте ещё раз."), "error");
       } finally {
         sendButton.disabled = false;
         sendButton.textContent = "Отправить";
+        syncSendState();
       }
     });
 

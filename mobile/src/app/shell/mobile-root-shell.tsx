@@ -184,11 +184,33 @@ export function MobileRootShell() {
   useEffect(() => {
     if (!session || !accessToken) return;
 
+    const decodeBase64 = (str: string): string => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+      let buffer = "";
+      let result = "";
+      const cleaned = str.replace(/=/g, "").replace(/-/g, "+").replace(/_/g, "/");
+      for (let i = 0; i < cleaned.length; i++) {
+        const idx = chars.indexOf(cleaned[i]);
+        if (idx === -1) continue;
+        buffer += idx.toString(2).padStart(6, "0");
+        while (buffer.length >= 8) {
+          const byteStr = buffer.substring(0, 8);
+          buffer = buffer.substring(8);
+          result += String.fromCharCode(parseInt(byteStr, 2));
+        }
+      }
+      try {
+        return decodeURIComponent(escape(result));
+      } catch {
+        return result;
+      }
+    };
+
     const decodeExp = (token: string): number | null => {
       try {
         const parts = token.split(".");
         if (parts.length < 2) return null;
-        const payload = JSON.parse(atob(parts[1])) as { exp?: unknown };
+        const payload = JSON.parse(decodeBase64(parts[1])) as { exp?: unknown };
         return typeof payload.exp === "number" ? payload.exp : null;
       } catch {
         return null;

@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "AutoService",
+    "name": "Radius Service",
     "slug": "autoservice",
+    "version": "1.0.0",
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
     "plugins": [
@@ -28,7 +29,8 @@
       ]
     ],
     "ios": {
-      "bundleIdentifier": "com.anonymous.autoservice",
+      "bundleIdentifier": "ru.radius47.service",
+      "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
         "NSCameraUsageDescription": "Приложению нужен доступ к камере, чтобы вы могли сделать фото и отправить его в чат.",
@@ -36,7 +38,8 @@
       }
     },
     "android": {
-      "package": "com.anonymous.autoservice",
+      "package": "ru.radius47.service",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#000000"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Alert } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 
@@ -11,6 +11,23 @@ export function VisitsTabScreen({ navigation }: any) {
     ensureVisitsLoaded();
     ensureRepairDocumentsLoaded();
   }, [ensureVisitsLoaded, ensureRepairDocumentsLoaded]);
+
+  const handleOpenAttachment = async (fileUrl?: string) => {
+    if (!fileUrl) {
+      Alert.alert('Ошибка', 'Ссылка на файл отсутствует.');
+      return;
+    }
+    try {
+      const supported = await Linking.canOpenURL(fileUrl);
+      if (supported) {
+        await Linking.openURL(fileUrl);
+      } else {
+        Alert.alert('Ошибка', 'Не удалось открыть этот тип файла.');
+      }
+    } catch {
+      Alert.alert('Ошибка', 'Не удалось открыть файл.');
+    }
+  };
 
   const total = visits?.length ?? 0;
   const totalSum = visits?.reduce((acc, v) => acc + (v.finalAmount ?? 0), 0) ?? 0;
@@ -55,7 +72,13 @@ export function VisitsTabScreen({ navigation }: any) {
                 </Text>
                 {doc.text ? <Text style={s.docText}>{doc.text}</Text> : null}
                 {doc.attachments?.map((att) => (
-                  <Text key={att.id} style={s.docAttachment}>📎 {att.fileName}</Text>
+                  <Pressable
+                    key={att.id}
+                    onPress={() => handleOpenAttachment(att.fileUrl)}
+                    style={({ pressed }) => [pressed && s.pressed]}
+                  >
+                    <Text style={s.docAttachment}>📎 {att.fileName}</Text>
+                  </Pressable>
                 ))}
               </View>
             ))}
@@ -153,17 +176,6 @@ const s = StyleSheet.create({
   summaryValue: { color: colors.accent, fontSize: 28, fontWeight: '700' },
   summaryLabel: { color: colors.textDim, fontSize: 11, marginTop: 4, letterSpacing: 1 },
   summaryDivider: { width: 1, backgroundColor: colors.border, marginVertical: 12 },
-
-  // Инфо
-  infoCard: {
-    backgroundColor: 'rgba(0,188,212,0.06)',
-    borderRadius: 14, borderWidth: 1, borderColor: 'rgba(0,188,212,0.2)',
-    padding: 14, flexDirection: 'row', gap: 12, alignItems: 'flex-start',
-  },
-  infoIcon: { fontSize: 24, marginTop: 2 },
-  infoTexts: { flex: 1 },
-  infoTitle: { color: colors.text, fontSize: 13, fontWeight: '700' },
-  infoDesc: { color: colors.textSub, fontSize: 12, lineHeight: 18, marginTop: 4 },
 
   // Карточка заказ-наряда
   orderCard: {
