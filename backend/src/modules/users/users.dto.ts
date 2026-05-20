@@ -13,6 +13,11 @@ export type CreateUserDto = {
   fullName: string | null;
   phone: string | null;
   notes: string | null;
+  carBrand: string | null;
+  carModel: string | null;
+  carPlate: string | null;
+  carYear: number | null;
+  odometerKm: number | null;
 };
 
 export type UpdateUserDto = {
@@ -23,6 +28,11 @@ export type UpdateUserDto = {
   fullName?: string | null;
   phone?: string | null;
   notes?: string | null;
+  carBrand?: string | null;
+  carModel?: string | null;
+  carPlate?: string | null;
+  carYear?: number | null;
+  odometerKm?: number | null;
 };
 
 export type ResetUserPasswordDto = {
@@ -62,6 +72,23 @@ function parseOptionalString(value: unknown, field: string, maxLen: number): str
     throw new HttpError(400, `${field} is too long (max ${maxLen})`);
   }
   return trimmed;
+}
+
+function parseOptionalNumber(value: unknown, field: string, min: number, max: number): number | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (value === null || value === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  if (Number.isNaN(parsed) || !Number.isInteger(parsed)) {
+    throw new HttpError(400, `${field} must be an integer`);
+  }
+  if (parsed < min || parsed > max) {
+    throw new HttpError(400, `${field} must be between ${min} and ${max}`);
+  }
+  return parsed;
 }
 
 function validateRole(value: unknown, field: string, allowed: UserRole[]): UserRole {
@@ -107,7 +134,13 @@ export function parseCreateUserDto(body: unknown): CreateUserDto {
     throw new HttpError(400, "Invalid phone");
   }
 
-  return { email, password, role, isActive, fullName, phone, notes };
+  const carBrand = parseOptionalString(input.carBrand, "carBrand", 80) ?? null;
+  const carModel = parseOptionalString(input.carModel, "carModel", 80) ?? null;
+  const carPlate = parseOptionalString(input.carPlate, "carPlate", 24) ?? null;
+  const carYear = parseOptionalNumber(input.carYear, "carYear", 1900, new Date().getFullYear() + 1) ?? null;
+  const odometerKm = parseOptionalNumber(input.odometerKm, "odometerKm", 0, 9999999) ?? null;
+
+  return { email, password, role, isActive, fullName, phone, notes, carBrand, carModel, carPlate, carYear, odometerKm };
 }
 
 export function parseUpdateUserDto(body: unknown): UpdateUserDto {
@@ -151,6 +184,21 @@ export function parseUpdateUserDto(body: unknown): UpdateUserDto {
   }
   if (input.notes !== undefined) {
     dto.notes = parseOptionalString(input.notes, "notes", 1000) ?? null;
+  }
+  if (input.carBrand !== undefined) {
+    dto.carBrand = parseOptionalString(input.carBrand, "carBrand", 80) ?? null;
+  }
+  if (input.carModel !== undefined) {
+    dto.carModel = parseOptionalString(input.carModel, "carModel", 80) ?? null;
+  }
+  if (input.carPlate !== undefined) {
+    dto.carPlate = parseOptionalString(input.carPlate, "carPlate", 24) ?? null;
+  }
+  if (input.carYear !== undefined) {
+    dto.carYear = parseOptionalNumber(input.carYear, "carYear", 1900, new Date().getFullYear() + 1) ?? null;
+  }
+  if (input.odometerKm !== undefined) {
+    dto.odometerKm = parseOptionalNumber(input.odometerKm, "odometerKm", 0, 9999999) ?? null;
   }
 
   if (Object.keys(dto).length === 0) {

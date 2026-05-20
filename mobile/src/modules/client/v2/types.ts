@@ -5,6 +5,12 @@ export type UserMe = {
   email: string;
   fullName?: string | null;
   role: string;
+  phone?: string | null;
+  carBrand?: string | null;
+  carModel?: string | null;
+  carPlate?: string | null;
+  carYear?: number | null;
+  odometerKm?: number | null;
 };
 
 export type BonusBalance = {

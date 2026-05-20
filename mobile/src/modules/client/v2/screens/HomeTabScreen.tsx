@@ -54,6 +54,32 @@ export function HomeTabScreen({ navigation }: any) {
     me?.email?.toUpperCase() ||
     'КЛИЕНТ';
 
+  // Данные автомобиля из профиля
+  const carLabel = (() => {
+    const brand = me?.carBrand?.trim();
+    const model = me?.carModel?.trim();
+    if (brand && model) return `${brand} ${model}`.toUpperCase();
+    if (brand) return brand.toUpperCase();
+    if (model) return model.toUpperCase();
+    return 'Автомобиль не указан';
+  })();
+
+  const odometerLabel = me?.odometerKm != null
+    ? me.odometerKm.toLocaleString('ru-RU')
+    : null;
+
+  // Вместо «0 КМ» справа — госномер (если есть), иначе год, иначе ничего
+  const sideLabelTop = me?.carPlate
+    ? me.carPlate.toUpperCase()
+    : me?.carYear
+      ? String(me.carYear)
+      : null;
+  const sideLabelBottom = me?.carPlate
+    ? null
+    : me?.carYear
+      ? 'Г.В.'
+      : null;
+
   // Погода — загружается один раз при монтировании
   const [weather, setWeather] = useState<WeatherData | null>(null);
   useEffect(() => {
@@ -345,14 +371,25 @@ export function HomeTabScreen({ navigation }: any) {
         бонусов
       </Animated.Text>
 
-      {/* ── «157 КМ» справа ── */}
-      <View style={{
-        position: 'absolute',
-        top: sy(185), right: sx(18), alignItems: 'center',
-      }}>
-        <Text style={{ color: '#fff', fontSize: sx(17), fontFamily: FB, fontWeight: '700' }}>157</Text>
-        <Text style={{ color: '#fff', fontSize: sx(11), fontFamily: F,  letterSpacing: 1 }}>КМ</Text>
-      </View>
+      {/* ── Пробег / госномер справа ── */}
+      {(odometerLabel || sideLabelTop) && (
+        <View style={{
+          position: 'absolute',
+          top: sy(185), right: sx(18), alignItems: 'center',
+        }}>
+          {odometerLabel ? (
+            <>
+              <Text style={{ color: '#fff', fontSize: sx(17), fontFamily: FB, fontWeight: '700' }}>{odometerLabel}</Text>
+              <Text style={{ color: '#fff', fontSize: sx(11), fontFamily: F,  letterSpacing: 1 }}>КМ</Text>
+            </>
+          ) : (
+            <>
+              <Text style={{ color: '#fff', fontSize: sx(14), fontFamily: FB, fontWeight: '700' }}>{sideLabelTop}</Text>
+              {sideLabelBottom && <Text style={{ color: '#fff', fontSize: sx(11), fontFamily: F, letterSpacing: 1 }}>{sideLabelBottom}</Text>}
+            </>
+          )}
+        </View>
+      )}
 
       {/* ── Тонкие дуги справа от bubble: subtle dashboard decoration ── */}
       {/* Клип-ширина sx(52) << r → видно ~25° дуги сверху и снизу, не полуокружность */}
@@ -420,7 +457,7 @@ export function HomeTabScreen({ navigation }: any) {
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 6,
         }}>
-          БМВ М5
+          {carLabel}
         </Text>
 
         {/* Датчик топлива — игла белая, выровнен по вертикали с tempGauge */}

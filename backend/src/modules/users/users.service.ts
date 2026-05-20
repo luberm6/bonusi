@@ -19,6 +19,11 @@ type UserRow = {
   last_seen: Date | null;
   created_at: Date;
   updated_at: Date;
+  car_brand: string | null;
+  car_model: string | null;
+  car_plate: string | null;
+  car_year: number | null;
+  odometer_km: number | null;
 };
 
 function toUserView(row: UserRow) {
@@ -33,7 +38,12 @@ function toUserView(row: UserRow) {
     notes: row.notes,
     lastSeen: row.last_seen,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    carBrand: row.car_brand,
+    carModel: row.car_model,
+    carPlate: row.car_plate,
+    carYear: row.car_year,
+    odometerKm: row.odometer_km
   };
 }
 
@@ -62,7 +72,7 @@ function assertCanManageCreation(actor: AuthenticatedUser, roleToCreate: UserRol
 async function getUserRowById(userId: string, client?: PoolClient): Promise<UserRow> {
   const runner = client ?? pool;
   const result = await runner.query(
-    `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at
+    `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km
      from public.users where id = $1 limit 1`,
     [userId]
   );
@@ -87,6 +97,11 @@ function buildUpdateQuery(dto: UpdateUserDto, passwordHash: string | null) {
   if (dto.fullName !== undefined) push("full_name", dto.fullName);
   if (dto.phone !== undefined) push("phone", dto.phone);
   if (dto.notes !== undefined) push("notes", dto.notes);
+  if (dto.carBrand !== undefined) push("car_brand", dto.carBrand);
+  if (dto.carModel !== undefined) push("car_model", dto.carModel);
+  if (dto.carPlate !== undefined) push("car_plate", dto.carPlate);
+  if (dto.carYear !== undefined) push("car_year", dto.carYear);
+  if (dto.odometerKm !== undefined) push("odometer_km", dto.odometerKm);
   if (passwordHash) push("password_hash", passwordHash);
 
   return { sets, values };
@@ -99,7 +114,7 @@ function validateUpdatePermissions(actor: AuthenticatedUser, target: UserRow, dt
   if (actor.role === "client") {
     const forbidden = ["email", "password", "role", "isActive"].filter((field) => dto[field as keyof UpdateUserDto] !== undefined);
     if (forbidden.length > 0) {
-      throw new HttpError(403, "client can update only fullName, phone and notes");
+      throw new HttpError(403, "client can update only profile and vehicle fields");
     }
     return;
   }
@@ -137,11 +152,11 @@ export async function createUser(actor: AuthenticatedUser, dto: CreateUserDto) {
     await client.query("begin");
     const created = await client.query(
       `insert into public.users
-       (email, password_hash, role, created_by, is_active, full_name, phone, notes)
-       values ($1, $2, $3, $4, $5, $6, $7, $8)
+       (email, password_hash, role, created_by, is_active, full_name, phone, notes, car_brand, car_model, car_plate, car_year, odometer_km)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        on conflict (email) do nothing
-       returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at`,
-      [dto.email, passwordHash, dto.role, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes]
+       returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km`,
+      [dto.email, passwordHash, dto.role, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes, dto.carBrand, dto.carModel, dto.carPlate, dto.carYear, dto.odometerKm]
     );
     if (created.rowCount === 0) {
       throw new HttpError(409, "User with this email already exists");
@@ -177,12 +192,12 @@ export async function listUsers(actor: AuthenticatedUser) {
   const result =
     actor.role === "super_admin"
       ? await pool.query(
-          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at
+          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km
            from public.users
            order by created_at desc`
         )
       : await pool.query(
-          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at
+          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km
            from public.users
            where role <> 'super_admin'
            order by created_at desc`
@@ -213,7 +228,7 @@ export async function updateUser(actor: AuthenticatedUser, userId: string, dto: 
     }
     update.values.push(userId);
     const sql = `update public.users set ${update.sets.join(", ")} where id = $${update.values.length}
-                 returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at`;
+                 returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km`;
 
     const updated = await client.query(sql, update.values);
     if (updated.rowCount === 0) {

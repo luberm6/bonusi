@@ -240,6 +240,54 @@
         <section class="workspace-panel">
           <div class="workspace-toolbar">
             <div>
+              <h3 class="workspace-section-title">Автомобиль</h3>
+              <p class="workspace-section-meta">Марка, модель, госномер и пробег клиента. Можно изменить прямо здесь.</p>
+            </div>
+            <span class="badge badge-soft" id="client-car-badge">Данные авто</span>
+          </div>
+          <div class="spacer-16"></div>
+          <div class="workspace-client-summary" style="grid-template-columns: repeat(5, minmax(0, 1fr))">
+            <article class="workspace-client-summary-card"><strong>Марка</strong><span id="client-profile-car-brand">—</span></article>
+            <article class="workspace-client-summary-card"><strong>Модель</strong><span id="client-profile-car-model">—</span></article>
+            <article class="workspace-client-summary-card"><strong>Госномер</strong><span id="client-profile-car-plate">—</span></article>
+            <article class="workspace-client-summary-card"><strong>Год</strong><span id="client-profile-car-year">—</span></article>
+            <article class="workspace-client-summary-card"><strong>Пробег, км</strong><span id="client-profile-odometer">—</span></article>
+          </div>
+          <div class="spacer-16"></div>
+          <form id="client-car-form">
+            <div class="workspace-form-grid">
+              <div class="workspace-field">
+                <label for="profile-car-brand">Марка</label>
+                <input class="input" id="profile-car-brand" type="text" placeholder="Toyota" />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-car-model">Модель</label>
+                <input class="input" id="profile-car-model" type="text" placeholder="Camry" />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-car-plate">Госномер</label>
+                <input class="input" id="profile-car-plate" type="text" placeholder="А123БВ 77" />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-car-year">Год выпуска</label>
+                <input class="input" id="profile-car-year" type="number" placeholder="2020" min="1900" max="2100" />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-odometer-km">Пробег, км</label>
+                <input class="input" id="profile-odometer-km" type="number" placeholder="50000" min="0" />
+              </div>
+            </div>
+            <div class="spacer-16"></div>
+            <p id="client-car-error" style="color:#dc2626;min-height:18px;font-size:14px;"></p>
+            <p id="client-car-success" style="color:#16a34a;min-height:18px;font-size:14px;"></p>
+            <button class="btn btn-primary" id="client-car-submit" type="submit">Сохранить данные авто</button>
+          </form>
+        </section>
+
+        <div class="spacer-24"></div>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
               <h3 class="workspace-section-title">История визитов</h3>
               <p class="workspace-section-meta">Что было у клиента раньше: даты, филиалы, суммы, скидки, бонусы и состав услуг.</p>
             </div>

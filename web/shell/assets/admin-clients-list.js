@@ -22,6 +22,22 @@ const clientVisitsBadgeElement = document.getElementById("client-visits-badge");
 const clientVisitsLoadingElement = document.getElementById("client-visits-loading");
 const clientVisitsListElement = document.getElementById("client-visits-list");
 
+const profileCarBrandSpan = document.getElementById("client-profile-car-brand");
+const profileCarModelSpan = document.getElementById("client-profile-car-model");
+const profileCarPlateSpan = document.getElementById("client-profile-car-plate");
+const profileCarYearSpan = document.getElementById("client-profile-car-year");
+const profileOdometerSpan = document.getElementById("client-profile-odometer");
+
+const carFormElement = document.getElementById("client-car-form");
+const carBrandInput = document.getElementById("profile-car-brand");
+const carModelInput = document.getElementById("profile-car-model");
+const carPlateInput = document.getElementById("profile-car-plate");
+const carYearInput = document.getElementById("profile-car-year");
+const odometerInput = document.getElementById("profile-odometer-km");
+const carErrorElement = document.getElementById("client-car-error");
+const carSuccessElement = document.getElementById("client-car-success");
+const carSubmitElement = document.getElementById("client-car-submit");
+
 let activeClient = null;
 let activeProfileClient = null;
 
@@ -98,6 +114,18 @@ function resetClientProfile() {
   profilePhoneElement.textContent = "—";
   profileStatusElement.textContent = "—";
   profileLastSeenElement.textContent = "—";
+  if (profileCarBrandSpan) profileCarBrandSpan.textContent = "—";
+  if (profileCarModelSpan) profileCarModelSpan.textContent = "—";
+  if (profileCarPlateSpan) profileCarPlateSpan.textContent = "—";
+  if (profileCarYearSpan) profileCarYearSpan.textContent = "—";
+  if (profileOdometerSpan) profileOdometerSpan.textContent = "—";
+  if (carBrandInput) carBrandInput.value = "";
+  if (carModelInput) carModelInput.value = "";
+  if (carPlateInput) carPlateInput.value = "";
+  if (carYearInput) carYearInput.value = "";
+  if (odometerInput) odometerInput.value = "";
+  if (carErrorElement) carErrorElement.textContent = "";
+  if (carSuccessElement) carSuccessElement.textContent = "";
   setVisitLoadingState("Загружаем историю визитов клиента...");
 }
 
@@ -116,6 +144,23 @@ function openClientProfile(client) {
   profilePhoneElement.textContent = client.phone || "Не указан";
   profileStatusElement.textContent = client.isActive ? "Активен" : "Отключен";
   profileLastSeenElement.textContent = formatAdminDate(client.lastSeen);
+
+  // Авто — spans
+  if (profileCarBrandSpan) profileCarBrandSpan.textContent = client.carBrand || "—";
+  if (profileCarModelSpan) profileCarModelSpan.textContent = client.carModel || "—";
+  if (profileCarPlateSpan) profileCarPlateSpan.textContent = client.carPlate ? client.carPlate.toUpperCase() : "—";
+  if (profileCarYearSpan) profileCarYearSpan.textContent = client.carYear ? String(client.carYear) : "—";
+  if (profileOdometerSpan) profileOdometerSpan.textContent = client.odometerKm != null ? Number(client.odometerKm).toLocaleString("ru-RU") : "—";
+
+  // Авто — inputs (prefill)
+  if (carBrandInput) carBrandInput.value = client.carBrand || "";
+  if (carModelInput) carModelInput.value = client.carModel || "";
+  if (carPlateInput) carPlateInput.value = client.carPlate || "";
+  if (carYearInput) carYearInput.value = client.carYear != null ? String(client.carYear) : "";
+  if (odometerInput) odometerInput.value = client.odometerKm != null ? String(client.odometerKm) : "";
+  if (carErrorElement) carErrorElement.textContent = "";
+  if (carSuccessElement) carSuccessElement.textContent = "";
+
   setVisitLoadingState("Загружаем историю визитов клиента...");
   profileModalElement.dataset.open = "true";
   profileModalElement.setAttribute("aria-hidden", "false");
@@ -274,6 +319,52 @@ resetModalElement?.addEventListener("click", (event) => {
 profileCloseElement?.addEventListener("click", closeClientProfile);
 profileModalElement?.addEventListener("click", (event) => {
   if (event.target === profileModalElement) closeClientProfile();
+});
+
+carFormElement?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!activeProfileClient) return;
+
+  if (carErrorElement) carErrorElement.textContent = "";
+  if (carSuccessElement) carSuccessElement.textContent = "";
+  if (carSubmitElement) carSubmitElement.disabled = true;
+
+  const carYear = carYearInput?.value.trim();
+  const odometerKm = odometerInput?.value.trim();
+
+  const body = {
+    carBrand: carBrandInput?.value.trim() || null,
+    carModel: carModelInput?.value.trim() || null,
+    carPlate: carPlateInput?.value.trim() || null,
+    carYear: carYear ? Number(carYear) : null,
+    odometerKm: odometerKm ? Number(odometerKm) : null,
+  };
+
+  try {
+    const updated = await authFetchJson(`/users/${encodeURIComponent(activeProfileClient.id)}`, {
+      method: "PATCH",
+      body
+    });
+    // Обновляем spans
+    if (profileCarBrandSpan) profileCarBrandSpan.textContent = updated.carBrand || "—";
+    if (profileCarModelSpan) profileCarModelSpan.textContent = updated.carModel || "—";
+    if (profileCarPlateSpan) profileCarPlateSpan.textContent = updated.carPlate ? updated.carPlate.toUpperCase() : "—";
+    if (profileCarYearSpan) profileCarYearSpan.textContent = updated.carYear ? String(updated.carYear) : "—";
+    if (profileOdometerSpan) profileOdometerSpan.textContent = updated.odometerKm != null ? Number(updated.odometerKm).toLocaleString("ru-RU") : "—";
+    // Обновляем локальный объект клиента
+    Object.assign(activeProfileClient, {
+      carBrand: updated.carBrand,
+      carModel: updated.carModel,
+      carPlate: updated.carPlate,
+      carYear: updated.carYear,
+      odometerKm: updated.odometerKm
+    });
+    if (carSuccessElement) carSuccessElement.textContent = "Данные автомобиля сохранены.";
+  } catch (error) {
+    if (carErrorElement) carErrorElement.textContent = error instanceof Error ? error.message : "Не удалось сохранить данные автомобиля.";
+  } finally {
+    if (carSubmitElement) carSubmitElement.disabled = false;
+  }
 });
 
 submitElement?.addEventListener("click", async () => {

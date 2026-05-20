@@ -30,6 +30,19 @@ async function run() {
          is_active = true`,
     [passwordHash]
   );
+
+  // Заполняем демо-данные автомобиля для тестового клиента
+  await pool.query(
+    `update public.users
+     set car_brand = 'Bentley',
+         car_model = 'Bentayga',
+         car_plate  = 'А777МР 77',
+         car_year   = 2023,
+         odometer_km = 24500,
+         full_name   = coalesce(full_name, 'Иван Петров')
+     where email = 'client@example.com'`
+  );
+
   console.log("Seeded users: superadmin@example.com, client@example.com (password: Passw0rd123)");
 }
 
