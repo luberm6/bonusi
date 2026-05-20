@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Radius Service",
+    "name": "Centr Radius Service",
     "slug": "autoservice",
     "version": "1.0.0",
     "entryPoint": "./index.js",

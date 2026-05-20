@@ -269,15 +269,17 @@ export function HomeTabScreen({ navigation }: any) {
         <WeatherWidget weather={weather} sx={sx} F={F} FB={FB} />
       </View>
 
-      {/* ── «0 КМ» ── */}
-      <Text style={{
-        position: 'absolute',
-        top: sy(56), width: SW, textAlign: 'center',
-        color: '#fff', fontFamily: F,
-        fontSize: sx(13), letterSpacing: 2,
-      }}>
-        0 КМ
-      </Text>
+      {/* ── Пробег клиента (верх, центр) — только если есть данные ── */}
+      {odometerLabel && (
+        <Text style={{
+          position: 'absolute',
+          top: sy(56), width: SW, textAlign: 'center',
+          color: '#fff', fontFamily: F,
+          fontSize: sx(13), letterSpacing: 2,
+        }}>
+          {odometerLabel} КМ
+        </Text>
+      )}
 
       {/* ── Гейдж (пузыри): startup reveal + бесконечное дыхание ── */}
       {/* Внешний View: startup opacity + startup scale (boot-driven) */}
