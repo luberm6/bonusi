@@ -37,7 +37,7 @@ type PendingFile = {
 
 export function ChatTabScreen({ navigation }: any) {
   const { messages, sendMessage, chatLoading, ensureChatLoaded, session,
-    accessToken, activeConversationId, presentToast } = useClientData();
+    accessToken, activeConversationId, presentToast, filesEnabled } = useClientData();
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
@@ -214,6 +214,15 @@ export function ChatTabScreen({ navigation }: any) {
   };
 
   const handleAttach = () => {
+    // Если сервер сообщил что файлы отключены — показываем понятное сообщение сразу
+    if (!filesEnabled) {
+      Alert.alert(
+        'Файлы временно недоступны',
+        'Отправка файлов временно недоступна. Вы можете написать сообщение в чат.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {

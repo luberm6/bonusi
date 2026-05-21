@@ -83,6 +83,9 @@ services:
       # Keep this linked to the backend service host. Do not override manually in Render UI.
       - key: PUBLIC_API_BASE
         value: https://autoservice-backend-atyj.onrender.com/api/v1
+      # Must match backend FILES_ENABLED so web admin shows/hides the attach button correctly.
+      - key: FILES_ENABLED
+        value: true
 
 databases:
   - name: autoservice-postgres

@@ -28,6 +28,7 @@ interface ClientDataContextValues {
   onLogout: () => void;
   me: UserMe | null;
   bonusBalance: number;
+  filesEnabled: boolean;
   visits: VisitRow[] | null;
   visitsLoading: boolean;
   repairDocuments: RepairDocumentRow[] | null;
@@ -86,6 +87,7 @@ export function ClientDataProvider(props: {
 }) {
   const [me, setMe] = useState<UserMe | null>(null);
   const [bonusBalance, setBonusBalance] = useState<number>(0);
+  const [filesEnabled, setFilesEnabled] = useState<boolean>(false);
   const [visits, setVisits] = useState<VisitRow[] | null>(null);
   const [visitsLoading, setVisitsLoading] = useState(false);
   const [repairDocuments, setRepairDocuments] = useState<RepairDocumentRow[] | null>(null);
@@ -111,13 +113,17 @@ export function ClientDataProvider(props: {
     let mounted = true;
     (async () => {
       try {
-        const [meData, balanceData] = await Promise.all([
+        const [meData, balanceData, readyzData] = await Promise.all([
           requestJson<UserMe>("/users/me", props.accessToken),
-          requestJson<{balance: number}>(`/bonuses/balance?client_id=${encodeURIComponent(props.session.userId)}`, props.accessToken)
+          requestJson<{balance: number}>(`/bonuses/balance?client_id=${encodeURIComponent(props.session.userId)}`, props.accessToken),
+          fetch(`${mobileEnv.apiBaseUrl.replace(/\/api\/v1$/, '')}/api/v1/readyz`)
+            .then(r => r.json())
+            .catch(() => ({ filesEnabled: false }))
         ]);
         if (!mounted) return;
         setMe(meData);
         setBonusBalance(Number(balanceData.balance ?? 0));
+        setFilesEnabled(Boolean((readyzData as any)?.filesEnabled));
       } catch (err) {
         console.warn(err);
       }
@@ -281,7 +287,7 @@ export function ClientDataProvider(props: {
       session: props.session,
       accessToken: props.accessToken,
       onLogout: props.onLogout,
-      me, bonusBalance,
+      me, bonusBalance, filesEnabled,
       visits, visitsLoading,
       repairDocuments, repairDocumentsLoading,
       bonusHistory, bonusHistoryLoading,
