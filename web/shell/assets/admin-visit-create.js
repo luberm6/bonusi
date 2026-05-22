@@ -177,6 +177,12 @@ if (session) {
       (branch) => branch.name
     );
 
+    // Автовыбор "СПб Центр" по умолчанию
+    const spbBranch = branches.find(b => b.name.toLowerCase().includes("спб центр") || b.name.toLowerCase().includes("спб"));
+    if (spbBranch) {
+      branchSelect.value = spbBranch.id;
+    }
+
     serviceSelect.innerHTML = '<option value="">— Выберите услугу —</option>';
     for (const service of services.filter((item) => item.isActive)) {
       servicesCatalog.set(service.id, service);
@@ -221,6 +227,13 @@ if (session) {
     event.preventDefault();
     errorMessage.textContent = "";
     successMessage.textContent = "";
+
+    // Авто-добавление: если пользователь выбрал услугу, но забыл нажать "+ Добавить"
+    if (serviceSelect.value && parseInt(quantityInput.value, 10) >= 1) {
+      document.getElementById("add-svc-btn").click();
+      // Сбрасываем select, чтобы избежать путаницы
+      serviceSelect.value = "";
+    }
 
     if (!clientSelect.value) {
       errorMessage.textContent = "Сначала выберите клиента";

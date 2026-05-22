@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Autoservice | Настройки начисления бонусов</title>
     <script src="/assets/config.js"></script>
-    <link rel="stylesheet" href="/assets/style.css" />
+    <link rel="stylesheet" href="/assets/style.css?v=2" />
     <style>
       .bonus-settings-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
       .bonus-settings-note { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
@@ -18,7 +18,7 @@
         border: 1px solid rgba(148, 163, 184, 0.18);
         border-radius: 18px;
         padding: 16px;
-        background: rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.05);
         cursor: pointer;
         transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
       }
@@ -26,7 +26,7 @@
       .bonus-mode-card.is-active {
         border-color: rgba(37, 99, 235, 0.32);
         box-shadow: 0 18px 34px rgba(37, 99, 235, 0.1);
-        background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(240,247,255,0.78));
+        background: linear-gradient(180deg, rgba(37,99,235,0.15), rgba(37,99,235,0.05));
       }
       .bonus-mode-title { margin: 0 0 6px; font-size: 17px; font-weight: 700; }
       .bonus-mode-text { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
@@ -38,8 +38,8 @@
       .bonus-settings-kpi {
         padding: 18px;
         border-radius: 18px;
-        background: rgba(248,250,252,0.8);
-        border: 1px solid rgba(148,163,184,0.16);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
       }
       .bonus-settings-kpi-label { margin: 0 0 6px; color: var(--muted); font-size: 13px; font-weight: 700; text-transform: uppercase; }
       .bonus-settings-kpi-value { margin: 0; font-size: 28px; font-weight: 800; }
@@ -53,8 +53,8 @@
       .bonus-settings-preview {
         padding: 18px;
         border-radius: 18px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(248,250,252,0.86));
-        border: 1px solid rgba(148,163,184,0.14);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
       }
       .bonus-settings-preview-title {
         margin: 0 0 8px;
@@ -104,7 +104,7 @@
         <div class="spacer-16"></div>
         <section class="workspace-panel">
           <div class="bonus-settings-grid">
-            <form id="bonus-settings-form" class="workspace-panel workspace-panel-compact" style="background: rgba(255,255,255,0.52);">
+            <form id="bonus-settings-form" class="workspace-panel workspace-panel-compact" style="background: rgba(255,255,255,0.05);">
               <div class="workspace-toolbar">
                 <div>
                   <h2 class="workspace-section-title">Как начислять бонусы</h2>
@@ -151,7 +151,7 @@
               <button class="btn btn-primary" type="submit" id="save-btn">Сохранить настройки</button>
             </form>
 
-            <aside class="workspace-panel workspace-panel-compact bonus-settings-summary" style="background: rgba(255,255,255,0.52);">
+            <aside class="workspace-panel workspace-panel-compact bonus-settings-summary" style="background: rgba(255,255,255,0.05);">
               <div class="bonus-settings-kpi">
                 <p class="bonus-settings-kpi-label">Текущий режим</p>
                 <p class="bonus-settings-kpi-value" id="summary-mode">—</p>

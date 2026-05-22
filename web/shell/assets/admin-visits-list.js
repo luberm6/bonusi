@@ -332,6 +332,12 @@ if (session) {
     populateSelect(clientFilterElement, "Все клиенты", clients, (item) => item.fullName || item.email);
     populateSelect(branchFilterElement, "Все филиалы", branches, (item) => item.name);
     populateSelect(adminFilterElement, "Все администраторы", admins, (item) => item.fullName || item.email);
+
+    // Автовыбор "СПб Центр" по умолчанию при первой загрузке
+    const spbBranch = branches.find(b => b.name.toLowerCase().includes("спб центр") || b.name.toLowerCase().includes("спб"));
+    if (spbBranch && !branchFilterElement.value) {
+      branchFilterElement.value = spbBranch.id;
+    }
   };
 
   filtersForm.addEventListener("submit", (event) => {
@@ -341,10 +347,18 @@ if (session) {
 
   resetFiltersButton.addEventListener("click", () => {
     clientFilterElement.value = "";
-    branchFilterElement.value = "";
     adminFilterElement.value = "";
     dateFromElement.value = "";
     dateToElement.value = "";
+    
+    // При сбросе фильтров возвращаем филиал по умолчанию
+    const spbBranch = branches.find(b => b.name.toLowerCase().includes("спб центр") || b.name.toLowerCase().includes("спб"));
+    if (spbBranch) {
+      branchFilterElement.value = spbBranch.id;
+    } else {
+      branchFilterElement.value = "";
+    }
+    
     void loadVisits();
   });
 
