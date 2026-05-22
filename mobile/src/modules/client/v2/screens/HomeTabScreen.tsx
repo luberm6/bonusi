@@ -99,6 +99,8 @@ export function HomeTabScreen({ navigation }: any) {
   const [displayBonus, setDisplayBonus] = useState(0);
   const bonusAnim = useRef(new Animated.Value(0)).current;
   const prevTargetRef = useRef<number | null>(null);
+  const boot = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const target = Number(bonusBalance) || 0;
@@ -153,8 +155,6 @@ export function HomeTabScreen({ navigation }: any) {
   // ── Startup + loop animation ─────────────────────────────────────────────
   // boot (0→1, one-shot): стартовый reveal
   // rippleAnims: 4 волны, каждая scale 0.2→1.08 + opacity 0→1→0
-  const boot = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(0)).current;
 
   const RIPPLE_N   = 4;
   const RIPPLE_DUR = 6000; // Медленный плавный поток
