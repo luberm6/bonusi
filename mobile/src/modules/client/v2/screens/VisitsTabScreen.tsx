@@ -105,7 +105,7 @@ export function VisitsTabScreen({ navigation }: any) {
               <View style={s.orderHeader}>
                 <View style={s.orderNumWrap}>
                   <Text style={s.orderNumLabel}>ЗАКАЗ-НАРЯД</Text>
-                  <Text style={s.orderNum}>#{String(idx + 1).padStart(3, '0')}</Text>
+                  <Text style={s.orderNum}>{v.orderNumber}</Text>
                 </View>
                 <View style={s.statusBadge}>
                   <Text style={s.statusText}>ВЫПОЛНЕН</Text>

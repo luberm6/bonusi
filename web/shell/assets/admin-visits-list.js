@@ -176,7 +176,7 @@ if (session) {
 
   const renderVisitDetails = (visit) => {
     detailTitleElement.textContent = `Визит от ${dateTime(visit.visit_date)}`;
-    detailSubtitleElement.textContent = `Клиент: ${visit.client_name || visit.clientName || "—"} · Визит № ${visit.id}`;
+    detailSubtitleElement.textContent = `Клиент: ${visit.client_name || visit.clientName || "—"} · ${visit.order_number || visit.orderNumber || visit.id}`;
     detailDateElement.textContent = dateTime(visit.visit_date);
     detailClientElement.textContent = visit.client_name || visit.clientName || "—";
     detailBranchElement.textContent = visit.branch_name || visit.branchName || "—";
@@ -250,7 +250,7 @@ if (session) {
       row.innerHTML = `
         <td>
           <strong>${dateTime(visit.visit_date || visit.visitDate)}</strong>
-          <div class="workspace-muted">${escapeHtml(visit.status || "—")}</div>
+          <div class="workspace-muted">${escapeHtml(visit.order_number || visit.orderNumber || visit.id)} · ${escapeHtml(visit.status || "—")}</div>
         </td>
         <td>${escapeHtml(visit.client_name || visit.clientName || "—")}</td>
         <td>${escapeHtml(visit.branch_name || visit.branchName || "—")}</td>

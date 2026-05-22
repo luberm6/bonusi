@@ -19,6 +19,7 @@ export type BonusBalance = {
 
 export type VisitRow = {
   id: string;
+  orderNumber: string;
   visitDate: string;
   finalAmount?: number;
   totalAmount?: number;

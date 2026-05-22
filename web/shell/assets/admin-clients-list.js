@@ -259,7 +259,7 @@ function renderVisits(visits) {
         <article class="workspace-visit-history-card" data-visit-card="${visit.id}">
           <div class="workspace-visit-history-top">
             <div>
-              <p class="workspace-visit-history-title">${escapeHtml(formatAdminDate(visit.visit_date || visit.visitDate))}</p>
+              <p class="workspace-visit-history-title">${escapeHtml(visit.order_number || visit.orderNumber || "Визит")} от ${escapeHtml(formatAdminDate(visit.visit_date || visit.visitDate))}</p>
               <p class="workspace-visit-history-meta">Филиал: ${escapeHtml(visit.branch_name || visit.branchName || "—")} · Администратор: ${escapeHtml(visit.admin_name || visit.adminName || "—")}</p>
             </div>
             <button class="btn" type="button" data-visit-details="${visit.id}" data-open="false">Подробнее</button>

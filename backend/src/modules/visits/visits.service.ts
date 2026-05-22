@@ -9,6 +9,7 @@ import type { CreateVisitDto, VisitsFilterDto } from "./visits.dto.js";
 
 type VisitRow = {
   id: string;
+  order_number: string;
   client_id: string;
   client_name: string;
   admin_id: string | null;
@@ -30,6 +31,7 @@ type VisitRow = {
 
 type VisitBaseRow = {
   id: string;
+  order_number: string;
   client_id: string;
   admin_id: string | null;
   branch_id: string;
@@ -120,6 +122,8 @@ function toVisitSummary(row: VisitRow) {
 
   return {
     id: row.id,
+    orderNumber: row.order_number,
+    order_number: row.order_number,
     clientId: row.client_id,
     client_id: row.client_id,
     clientName: row.client_name,
@@ -237,7 +241,7 @@ function buildVisitWhere(actor: AuthenticatedUser, filters: VisitsFilterDto) {
 async function fetchVisitRows(actor: AuthenticatedUser, filters: VisitsFilterDto) {
   const { whereSql, values } = buildVisitWhere(actor, filters);
   const result = await pool.query(
-    `select v.id, v.client_id, uc.email as client_name, v.admin_id, ua.email as admin_name,
+    `select v.id, v.order_number, v.client_id, uc.email as client_name, v.admin_id, ua.email as admin_name,
             v.branch_id, b.name as branch_name, v.status, v.visit_date, v.total_amount,
             v.discount_amount, v.final_amount, v.comment, v.created_at, v.updated_at,
             coalesce(bt.bonus_accrual_amount, 0)::numeric(12,2) as bonus_accrual_amount,
@@ -269,7 +273,7 @@ async function fetchVisitRows(actor: AuthenticatedUser, filters: VisitsFilterDto
 
 async function fetchVisitRowById(visitId: string) {
   const result = await pool.query(
-    `select v.id, v.client_id, uc.email as client_name, v.admin_id, ua.email as admin_name,
+    `select v.id, v.order_number, v.client_id, uc.email as client_name, v.admin_id, ua.email as admin_name,
             v.branch_id, b.name as branch_name, v.status, v.visit_date, v.total_amount,
             v.discount_amount, v.final_amount, v.comment, v.created_at, v.updated_at,
             coalesce(bt.bonus_accrual_amount, 0)::numeric(12,2) as bonus_accrual_amount,
