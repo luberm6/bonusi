@@ -62,7 +62,7 @@ export function VisitsTabScreen({ navigation }: any) {
         {/* Документы из чата (помечены мастером "Сохранить в историю") */}
         {repairDocumentsLoading ? null : repairDocuments && repairDocuments.length > 0 ? (
           <>
-            <Text style={s.sectionLabel}>📋 ДОКУМЕНТЫ ИЗ ЧАТА</Text>
+            <Text style={s.sectionLabel}>ДОКУМЕНТЫ ИЗ ЧАТА</Text>
             {repairDocuments.map((doc) => (
               <View key={doc.id} style={s.docCard}>
                 <Text style={s.docDate}>
@@ -77,7 +77,7 @@ export function VisitsTabScreen({ navigation }: any) {
                     onPress={() => handleOpenAttachment(att.fileUrl)}
                     style={({ pressed }) => [pressed && s.pressed]}
                   >
-                    <Text style={s.docAttachment}>📎 {att.fileName}</Text>
+                    <Text style={s.docAttachment}>{att.fileName}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -140,7 +140,6 @@ export function VisitsTabScreen({ navigation }: any) {
           ))
         ) : (
           <View style={s.emptyWrap}>
-            <Text style={s.emptyIcon}>📋</Text>
             <Text style={s.emptyTitle}>Заказ-нарядов пока нет</Text>
             <Text style={s.emptyDesc}>
               После выполнения ремонта здесь появятся все ваши заказ-наряды
@@ -169,7 +168,7 @@ const s = StyleSheet.create({
   // Сводка
   summaryCard: {
     backgroundColor: colors.surface, borderRadius: 16,
-    borderWidth: 1, borderColor: 'rgba(0,188,212,0.2)',
+    borderWidth: 1, borderColor: 'rgba(10,132,198,0.2)',
     flexDirection: 'row', overflow: 'hidden',
   },
   summaryItem: { flex: 1, alignItems: 'center', paddingVertical: 20 },
@@ -187,7 +186,7 @@ const s = StyleSheet.create({
   orderNumLabel: { color: colors.textDim, fontSize: 9, letterSpacing: 2, fontWeight: '700' },
   orderNum: { color: colors.accent, fontSize: 18, fontWeight: '700', letterSpacing: 1 },
   statusBadge: {
-    backgroundColor: 'rgba(0,188,212,0.12)',
+    backgroundColor: 'rgba(10,132,198,0.12)',
     borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
   statusText: { color: colors.accent, fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
@@ -212,7 +211,7 @@ const s = StyleSheet.create({
   },
   docCard: {
     backgroundColor: colors.surface, borderRadius: 14,
-    borderWidth: 1, borderColor: 'rgba(0,188,212,0.2)',
+    borderWidth: 1, borderColor: 'rgba(10,132,198,0.2)',
     padding: 14, gap: 6,
   },
   docDate: { color: colors.textDim, fontSize: 11 },

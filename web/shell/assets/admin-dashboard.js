@@ -85,6 +85,17 @@ if (session) {
         "Ключевые показатели и операционные данные успешно обновлены.",
         "Данные актуальны"
       );
+
+      // Проверка непрочитанных чатов для мигания кнопки
+      const unreadChats = Array.isArray(chatsData) ? chatsData.filter((c) => c.unreadCount > 0).length : 0;
+      const dialogsAction = document.getElementById("action-dialogs");
+      if (dialogsAction) {
+        if (unreadChats > 0) {
+          dialogsAction.classList.add("pulse-alert");
+        } else {
+          dialogsAction.classList.remove("pulse-alert");
+        }
+      }
     } catch (error) {
       renderWorkspaceState(
         statePanel,
@@ -97,4 +108,21 @@ if (session) {
   };
 
   void loadDashboard();
+
+  setInterval(async () => {
+    try {
+      const chats = await authFetchJson("/chat/conversations");
+      setKpi("chats", Array.isArray(chats) ? chats.length : "—");
+      
+      const unreadChats = Array.isArray(chats) ? chats.filter((c) => c.unreadCount > 0).length : 0;
+      const dialogsAction = document.getElementById("action-dialogs");
+      if (dialogsAction) {
+        if (unreadChats > 0) {
+          dialogsAction.classList.add("pulse-alert");
+        } else {
+          dialogsAction.classList.remove("pulse-alert");
+        }
+      }
+    } catch (_) {}
+  }, 10000);
 }

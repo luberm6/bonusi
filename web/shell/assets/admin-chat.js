@@ -51,11 +51,18 @@ if (session) {
       node.className = `workspace-msg ${mine ? "mine" : "other"}${isNew ? " msg-new" : ""}`;
       let attachmentsHtml = "";
       if (message.attachments && message.attachments.length > 0) {
+        const getFullUrl = (url) => {
+          if (!url) return "";
+          if (url.startsWith("http")) return url;
+          const base = window.CONFIG?.API_BASE || "";
+          return base.replace(/\/+$/, "") + "/" + url.replace(/^\/+/, "");
+        };
         attachmentsHtml = message.attachments.map(att => {
+          const fullUrl = getFullUrl(att.fileUrl);
           if (att.fileType === "image" || (att.fileType && att.fileType.startsWith("image/"))) {
-            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${att.fileUrl}" target="_blank"><img src="${att.fileUrl}" style="max-width:200px;max-height:150px;border-radius:6px;display:block;"></a></div>`;
+            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${fullUrl}" target="_blank"><img src="${fullUrl}" style="max-width:200px;max-height:150px;border-radius:6px;display:block;"></a></div>`;
           } else {
-            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${att.fileUrl}" target="_blank" style="color:#00bcd4;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;">📄 ${att.fileName || 'Документ'}</a></div>`;
+            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${fullUrl}" target="_blank" style="color:#00bcd4;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;">📄 ${att.fileName || 'Документ'}</a></div>`;
           }
         }).join("");
       }
