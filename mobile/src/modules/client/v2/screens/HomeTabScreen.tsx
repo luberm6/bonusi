@@ -133,6 +133,14 @@ export function HomeTabScreen({ navigation }: any) {
         easing: Easing.out(Easing.quad),
         useNativeDriver: false,
       }).start();
+
+      if (prevTargetRef.current !== null && target > prevTargetRef.current) {
+        pulseAnim.setValue(0);
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1, duration: 300, easing: Easing.out(Easing.back(1.5)), useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 0, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true })
+        ]).start();
+      }
     }
 
     prevTargetRef.current = target;
@@ -140,12 +148,13 @@ export function HomeTabScreen({ navigation }: any) {
     return () => {
       bonusAnim.removeAllListeners();
     };
-  }, [bonusBalance, bonusAnim]);
+  }, [bonusBalance, bonusAnim, pulseAnim]);
 
   // ── Startup + loop animation ─────────────────────────────────────────────
   // boot (0→1, one-shot): стартовый reveal
   // rippleAnims: 4 волны, каждая scale 0.2→1.08 + opacity 0→1→0
   const boot = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
 
   const RIPPLE_N   = 4;
   const RIPPLE_DUR = 6000; // Медленный плавный поток
@@ -177,17 +186,29 @@ export function HomeTabScreen({ navigation }: any) {
     outputRange: [0.55, 1],
   });
 
-  // Gauge bubble: startup scale-in (0.95 → 1.0)
-  const gaugeScale = boot.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.95, 1],
-  });
+  // Gauge bubble: startup scale-in (0.95 → 1.0) + pulse bounce on accrual
+  const gaugeScale = Animated.add(
+    boot.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.95, 1],
+    }),
+    pulseAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 0.08], // slight pop
+    })
+  );
 
-  // Cyan glow ring: peaks at 60% of animation, settles lower — "activation pulse"
-  const glowOpacity = boot.interpolate({
-    inputRange: [0, 0.55, 1],
-    outputRange: [0, 0.55, 0.22],
-  });
+  // Cyan glow ring: peaks at 60% of animation, settles lower — "activation pulse" + extra glow on pulse
+  const glowOpacity = Animated.add(
+    boot.interpolate({
+      inputRange: [0, 0.55, 1],
+      outputRange: [0, 0.55, 0.22],
+    }),
+    pulseAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 0.6], // bright flash on accrual
+    })
+  );
 
   // Bonus number + "бонусов": delayed fade-in (feels like data loading)
   const dataOpacity = boot.interpolate({

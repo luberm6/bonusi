@@ -1043,10 +1043,14 @@ a.link:active {
   background: rgba(255, 255, 255, 0.08);
 }
 
-@media (max-height: 850px) {
-  .workspace-panel { padding: 14px; }
-  .spacer-16 { height: 8px; }
-  .spacer-24 { height: 12px; }
+@media (max-height: 950px) {
+  .workspace-panel { padding: 16px; }
+  .workspace-panel-compact { padding: 12px 14px; }
+  .spacer-16 { height: 10px; }
+  .spacer-24 { height: 14px; }
+  .spacer-32 { height: 18px; }
+  .input { padding: 12px 14px; font-size: 14px; }
+  .btn { padding: 12px 18px; font-size: 14px; }
   .workspace-kpi, .workspace-action-card {
     min-height: auto;
     padding: 12px 14px;
@@ -1054,8 +1058,18 @@ a.link:active {
   .workspace-kpi-value { font-size: 24px; }
   .workspace-action-title { font-size: 15px; }
   .workspace-section-title { font-size: 18px; }
-  .workspace-kpi-grid { gap: 10px; }
-  .workspace-action-grid { gap: 10px; }
+  .workspace-kpi-grid, .workspace-action-grid, .workspace-form-grid { gap: 12px; }
+  .workspace-state { padding: 14px 16px; }
+  .workspace-title { font-size: 22px; }
+}
+
+@media (max-height: 750px) {
+  .workspace-panel { padding: 12px; }
+  .spacer-16 { height: 6px; }
+  .spacer-24 { height: 10px; }
+  .input { padding: 10px 12px; }
+  .workspace-title { font-size: 20px; }
+  .workspace-form-grid { gap: 8px; }
 }
 
 .workspace-action-card:active {
@@ -1281,7 +1295,7 @@ a.link:active {
 
 .workspace-chat-item.active {
   border-color: rgba(37, 99, 235, 0.32);
-  background: rgba(239, 246, 255, 0.82);
+  background: linear-gradient(180deg, rgba(37,99,235,0.15), rgba(37,99,235,0.05));
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
 }
 

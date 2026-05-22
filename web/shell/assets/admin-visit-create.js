@@ -28,6 +28,15 @@ if (session) {
   const bonusPreviewText = document.getElementById("bonus-preview-text");
   const visitAmountsText = document.getElementById("visit-amounts-text");
 
+  if (window.flatpickr) {
+    flatpickr(dateInput, {
+      locale: "ru",
+      dateFormat: "Y-m-d",
+      defaultDate: "today",
+      disableMobile: true
+    });
+  }
+
   const selectedServices = [];
   const servicesCatalog = new Map();
   let bonusSettings = null;
@@ -73,7 +82,12 @@ if (session) {
       bonusSettings.accrualMode === "fixed"
         ? `За визит будет начислено фиксированное количество: ${Number(bonusSettings.fixedValue)} бонусов.`
         : `За визит будет начислено ${Number(bonusSettings.percentageValue).toFixed(2)} % от итоговой суммы после скидки.`;
-    visitAmountsText.textContent = `Сумма услуг: ${formatMoney(totalAmount)} · Скидка: ${formatMoney(discount)} · Итог после скидки: ${formatMoney(finalAmount)}`;
+    visitAmountsText.innerHTML = `
+      <div class="math-row"><span>Сумма услуг:</span> <span>${formatMoney(totalAmount)}</span></div>
+      <div class="math-row"><span>Скидка:</span> <span>${formatMoney(discount)}</span></div>
+      <div class="math-row total"><span>Итог после скидки:</span> <span>${formatMoney(finalAmount)}</span></div>
+    `;
+    visitAmountsText.className = "visit-math-box";
   };
 
   const renderServicesTable = () => {
@@ -218,6 +232,7 @@ if (session) {
     }
 
     quantityInput.value = "1";
+    serviceSelect.value = ""; // Обязательно сбрасываем, чтобы не добавилось дважды при сабмите
     renderServicesTable();
   });
 

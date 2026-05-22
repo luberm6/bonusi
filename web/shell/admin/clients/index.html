@@ -7,8 +7,8 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css?v=2" />
     <style>
-      .badge-on { background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
-      .badge-off { background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .badge-on { background: rgba(22, 163, 74, 0.2); color: #4ade80; padding: 2px 8px; border-radius: 12px; font-size: 12px; border: 1px solid rgba(74, 222, 128, 0.2); }
+      .badge-off { background: rgba(220, 38, 38, 0.2); color: #f87171; padding: 2px 8px; border-radius: 12px; font-size: 12px; border: 1px solid rgba(248, 113, 113, 0.2); }
       .workspace-inline-actions { display: flex; gap: 8px; justify-content: flex-end; }
       .workspace-modal-backdrop {
         position: fixed;
@@ -23,10 +23,13 @@
       .workspace-modal-backdrop[data-open="true"] { display: flex; }
       .workspace-modal {
         width: min(100%, 460px);
-        background: rgba(255,255,255,0.96);
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 24px;
         padding: 24px;
-        box-shadow: 0 18px 48px rgba(15,23,42,0.18);
+        box-shadow: 0 18px 48px rgba(0,0,0,0.6);
       }
       .workspace-modal-actions { display: flex; gap: 10px; margin-top: 18px; }
       .workspace-modal-error { color: #dc2626; min-height: 20px; margin-top: 12px; }
@@ -46,10 +49,13 @@
         width: min(100%, 1040px);
         max-height: min(90vh, 960px);
         overflow: auto;
-        background: rgba(255,255,255,0.98);
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 28px;
         padding: 24px;
-        box-shadow: 0 24px 70px rgba(15,23,42,0.22);
+        box-shadow: 0 24px 70px rgba(0,0,0,0.6);
       }
       .workspace-client-profile-head {
         display: flex;
@@ -65,10 +71,10 @@
         margin-top: 16px;
       }
       .workspace-client-summary-card {
-        border: 1px solid rgba(148, 163, 184, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 18px;
         padding: 14px 16px;
-        background: rgba(248, 250, 252, 0.72);
+        background: rgba(255, 255, 255, 0.05);
       }
       .workspace-client-summary-card strong {
         display: block;
@@ -79,10 +85,10 @@
         gap: 14px;
       }
       .workspace-visit-history-card {
-        border: 1px solid rgba(148, 163, 184, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 22px;
         padding: 18px;
-        background: rgba(255,255,255,0.96);
+        background: rgba(255, 255, 255, 0.05);
       }
       .workspace-visit-history-top {
         display: flex;
@@ -111,8 +117,8 @@
         align-items: center;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(226, 232, 240, 0.72);
-        color: #0f172a;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
         font-size: 13px;
       }
       .workspace-visit-history-services {
@@ -123,7 +129,7 @@
       }
       .workspace-visit-history-details {
         margin-top: 16px;
-        border-top: 1px solid rgba(148, 163, 184, 0.16);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
         padding-top: 16px;
       }
       .workspace-visit-history-details[hidden] {
