@@ -339,39 +339,39 @@ export function HomeTabScreen({ navigation }: any) {
           Полная непрозрачность (#000) полностью скрывает встроенный текст. */}
       <View style={{
         position: 'absolute',
-        left: gaugeCX - sx(82),
-        top:  gaugeCY - sx(58),
-        width: sx(164), height: sx(100),
-        borderRadius: sx(50),
+        left: gaugeCX - sx(72),
+        top:  gaugeCY - sx(72),
+        width: sx(144), height: sx(144),
+        borderRadius: sx(72),
         backgroundColor: '#000',
       }} />
 
-      {/* ── Цифра бонусов (delayed fade-in, count-up один раз) ── */}
-      <Animated.Text style={{
+      {/* ── Цифра бонусов + «бонусов» — по центру чёрного круга ── */}
+      <Animated.View style={{
         position: 'absolute',
-        left: gaugeCX - sx(82),
-        top:  gaugeCY - numSize * 0.68,
-        width: sx(164), textAlign: 'center',
-        fontSize: numSize, lineHeight: numSize,
-        color: '#fff', fontFamily: FB,
-        fontWeight: fontsReady ? undefined : '700',
-        includeFontPadding: false,
+        left: gaugeCX - sx(72),
+        top:  gaugeCY - sx(72),
+        width: sx(144), height: sx(144),
+        justifyContent: 'center', alignItems: 'center',
         opacity: dataOpacity,
       }}>
-        {displayBonus}
-      </Animated.Text>
-
-      {/* ── «бонусов» (delayed fade-in) ── */}
-      <Animated.Text style={{
-        position: 'absolute',
-        top: gaugeCY + numSize * 0.42,
-        width: SW, textAlign: 'center',
-        color: '#fff', fontFamily: F,
-        fontSize: sx(13), letterSpacing: 2.5,
-        opacity: dataOpacity,
-      }}>
-        бонусов
-      </Animated.Text>
+        <Animated.Text style={{
+          fontSize: numSize, lineHeight: numSize,
+          color: '#fff', fontFamily: FB,
+          fontWeight: fontsReady ? undefined : '700',
+          includeFontPadding: false,
+          textAlign: 'center',
+        }}>
+          {displayBonus}
+        </Animated.Text>
+        <Text style={{
+          color: '#fff', fontFamily: F,
+          fontSize: sx(16), letterSpacing: 2,
+          textAlign: 'center', marginTop: sx(4),
+        }}>
+          бонусов
+        </Text>
+      </Animated.View>
 
       {/* ── Пробег / госномер справа ── */}
       {(odometerLabel || sideLabelTop) && (

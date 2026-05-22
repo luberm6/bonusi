@@ -159,6 +159,8 @@ a.link:focus-visible {
   padding: 12px 12px;
   font-size: 14px;
   background: var(--glass-strong);
+  color: var(--text);
+  color-scheme: dark;
   min-height: 44px;
   transition:
     border-color 160ms ease,
@@ -170,6 +172,29 @@ a.link:focus-visible {
   border-color: rgba(37, 99, 235, 0.38);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   outline: none;
+}
+
+/* ── Инпуты внутри белых/светлых панелей ─────────────────────────────────
+   workspace-modal, workspace-client-profile, bonuses/settings panels
+   имеют белый фон — переопределяем инпуты на светлый стиль             */
+.workspace-modal .input,
+.workspace-client-profile .input,
+.workspace-bonuses .input,
+.workspace-settings .input,
+.workspace-panel .input {
+  background: rgba(248, 250, 252, 0.85);
+  color: #0f172a;
+  color-scheme: light;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.workspace-modal .input:focus,
+.workspace-client-profile .input:focus,
+.workspace-bonuses .input:focus,
+.workspace-settings .input:focus,
+.workspace-panel .input:focus {
+  background: #fff;
+  border-color: rgba(37, 99, 235, 0.5);
 }
 
 .label {
