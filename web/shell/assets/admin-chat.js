@@ -185,7 +185,7 @@ if (session) {
             <div style="display:flex;align-items:center;gap:8px;">
               <input type="checkbox" id="repair-history-chk" style="width:16px;height:16px;cursor:pointer;accent-color:#00bcd4;">
               <label for="repair-history-chk" style="font-size:12px;color:#94a3b8;cursor:pointer;user-select:none;">
-                📋 Сохранить в историю ремонта
+                Сохранить в историю ремонта
               </label>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">

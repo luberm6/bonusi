@@ -9,7 +9,6 @@ const session = initAdminWorkspace();
 
 if (session) {
   const pageState = document.getElementById("page-state");
-  const currentBadge = document.getElementById("current-badge");
   const summaryMode = document.getElementById("summary-mode");
   const summaryValue = document.getElementById("summary-value");
   const percentageField = document.getElementById("field-percentage");
@@ -67,7 +66,6 @@ if (session) {
     fixedModeCard.classList.toggle("is-active", currentMode === "fixed");
     percentageField.style.display = currentMode === "percentage" ? "" : "none";
     fixedField.style.display = currentMode === "fixed" ? "" : "none";
-    currentBadge.textContent = modeLabel(currentMode);
     summaryMode.textContent = modeLabel(currentMode);
     summaryValue.textContent = valueLabel(currentMode);
     previewText.innerHTML = previewLabel(currentMode).replace(
