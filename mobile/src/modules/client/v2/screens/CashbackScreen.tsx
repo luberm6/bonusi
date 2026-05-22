@@ -6,19 +6,16 @@ import { colors } from '../../../../theme/colors';
 const STEPS = [
   {
     num: '1',
-    icon: '🔧',
     title: 'Делаете ремонт',
     desc: 'Проходите техническое обслуживание или ремонт в Центре Radius Service',
   },
   {
     num: '2',
-    icon: '💰',
     title: 'Получаете бонусы',
     desc: '5% от стоимости выполненных ремонтных работ начисляется бонусными баллами на ваш счёт',
   },
   {
     num: '3',
-    icon: '🎁',
     title: 'Оплачиваете бонусами',
     desc: 'Накопленные баллы можно использовать для оплаты следующего визита',
   },
@@ -66,9 +63,6 @@ export function CashbackScreen({ navigation }: any) {
           <View key={step.num} style={s.stepCard}>
             <View style={s.stepNum}>
               <Text style={s.stepNumText}>{step.num}</Text>
-            </View>
-            <View style={s.stepIcon}>
-              <Text style={{ fontSize: 22 }}>{step.icon}</Text>
             </View>
             <View style={s.stepInfo}>
               <Text style={s.stepTitle}>{step.title}</Text>

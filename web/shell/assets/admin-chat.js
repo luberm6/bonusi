@@ -174,7 +174,7 @@ if (session) {
     chatPanel.innerHTML = `
       <div class="workspace-chat-board">
         <div class="workspace-chat-messages" id="msgs"></div>
-        <div class="workspace-chat-compose">
+        <div class="workspace-chat-compose" style="flex-direction: column; align-items: stretch;">
           <div id="file-preview-bar" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:4px;margin-bottom:8px;">
             <span id="file-preview-icon" style="font-size:16px;">📄</span>
             <span id="file-preview-name" style="font-size:12px;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>

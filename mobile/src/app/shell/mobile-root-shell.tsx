@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Platform } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ClientHomeV2 as ClientHomeScreen } from "../../modules/client/v2";
 import type { AuthSession } from "../navigation/role-navigation-resolver";
 import { mobileEnv } from "../../shared/config/mobile-env";
@@ -181,6 +181,8 @@ export function MobileRootShell() {
     }
   };
 
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     if (!session || !accessToken) return;
 
@@ -241,12 +243,14 @@ export function MobileRootShell() {
       token: '',
     };
     return (
-      <SafeAreaView style={styles.root}>
-        <ClientHomeScreen
-          session={webPreviewSession}
-          accessToken=""
-          onLogout={() => {}}
-        />
+      <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
+        <View style={{ flex: 1 }}>
+          <ClientHomeScreen
+            session={webPreviewSession}
+            accessToken=""
+            onLogout={() => {}}
+          />
+        </View>
       </SafeAreaView>
     );
   }
@@ -256,23 +260,25 @@ export function MobileRootShell() {
   }
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
       {!session ? (
-        showOnboarding ? (
-          <OnboardingView onDone={finishOnboarding} onSkip={finishOnboarding} />
-        ) : showLogin ? (
-          <LoginView
-            loading={loginLoading}
-            error={loginError}
-            email={email}
-            password={password}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onSubmit={() => void handleLogin()}
-          />
-        ) : (
-          <AnonymousView onOpenLogin={() => setShowLogin(true)} />
-        )
+        <View style={{ flex: 1, paddingTop: insets.top }}>
+          {showOnboarding ? (
+            <OnboardingView onDone={finishOnboarding} onSkip={finishOnboarding} />
+          ) : showLogin ? (
+            <LoginView
+              loading={loginLoading}
+              error={loginError}
+              email={email}
+              password={password}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onSubmit={() => void handleLogin()}
+            />
+          ) : (
+            <AnonymousView onOpenLogin={() => setShowLogin(true)} />
+          )}
+        </View>
       ) : session.role === "client" ? (
         <ClientHomeScreen
           session={session}
@@ -280,7 +286,9 @@ export function MobileRootShell() {
           onLogout={() => void handleLogout()}
         />
       ) : (
-        <StaffAccessView session={session} onLogout={() => void handleLogout()} />
+        <View style={{ flex: 1, paddingTop: insets.top }}>
+          <StaffAccessView session={session} onLogout={() => void handleLogout()} />
+        </View>
       )}
       <UpdateOverlay 
         visible={!!updateInfo} 
@@ -294,6 +302,7 @@ export function MobileRootShell() {
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#000'
   }
 });

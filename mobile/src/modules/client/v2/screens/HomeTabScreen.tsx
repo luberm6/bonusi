@@ -14,7 +14,7 @@ import { fetchSpbWeather, type WeatherData, type WeatherIcon } from '../../../..
 // ─── Ассеты ──────────────────────────────────────────────────────────────────
 const ASSETS = {
   bgCar:       require('../../../../../assets/images/bg_car.jpg'),
-  gaugeBubble: require('../../../../../assets/images/gauge_bubble.gif'),
+  gaugeBubble: require('../../../../../assets/images/gauge_bubble_static.png'),
   tempGauge:   require('../../../../../assets/images/temp_gauge.png'),
   fuelGauge:   require('../../../../../assets/images/fuel_gauge.png'),
 } as const;
@@ -23,22 +23,20 @@ const ASSETS = {
 const FW = 440;
 const FH = 956;
 
-// Флаг живёт весь JS-bundle (= одна сессия приложения).
-// Сбрасывается только при полном перезапуске — useRef не подходит,
-// потому что сбрасывается при размонтировании компонента.
-let sessionCountUpDone = false;
-let sessionCountUpTarget = -1;
-
 export function HomeTabScreen({ navigation }: any) {
   const { width: SW, height: SH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   const [fontsReady] = useFonts({
-    'Mont-Regular': require('../../../../../assets/fonts/Montserrat-Regular.ttf'),
-    'Mont-Bold':    require('../../../../../assets/fonts/Montserrat-Bold.ttf'),
+    'Inter-Regular': require('../../../../../assets/fonts/Inter-Regular.ttf'),
+    'Inter-Bold':    require('../../../../../assets/fonts/Inter-Bold.ttf'),
+    'Cormorant-Regular': require('../../../../../assets/fonts/CormorantGaramond_400Regular.ttf'),
+    'Cormorant-Bold':    require('../../../../../assets/fonts/CormorantGaramond_700Bold.ttf'),
   });
-  const F  = fontsReady ? 'Mont-Regular' : undefined;
-  const FB = fontsReady ? 'Mont-Bold'    : undefined;
+  const F   = fontsReady ? 'Inter-Regular' : undefined;
+  const FB  = fontsReady ? 'Inter-Bold'    : undefined;
+  const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
+  const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
 
   const contentH = SH - insets.top - insets.bottom;
   const sx = (v: number) => (v * SW) / FW;
@@ -97,73 +95,80 @@ export function HomeTabScreen({ navigation }: any) {
   // Чёрная зона сверху: минимум 42%, но всегда закрывает весь круг пузырьков + отступ
   const topBlack = Math.max(contentH * 0.42, gaugeT + gaugeSize + sy(12));
 
-  // ── Одноразовая count-up анимация бонусного числа ────────────────────────
-  // Если bonusBalance = 0 → показываем 0 статично.
-  // Если bonusBalance > 0 → один раз анимируем от 0 до N (0.8–1с).
-  // Count-up: один раз за сессию (sessionCountUpDone — module-level).
-  // useRef сбрасывается при размонтировании → не подходит для этой логики.
+  // ── Count-up анимация бонусного числа ────────────────────────────────────
   const [displayBonus, setDisplayBonus] = useState(0);
   const bonusAnim = useRef(new Animated.Value(0)).current;
+  const prevTargetRef = useRef<number | null>(null);
 
   useEffect(() => {
     const target = Number(bonusBalance) || 0;
 
-    if (target === sessionCountUpTarget) return; // значение не изменилось
-    sessionCountUpTarget = target;
-
-    if (target === 0) {
-      setDisplayBonus(0);
-      return;
-    }
-
-    if (sessionCountUpDone) {
-      // Уже анимировали в этой сессии → показать статично
-      setDisplayBonus(target);
-      return;
-    }
-
-    // Первый раз с ненулевым значением за сессию → count-up
-    sessionCountUpDone = true;
-    bonusAnim.setValue(0);
-    const listenerId = bonusAnim.addListener(({ value }) => setDisplayBonus(Math.round(value)));
-    Animated.timing(bonusAnim, {
-      toValue: target,
-      duration: 900,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: false,
-    }).start(() => {
-      bonusAnim.removeListener(listenerId);
-      setDisplayBonus(target);
+    // Всегда вешаем актуальный слушатель
+    bonusAnim.removeAllListeners();
+    bonusAnim.addListener(({ value }) => {
+      setDisplayBonus(Math.round(value));
     });
-  }, [bonusBalance]);
+
+    if (prevTargetRef.current === null) {
+      // Первый рендер компонента
+      if (target > 0) {
+        // Если данные уже есть (например, из кэша), красиво набегаем с 0
+        bonusAnim.setValue(0);
+        Animated.timing(bonusAnim, {
+          toValue: target,
+          duration: 2500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: false,
+        }).start();
+      } else {
+        // Иначе просто стоим на 0 (ждем данных сети)
+        bonusAnim.setValue(0);
+        setDisplayBonus(0);
+      }
+    } else if (prevTargetRef.current !== target) {
+      // Значение изменилось в процессе работы приложения (начисление / сеть загрузила данные)
+      Animated.timing(bonusAnim, {
+        toValue: target,
+        duration: 2500,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }).start();
+    }
+
+    prevTargetRef.current = target;
+
+    return () => {
+      bonusAnim.removeAllListeners();
+    };
+  }, [bonusBalance, bonusAnim]);
 
   // ── Startup + loop animation ─────────────────────────────────────────────
-  // boot (0→1, one-shot): управляет стартовым reveal всех элементов
-  // pulse (0→1→0→…, infinite): плавное живое дыхание пузырькового круга
-  const boot  = useRef(new Animated.Value(0)).current;
-  const pulse = useRef(new Animated.Value(0)).current;
+  // boot (0→1, one-shot): стартовый reveal
+  // rippleAnims: 4 волны, каждая scale 0.2→1.08 + opacity 0→1→0
+  const boot = useRef(new Animated.Value(0)).current;
+
+  const RIPPLE_N   = 4;
+  const RIPPLE_DUR = 6000; // Медленный плавный поток
+  const masterAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Стартуем boot (проявление элементов)
     Animated.timing(boot, {
       toValue: 1,
       duration: 1400,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
-    }).start(() => {
-      // Бесшовный loop: одна timing 0→1 за 6000мс, Easing.linear.
-      // outputRange симметричный [1.0, 1.018, 1.0] → при сбросе pulse с 1→0
-      // scale остаётся 1.0 с обеих сторон → нет прыжка.
-      // Easing.linear убирает замедление на концах → нет паузы.
-      // Sequence НЕ используется → нет JS-кадра между итерациями.
-      Animated.loop(
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 6000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start();
-    });
+    }).start();
+
+    // Бесконечный цикл пузырей запускаем один раз
+    Animated.loop(
+      Animated.timing(masterAnim, {
+        toValue: 1,
+        duration: RIPPLE_DUR,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
   }, []);
 
   // Gauge bubble: fades from 70% to 100% opacity (reveals full brightness)
@@ -176,14 +181,6 @@ export function HomeTabScreen({ navigation }: any) {
   const gaugeScale = boot.interpolate({
     inputRange: [0, 1],
     outputRange: [0.95, 1],
-  });
-
-  // Bubble loop: симметричный [1.0→1.018→1.0] за 6с, Easing.linear.
-  // pulse=0 → scale=1.0, pulse=1 → scale=1.0: loop-reset невидим.
-  // Середина цикла (pulse=0.5) — пик масштаба 1.018 (±1.8%).
-  const pulseScale = pulse.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1.0, 1.018, 1.0],
   });
 
   // Cyan glow ring: peaks at 60% of animation, settles lower — "activation pulse"
@@ -226,8 +223,8 @@ export function HomeTabScreen({ navigation }: any) {
 
       {/* ── Сплошной чёрный верх ── */}
       <View style={{
-        position: 'absolute', top: 0, left: 0, right: 0,
-        height: topBlack,
+        position: 'absolute', top: -insets.top, left: 0, right: 0,
+        height: topBlack + insets.top,
         backgroundColor: '#000',
       }} />
 
@@ -245,7 +242,7 @@ export function HomeTabScreen({ navigation }: any) {
         locations={[0, 0.52, 1]}
         start={{ x: 1, y: 0 }}
         end={{ x: 0, y: 1 }}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        style={{ position: 'absolute', top: -insets.top, left: 0, right: 0, bottom: 0 }}
         pointerEvents="none"
       />
 
@@ -282,7 +279,7 @@ export function HomeTabScreen({ navigation }: any) {
       )}
 
       {/* ── Гейдж (пузыри): startup reveal + бесконечное дыхание ── */}
-      {/* Внешний View: startup opacity + startup scale (boot-driven) */}
+      {/* ── Гейдж (пузыри): startup reveal + бесконечный радиальный поток ── */}
       <Animated.View style={{
         position: 'absolute',
         left: gaugeL, top: gaugeT,
@@ -290,25 +287,49 @@ export function HomeTabScreen({ navigation }: any) {
         opacity: bubbleOpacity,
         transform: [{ scale: gaugeScale }],
       }}>
-        {/* Внутренний View: loop breathing scale (pulse-driven, ±1.8%) */}
-        <Animated.View style={{
+        {/* Clip-круг: все ripple-волны обрезаются по границе gauge */}
+        <View style={{
           width: gaugeSize, height: gaugeSize,
-          transform: [{ scale: pulseScale }],
+          borderRadius: gaugeSize / 2,
+          overflow: 'hidden',
+          backgroundColor: '#050a10', // Тёмный фон, чтобы не просвечивала машина
         }}>
-          {/* Clip-View: на iOS overflow:hidden на Image ненадёжен —
-              используем отдельный View с borderRadius для надёжной обрезки */}
-          <View style={{
-            width: gaugeSize, height: gaugeSize,
-            borderRadius: gaugeSize / 2,
-            overflow: 'hidden',
-          }}>
-            <Image
-              source={ASSETS.gaugeBubble}
-              style={{ width: gaugeSize, height: gaugeSize }}
-              resizeMode="cover"
-            />
-          </View>
-        </Animated.View>
+          {Array.from({ length: RIPPLE_N }).map((_, i) => {
+            const phaseAnim = Animated.modulo(
+              Animated.add(masterAnim, i / RIPPLE_N),
+              1
+            );
+            const rippleScale = phaseAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.1, 1.15], // Рождается в центре и летит наружу
+            });
+            // Плавное перекрестное затухание расширяющихся слоёв
+            const rippleOpacity = phaseAnim.interpolate({
+              inputRange: [0, 0.3, 0.75, 1],
+              outputRange: [0, 1, 1, 0],
+            });
+            return (
+              <Animated.View
+                key={i}
+                style={{
+                  position: 'absolute',
+                  width: gaugeSize,
+                  height: gaugeSize,
+                  borderRadius: gaugeSize / 2,
+                  overflow: 'hidden',
+                  opacity: rippleOpacity,
+                  transform: [{ scale: rippleScale }],
+                }}
+              >
+                <Image
+                  source={ASSETS.gaugeBubble}
+                  style={{ width: gaugeSize, height: gaugeSize }}
+                  resizeMode="cover"
+                />
+              </Animated.View>
+            );
+          })}
+        </View>
       </Animated.View>
 
       {/* ── Cyan glow ring — activation pulse around gauge ── */}
@@ -322,9 +343,9 @@ export function HomeTabScreen({ navigation }: any) {
           height: gaugeSize + sx(12),
           borderRadius: (gaugeSize + sx(12)) / 2,
           borderWidth: 1.5,
-          borderColor: '#00BCD4',
+          borderColor: '#0A84C6',
           // Static shadow — View opacity drives visibility
-          shadowColor: '#00BCD4',
+          shadowColor: '#0A84C6',
           shadowOpacity: 1,
           shadowRadius: 18,
           shadowOffset: { width: 0, height: 0 },
@@ -356,9 +377,8 @@ export function HomeTabScreen({ navigation }: any) {
         opacity: dataOpacity,
       }}>
         <Animated.Text style={{
-          fontSize: numSize, lineHeight: numSize,
-          color: '#fff', fontFamily: FB,
-          fontWeight: fontsReady ? undefined : '700',
+          fontSize: numSize + sx(10), lineHeight: numSize + sx(10),
+          color: '#fff', fontFamily: FCB,
           includeFontPadding: false,
           textAlign: 'center',
         }}>
@@ -366,8 +386,9 @@ export function HomeTabScreen({ navigation }: any) {
         </Animated.Text>
         <Text style={{
           color: '#fff', fontFamily: F,
-          fontSize: sx(16), letterSpacing: 2,
-          textAlign: 'center', marginTop: sx(4),
+          fontSize: sx(15), letterSpacing: 2.0,
+          textAlign: 'center', marginTop: sx(2),
+          textTransform: 'uppercase',
         }}>
           бонусов
         </Text>
@@ -393,33 +414,29 @@ export function HomeTabScreen({ navigation }: any) {
         </View>
       )}
 
-      {/* ── Тонкие дуги справа от bubble: subtle dashboard decoration ── */}
-      {/* Клип-ширина sx(52) << r → видно ~25° дуги сверху и снизу, не полуокружность */}
-      {[sx(126), sx(137)].map((r, i) => (
-        <View
-          key={i}
-          pointerEvents="none"
-          style={{
-            position: 'absolute',
-            left: gaugeCX,
-            top: gaugeCY - r,
-            width: sx(52),
-            height: r * 2,
-            overflow: 'hidden',
-          }}
-        >
-          <View style={{
-            position: 'absolute',
-            left: -r,
-            top: 0,
-            width: r * 2,
-            height: r * 2,
-            borderRadius: r,
-            borderWidth: 1,
-            borderColor: `rgba(255,255,255,${0.22 - i * 0.08})`,
-          }} />
-        </View>
-      ))}
+      {/* ── Белая полуокружность справа (укороченная ~1/3 дуги) ── */}
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: gaugeCX,
+          top: gaugeCY - sx(95),
+          width: sx(132),
+          height: sx(190),
+          overflow: 'hidden',
+        }}
+      >
+        <View style={{
+          position: 'absolute',
+          left: -sx(132),
+          top: -sx(37),
+          width: sx(132) * 2,
+          height: sx(132) * 2,
+          borderRadius: sx(132),
+          borderWidth: 1.5,
+          borderColor: 'rgba(255,255,255,0.7)',
+        }} />
+      </View>
 
       {/* ── Нижний блок: датчики, имя, модель, кнопки (slide-up fade) ── */}
       <Animated.View style={{
@@ -440,8 +457,8 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{
           position: 'absolute',
           top: sy(365), width: SW, textAlign: 'center',
-          color: '#fff', fontFamily: FB,
-          fontWeight: '700', fontSize: sx(16), letterSpacing: 1,
+          color: '#fff', fontFamily: FCB,
+          fontSize: sx(24), letterSpacing: 1.5,
           textShadowColor: 'rgba(0,0,0,0.95)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 6,
@@ -452,7 +469,7 @@ export function HomeTabScreen({ navigation }: any) {
         {/* Модель авто */}
         <Text style={{
           position: 'absolute',
-          top: sy(388), width: SW, textAlign: 'center',
+          top: sy(396), width: SW, textAlign: 'center',
           color: '#fff', fontFamily: F,
           fontSize: sx(15), letterSpacing: 1,
           textShadowColor: 'rgba(0,0,0,0.95)',
@@ -502,14 +519,14 @@ export function HomeTabScreen({ navigation }: any) {
                 top: -4, left: -3,
                 height: 10, width: sx(116),
                 borderRadius: 5,
-                backgroundColor: 'rgba(125,172,197,0.22)',
+                backgroundColor: 'rgba(10,132,198,0.25)',
               }} />
               {/* Core underline */}
               <View style={{
                 height: 1.5, width: sx(110),
                 borderRadius: 1,
-                backgroundColor: '#A8D4E8',
-                shadowColor: '#7DACC5',
+                backgroundColor: '#0A84C6',
+                shadowColor: '#0A84C6',
                 shadowOpacity: 1,
                 shadowRadius: 9,
                 shadowOffset: { width: 0, height: 0 },
@@ -518,14 +535,12 @@ export function HomeTabScreen({ navigation }: any) {
           </Pressable>
         ))}
 
-        {/* FAB halo: BORDER-only кольца снаружи кнопки (no fill).
-            Заполненные круги давали ~45% суммарную заливку — теперь
-            только borderWidth, без backgroundColor. */}
+        {/* FAB halo: BORDER-only кольца снаружи кнопки (no fill). */}
         {([
-          { off:  8, bw: 1.5, bc: 'rgba(125,172,197,0.70)' },
-          { off: 18, bw: 1,   bc: 'rgba(125,172,197,0.40)' },
-          { off: 32, bw: 1,   bc: 'rgba(125,172,197,0.20)' },
-          { off: 50, bw: 1.5, bc: 'rgba(125,172,197,0.09)' },
+          { off:  8, bw: 1.5, bc: 'rgba(10,132,198,0.70)' },
+          { off: 18, bw: 1,   bc: 'rgba(10,132,198,0.40)' },
+          { off: 32, bw: 1,   bc: 'rgba(10,132,198,0.20)' },
+          { off: 50, bw: 1.5, bc: 'rgba(10,132,198,0.09)' },
         ] as { off: number; bw: number; bc: string }[]).map(({ off, bw, bc }) => (
           <View key={off} pointerEvents="none" style={{
             position: 'absolute',
@@ -547,11 +562,11 @@ export function HomeTabScreen({ navigation }: any) {
             width: sx(88), height: sx(88),
             borderRadius: sx(44),
             borderWidth: 2,
-            borderColor: '#9DCFE8',
+            borderColor: '#0A84C6',
             backgroundColor: 'transparent',
             justifyContent: 'center',
             alignItems: 'center',
-            shadowColor: '#7DACC5',
+            shadowColor: '#0A84C6',
             shadowOpacity: 1,
             shadowRadius: 32,
             shadowOffset: { width: 0, height: 0 },

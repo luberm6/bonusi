@@ -3,6 +3,7 @@
     "name": "Centr Radius Service",
     "slug": "autoservice",
     "version": "1.0.0",
+    "orientation": "portrait",
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
     "plugins": [
