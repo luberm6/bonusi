@@ -7,30 +7,94 @@
     <script src="/assets/config.js"></script>
     <link rel="stylesheet" href="/assets/style.css?v=2" />
   </head>
+    <style>
+      .login-shell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px;
+        background: radial-gradient(circle at 50% 0%, rgba(37,99,235,0.08), transparent 50%), var(--bg);
+      }
+      .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--glass);
+        backdrop-filter: blur(24px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 24px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        border-radius: 24px;
+        padding: 40px 32px;
+        text-align: center;
+      }
+      .login-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 42px;
+        font-weight: 600;
+        margin: 0 0 8px;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .login-subtitle {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.5;
+        margin: 0 0 32px;
+      }
+      .login-form {
+        text-align: left;
+      }
+      .login-form .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .login-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+        margin-top: 16px;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+      .login-logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        margin: 32px auto 0;
+        display: block;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+    </style>
+  </head>
   <body>
-    <main class="page">
-      <section class="shell">
-        <div class="glass card" style="max-width: 480px; margin: 40px auto 0;">
-          <h1 class="title">Autoservice</h1>
-          <p class="subtitle">Войдите в систему, чтобы открыть кабинет клиента или рабочее пространство команды.</p>
-          <div class="spacer-24"></div>
+    <main class="login-shell">
+      <div class="login-card">
+        <h1 class="login-title">Autoservice</h1>
+        <p class="login-subtitle">Войдите в систему, чтобы открыть кабинет клиента или рабочее пространство команды.</p>
 
-          <form id="login-form">
-            <label class="label" for="email">Электронная почта</label>
-            <input class="input" id="email" type="email" placeholder="example@mail.ru" required />
+        <form id="login-form" class="login-form">
+          <label class="label" for="email">Электронная почта</label>
+          <input class="input" id="email" type="email" placeholder="example@mail.ru" required />
 
-            <div class="spacer-16"></div>
-            <label class="label" for="password">Пароль</label>
-            <input class="input" id="password" type="password" placeholder="••••••••" required />
+          <div class="spacer-16"></div>
+          <label class="label" for="password">Пароль</label>
+          <input class="input" id="password" type="password" placeholder="••••••••" required />
 
-            <div class="spacer-16"></div>
-            <p id="error" class="error"></p>
-            <div class="row">
-            <button class="btn btn-primary" type="submit">Войти</button>
-          </div>
+          <p id="error" class="error" style="margin-top: 16px; text-align: center; min-height: 20px;"></p>
+          
+          <button class="btn btn-primary login-btn" type="submit">Войти</button>
         </form>
+
+        <img src="/assets/logo.png" alt="Autoservice Logo" class="login-logo" />
       </div>
-      </section>
     </main>
 
     <script type="module">
