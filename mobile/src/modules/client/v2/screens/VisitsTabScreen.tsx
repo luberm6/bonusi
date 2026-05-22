@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Alert } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
+import { mobileEnv } from '../../../../shared/config/mobile-env';
 
 export function VisitsTabScreen({ navigation }: any) {
   const { visits, visitsLoading, ensureVisitsLoaded,
@@ -18,9 +19,12 @@ export function VisitsTabScreen({ navigation }: any) {
       return;
     }
     try {
-      const supported = await Linking.canOpenURL(fileUrl);
+      const fullUrl = fileUrl.startsWith('/') 
+        ? `${mobileEnv.apiBaseUrl.replace(/\/api\/v1\/?$/, '')}${fileUrl}`
+        : fileUrl;
+      const supported = await Linking.canOpenURL(fullUrl);
       if (supported) {
-        await Linking.openURL(fileUrl);
+        await Linking.openURL(fullUrl);
       } else {
         Alert.alert('Ошибка', 'Не удалось открыть этот тип файла.');
       }

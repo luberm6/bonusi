@@ -197,7 +197,7 @@ if (session) {
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
               <input type="file" id="file-input" style="display:none;">
-              <button class="btn btn-outline" id="attach-btn" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;display:${featureFlags.filesEnabled ? 'flex' : 'none'};align-items:center;gap:4px;">
+              <button class="btn btn-outline" id="attach-btn" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:4px;">
                 📎 Прикрепить файл
               </button>
               <button class="btn btn-primary" id="send-btn">Отправить</button>
