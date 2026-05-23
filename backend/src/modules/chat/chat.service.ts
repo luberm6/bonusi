@@ -88,9 +88,9 @@ export async function listConversations(actor: AuthenticatedUser) {
     actor.role === "super_admin"
       ? ""
       : actor.role === "admin"
-        ? "where c.admin_id = $2"
-        : "where c.client_id = $2";
-  const params = actor.role === "super_admin" ? [actor.id] : [actor.id, actor.id];
+        ? "where c.admin_id = $1"
+        : "where c.client_id = $1";
+  const params = actor.role === "super_admin" ? [] : [actor.id];
   const senderCondition = actor.role === "client" ? "!= c.client_id" : "= c.client_id";
   const result = await pool.query(
     `select c.id, c.client_id, c.admin_id, c.created_at, c.updated_at,
