@@ -91,6 +91,7 @@ export async function listConversations(actor: AuthenticatedUser) {
         ? "where c.admin_id = $2"
         : "where c.client_id = $2";
   const params = actor.role === "super_admin" ? [actor.id] : [actor.id, actor.id];
+  const senderCondition = actor.role === "client" ? "!= c.client_id" : "= c.client_id";
   const result = await pool.query(
     `select c.id, c.client_id, c.admin_id, c.created_at, c.updated_at,
             m.id as last_message_id, m.text as last_message_text, m.created_at as last_message_at,
@@ -109,7 +110,7 @@ export async function listConversations(actor: AuthenticatedUser) {
        select count(*)::int as unread_count
        from public.messages um
        where um.conversation_id = c.id
-         and um.receiver_id = $1
+         and um.sender_id ${senderCondition}
          and um.read_at is null
      ) unread on true
      ${where}
