@@ -44,8 +44,15 @@ if (session) {
       prevMessageIds = new Set();
       return;
     }
+    let markedRead = false;
     for (const message of messages) {
       const mine = message.senderId === session.userId;
+      if (!mine && !message.readAt) {
+        authFetchJson(`/chat/messages/${message.id}/read`, { method: "POST" }).catch(() => {});
+        message.readAt = new Date().toISOString();
+        markedRead = true;
+      }
+      
       const isNew = !prevMessageIds.has(message.id);
       const node = document.createElement("div");
       node.className = `workspace-msg ${mine ? "mine" : "other"}${isNew ? " msg-new" : ""}`;
@@ -73,14 +80,24 @@ if (session) {
     if (atBottom) {
       msgs.scrollTop = msgs.scrollHeight;
     }
+    
+    if (markedRead) {
+      authFetchJson("/chat/conversations").then((conversations) => {
+        renderConversationList(conversations);
+      }).catch(() => {});
+    }
   };
 
   const startPolling = (conversationId) => {
     stopPolling();
     pollInterval = window.setInterval(async () => {
       try {
-        const msgs = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
+        const [msgs, conversations] = await Promise.all([
+          authFetchJson(`/chat/conversations/${conversationId}/messages`),
+          authFetchJson("/chat/conversations")
+        ]);
         renderMessagesOnly(msgs);
+        renderConversationList(conversations);
       } catch (_) {}
     }, 5000);
   };
