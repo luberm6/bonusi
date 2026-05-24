@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Centr Radius Service",
+    "name": "Autoservice",
     "slug": "autoservice",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,7 +31,7 @@
     ],
     "ios": {
       "bundleIdentifier": "ru.radius47.service",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
         "NSCameraUsageDescription": "Приложению нужен доступ к камере, чтобы вы могли сделать фото и отправить его в чат.",
@@ -40,7 +40,7 @@
     },
     "android": {
       "package": "ru.radius47.service",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#000000"

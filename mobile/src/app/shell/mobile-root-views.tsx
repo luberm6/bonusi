@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
   type NativeScrollEvent,
   type NativeSyntheticEvent
 } from "react-native";
@@ -198,10 +199,15 @@ export function LoginView(props: {
       keyboardVerticalOffset={Platform.OS === 'android' ? 24 : 0}
     >
       <GlassCard elevated animated style={styles.loginCard}>
-        <Text style={styles.brandMark}>CRS</Text>
-        <Text style={styles.loginTitle}>Вход в приложение</Text>
-        <Text style={styles.loginSubtitle}>
-          Используйте рабочую учетную запись, чтобы открыть бонусы, визиты и чат.
+        <View style={{ alignItems: 'center', marginBottom: 8 }}>
+          <Image 
+            source={require('../../../assets/icon.png')} 
+            style={{ width: 80, height: 80, borderRadius: 20 }} 
+          />
+        </View>
+        <Text style={[styles.loginTitle, { textAlign: 'center' }]}>Centr Radius Service</Text>
+        <Text style={[styles.loginSubtitle, { textAlign: 'center' }]}>
+          Войдите в систему, чтобы открыть кабинет клиента или рабочее пространство.
         </Text>
 
         <View style={styles.loginForm}>
@@ -229,6 +235,7 @@ export function LoginView(props: {
             onPress={props.onSubmit}
             disabled={props.loading || !props.email.trim() || !props.password}
             haptic="impactLight"
+            style={{ backgroundColor: '#FFDEAD', shadowColor: '#FFDEAD' }} // Бежевый цвет в тон логотипу
           />
         </View>
       </GlassCard>

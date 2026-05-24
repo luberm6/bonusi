@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Bonusi — App Icon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --graphite-0:#15171a;
+    --graphite-1:#1f2227;
+    --graphite-2:#2a2e34;
+    --graphite-3:#363b42;
+    --orange:#FF5A1F;
+    --orange-deep:#E84A12;
+    --paper:#f3f1ec;
+    --ink:#15171a;
+  }
+  html,body{margin:0;background:var(--paper);font-family:'Manrope',system-ui,sans-serif;color:var(--ink);}
+  .mono{font-family:'JetBrains Mono',monospace;}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+
+// DesignCanvas.jsx — Figma-ish design canvas wrapper
+// Warm gray grid bg + Sections + Artboards + PostIt notes.
+// Artboards are reorderable (grip-drag), deletable, labels/titles are
+// inline-editable, and any artboard can be opened in a fullscreen focus
+// overlay (←/→/Esc). State persists to a .design-canvas.state.json sidecar
+// via the host bridge. No assets, no deps.
+//
+// Usage:
+//   <DesignCanvas>
+//     <DCSection id="onboarding" title="Onboarding" subtitle="First-run variants">
+//       <DCArtboard id="a" label="A · Dusk" width={260} height={480}>…</DCArtboard>
+//       <DCArtboard id="b" label="B · Minimal" width={260} height={480}>…</DCArtboard>
+//     </DCSection>
+//   </DesignCanvas>
+
+const DC = {
+  bg: '#f0eee9',
+  grid: 'rgba(0,0,0,0.06)',
+  label: 'rgba(60,50,40,0.7)',
+  title: 'rgba(40,30,20,0.85)',
+  subtitle: 'rgba(60,50,40,0.6)',
+  postitBg: '#fef4a8',
+  postitText: '#5a4a2a',
+  font: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+};
+
+// One-time CSS injection (classes are dc-prefixed so they don't collide with
+// the hosted design's own styles).
+if (typeof document !== 'undefined' && !document.getElementById('dc-styles')) {
+  const s = document.createElement('style');
+  s.id = 'dc-styles';
+  s.textContent = [
+    '.dc-editable{cursor:text;outline:none;white-space:nowrap;border-radius:3px;padding:0 2px;margin:0 -2px}',
+    '.dc-editable:focus{background:#fff;box-shadow:0 0 0 1.5px #c96442}',
+    '[data-dc-slot]{transition:transform .18s cubic-bezier(.2,.7,.3,1)}',
+    '[data-dc-slot].dc-dragging{transition:none;z-index:10;pointer-events:none}',
+    '[data-dc-slot].dc-dragging .dc-card{box-shadow:0 12px 40px rgba(0,0,0,.25),0 0 0 2px #c96442;transform:scale(1.02)}',
+    // isolation:isolate contains artboard content's z-indexes so a
+    // z-indexed child (sticky navbar etc.) can't paint over .dc-header or
+    // the .dc-menu popover that drops into the top of the card.
+    '.dc-card{isolation:isolate;transition:box-shadow .15s,transform .15s}',
+    '.dc-card *{scrollbar-width:none}',
+    '.dc-card *::-webkit-scrollbar{display:none}',
+    // Per-artboard header: grip + label on the left, delete/expand on the
+    // right. Single flex row; when the artboard's on-screen width is too
+    // narrow for both the label yields (ellipsis, then hidden entirely below
+    // ~4ch via the container query) and the buttons stay on the row.
+    '.dc-header{position:absolute;bottom:100%;left:-4px;margin-bottom:calc(4px * var(--dc-inv-zoom,1));z-index:2;',
+    '  display:flex;align-items:center;container-type:inline-size}',
+    '.dc-labelrow{display:flex;align-items:center;gap:4px;height:24px;flex:1 1 auto;min-width:0}',
+    '.dc-grip{flex:0 0 auto;cursor:grab;display:flex;align-items:center;padding:5px 4px;border-radius:4px;transition:background .12s,opacity .12s}',
+    '.dc-grip:hover{background:rgba(0,0,0,.08)}',
+    '.dc-grip:active{cursor:grabbing}',
+    '.dc-labeltext{flex:1 1 auto;min-width:0;cursor:pointer;border-radius:4px;padding:3px 6px;',
+    '  display:flex;align-items:center;transition:background .12s;overflow:hidden}',
+    // Below ~4ch of label room: hide the label entirely, and drop the grip to
+    // hover-only (same reveal rule as .dc-btns) so a narrow header is clean
+    // until the card is moused.
+    '@container (max-width: 110px){',
+    '  .dc-labeltext{display:none}',
+    '  .dc-grip{opacity:0}',
+    '  [data-dc-slot]:hover .dc-grip{opacity:1}',
+    '}',
+    '.dc-labeltext:hover{background:rgba(0,0,0,.05)}',
+    '.dc-labeltext .dc-editable{overflow:hidden;text-overflow:ellipsis;max-width:100%}',
+    '.dc-labeltext .dc-editable:focus{overflow:visible;text-overflow:clip}',
+    '.dc-btns{flex:0 0 auto;margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .12s}',
+    '[data-dc-slot]:hover .dc-btns,.dc-btns:has(.dc-menu){opacity:1}',
+    '.dc-expand,.dc-kebab{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;padding:0;',
+    '  background:transparent;color:rgba(60,50,40,.7);display:flex;align-items:center;justify-content:center;',
+    '  font:inherit;transition:background .12s,color .12s}',
+    '.dc-expand:hover,.dc-kebab:hover{background:rgba(0,0,0,.06);color:#2a251f}',
+    // Slot hosting an open menu floats above later siblings (which otherwise
+    // paint on top — same z-index:auto, later DOM order) so the popup isn't
+    // clipped by the next card.
+    '[data-dc-slot]:has(.dc-menu){z-index:10}',
+    '.dc-menu{position:absolute;top:100%;right:0;margin-top:4px;background:#fff;border-radius:8px;',
+    '  box-shadow:0 8px 28px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.05);padding:4px;min-width:160px;z-index:10}',
+    '.dc-menu button{display:block;width:100%;padding:7px 10px;border:0;background:transparent;',
+    '  border-radius:5px;font-family:inherit;font-size:13px;font-weight:500;line-height:1.2;',
+    '  color:#29261b;cursor:pointer;text-align:left;transition:background .12s;white-space:nowrap}',
+    '.dc-menu button:hover{background:rgba(0,0,0,.05)}',
+    '.dc-menu hr{border:0;border-top:1px solid rgba(0,0,0,.08);margin:4px 2px}',
+    '.dc-menu .dc-danger{color:#c96442}',
+    '.dc-menu .dc-danger:hover{background:rgba(201,100,66,.1)}',
+    // Chrome (titles / labels / buttons) counter-scales against the viewport
+    // zoom so it stays a constant on-screen size. --dc-inv-zoom is set by
+    // DCViewport on every transform update and inherits to all descendants —
+    // any overlay inside the world (e.g. a TweaksPanel on an artboard) can use
+    // it the same way.
+    //
+    // The header uses transform:scale (out-of-flow, so layout impact doesn't
+    // matter) with its world-space width set to card-width / inv-zoom so that
+    // after counter-scaling its on-screen width exactly matches the card's —
+    // that's what lets the container query + text-overflow behave against the
+    // card's visible edge at every zoom level.
+    //
+    // The section head uses CSS zoom instead of transform so its layout box
+    // grows with the counter-scale, pushing the card row down — otherwise the
+    // constant-screen-size title would overflow into the (shrinking) world-
+    // space gap and overlap the artboard headers at low zoom.
+    '.dc-header{width:calc((100% + 4px) / var(--dc-inv-zoom,1));',
+    '  transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom left}',
+    '.dc-sectionhead{zoom:var(--dc-inv-zoom,1)}',
+  ].join('\n');
+  document.head.appendChild(s);
+}
+
+const DCCtx = React.createContext(null);
+
+// Recursively unwrap React.Fragment so <>…</> grouping doesn't hide
+// DCSection/DCArtboard children from the type-based walks below.
+function dcFlatten(children) {
+  const out = [];
+  React.Children.forEach(children, (c) => {
+    if (c && c.type === React.Fragment) out.push(...dcFlatten(c.props.children));
+    else out.push(c);
+  });
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────────
+// DesignCanvas — stateful wrapper around the pan/zoom viewport.
+// Owns runtime state (per-section order, renamed titles/labels, hidden
+// artboards, focused artboard). Order/titles/labels/hidden persist to a
+// .design-canvas.state.json
+// sidecar next to the HTML. Reads go via plain fetch() so the saved
+// arrangement is visible anywhere the HTML + sidecar are served together
+// (omelette preview, direct link, downloaded zip). Writes go through the
+// host's window.omelette bridge — editing requires the omelette runtime.
+// Focus is ephemeral.
+// ─────────────────────────────────────────────────────────────
+const DC_STATE_FILE = '.design-canvas.state.json';
+
+function DesignCanvas({ children, minScale, maxScale, style }) {
+  const [state, setState] = React.useState({ sections: {}, focus: null });
+  // Hold rendering until the sidecar read settles so the saved order/titles
+  // appear on first paint (no source-order flash). didRead gates writes until
+  // the read settles so the empty initial state can't clobber a slow read;
+  // skipNextWrite suppresses the one echo-write that would otherwise follow
+  // hydration.
+  const [ready, setReady] = React.useState(false);
+  const didRead = React.useRef(false);
+  const skipNextWrite = React.useRef(false);
+
+  React.useEffect(() => {
+    let off = false;
+    fetch('./' + DC_STATE_FILE)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((saved) => {
+        if (off || !saved || !saved.sections) return;
+        skipNextWrite.current = true;
+        setState((s) => ({ ...s, sections: saved.sections }));
+      })
+      .catch(() => {})
+      .finally(() => { didRead.current = true; if (!off) setReady(true); });
+    const t = setTimeout(() => { if (!off) setReady(true); }, 150);
+    return () => { off = true; clearTimeout(t); };
+  }, []);
+
+  React.useEffect(() => {
+    if (!didRead.current) return;
+    if (skipNextWrite.current) { skipNextWrite.current = false; return; }
+    const t = setTimeout(() => {
+      window.omelette?.writeFile(DC_STATE_FILE, JSON.stringify({ sections: state.sections })).catch(() => {});
+    }, 250);
+    return () => clearTimeout(t);
+  }, [state.sections]);
+
+  // Build registries synchronously from children so FocusOverlay can read
+  // them in the same render. Fragments are flattened; wrapping in other
+  // elements still opts out of focus/reorder.
+  const registry = {};     // slotId -> { sectionId, artboard }
+  const sectionMeta = {};  // sectionId -> { title, subtitle, slotIds[] }
+  const sectionOrder = [];
+  dcFlatten(children).forEach((sec) => {
+    if (!sec || sec.type !== DCSection) return;
+    const sid = sec.props.id ?? sec.props.title;
+    if (!sid) return;
+    sectionOrder.push(sid);
+    const persisted = state.sections[sid] || {};
+    const abs = [];
+    dcFlatten(sec.props.children).forEach((ab) => {
+      if (!ab || ab.type !== DCArtboard) return;
+      const aid = ab.props.id ?? ab.props.label;
+      if (aid) abs.push([aid, ab]);
+    });
+    // hidden is scoped to one source revision — when the agent regenerates
+    // (artboard-ID set changes), prior deletes don't apply to new content.
+    const srcKey = abs.map(([k]) => k).join('\x1f');
+    const hidden = persisted.srcKey === srcKey ? (persisted.hidden || []) : [];
+    const srcIds = [];
+    abs.forEach(([aid, ab]) => {
+      if (hidden.includes(aid)) return;
+      registry[`${sid}/${aid}`] = { sectionId: sid, artboard: ab };
+      srcIds.push(aid);
+    });
+    const kept = (persisted.order || []).filter((k) => srcIds.includes(k));
+    sectionMeta[sid] = {
+      title: persisted.title ?? sec.props.title,
+      subtitle: sec.props.subtitle,
+      slotIds: [...kept, ...srcIds.filter((k) => !kept.includes(k))],
+    };
+  });
+
+  const api = React.useMemo(() => ({
+    state,
+    section: (id) => state.sections[id] || {},
+    patchSection: (id, p) => setState((s) => ({
+      ...s,
+      sections: { ...s.sections, [id]: { ...s.sections[id], ...(typeof p === 'function' ? p(s.sections[id] || {}) : p) } },
+    })),
+    setFocus: (slotId) => setState((s) => ({ ...s, focus: slotId })),
+  }), [state]);
+
+  // Esc exits focus; any outside pointerdown commits an in-progress rename.
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') api.setFocus(null); };
+    const onPd = (e) => {
+      const ae = document.activeElement;
+      if (ae && ae.isContentEditable && !ae.contains(e.target)) ae.blur();
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPd, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPd, true);
+    };
+  }, [api]);
+
+  return (
+    <DCCtx.Provider value={api}>
+      <DCViewport minScale={minScale} maxScale={maxScale} style={style}>{ready && children}</DCViewport>
+      {state.focus && registry[state.focus] && (
+        <DCFocusOverlay entry={registry[state.focus]} sectionMeta={sectionMeta} sectionOrder={sectionOrder} />
+      )}
+    </DCCtx.Provider>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// DCViewport — transform-based pan/zoom (internal)
+//
+// Input mapping (Figma-style):
+//   • trackpad pinch  → zoom   (ctrlKey wheel; Safari gesture* events)
+//   • trackpad scroll → pan    (two-finger)
+//   • mouse wheel     → zoom   (notched; distinguished from trackpad scroll)
+//   • middle-drag / primary-drag-on-bg → pan
+//
+// Transform state lives in a ref and is written straight to the DOM
+// (translate3d + will-change) so wheel ticks don't go through React —
+// keeps pans at 60fps on dense canvases.
+// ─────────────────────────────────────────────────────────────
+function DCViewport({ children, minScale = 0.1, maxScale = 8, style = {} }) {
+  const vpRef = React.useRef(null);
+  const worldRef = React.useRef(null);
+  const tf = React.useRef({ x: 0, y: 0, scale: 1 });
+  // Persist viewport across reloads so the user lands back where they were
+  // after an agent edit or browser refresh. The sandbox origin is already
+  // per-project; pathname keeps multiple canvas files in one project apart.
+  const tfKey = 'dc-viewport:' + location.pathname;
+  const saveT = React.useRef(0);
+
+  const lastPostedScale = React.useRef();
+  const apply = React.useCallback(() => {
+    const { x, y, scale } = tf.current;
+    const el = worldRef.current;
+    if (!el) return;
+    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+    // Exposed for zoom-invariant chrome (labels, buttons, TweaksPanel).
+    el.style.setProperty('--dc-inv-zoom', String(1 / scale));
+    // Keep the host toolbar's % readout in sync with the canvas scale. Pan
+    // ticks leave scale unchanged — skip the cross-frame post for those.
+    if (lastPostedScale.current !== scale) {
+      lastPostedScale.current = scale;
+      window.parent.postMessage({ type: '__dc_zoom', scale }, '*');
+    }
+    clearTimeout(saveT.current);
+    saveT.current = setTimeout(() => {
+      try { localStorage.setItem(tfKey, JSON.stringify(tf.current)); } catch {}
+    }, 200);
+  }, [tfKey]);
+
+  React.useLayoutEffect(() => {
+    const flush = () => {
+      clearTimeout(saveT.current);
+      try { localStorage.setItem(tfKey, JSON.stringify(tf.current)); } catch {}
+    };
+    try {
+      const s = JSON.parse(localStorage.getItem(tfKey) || 'null');
+      if (s && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(s.scale)) {
+        tf.current = { x: s.x, y: s.y, scale: Math.min(maxScale, Math.max(minScale, s.scale)) };
+        apply();
+      }
+    } catch {}
+    // Flush on pagehide and unmount so a reload within the 200ms debounce
+    // window doesn't drop the last pan/zoom.
+    window.addEventListener('pagehide', flush);
+    return () => { window.removeEventListener('pagehide', flush); flush(); };
+  }, []);
+
+  React.useEffect(() => {
+    const vp = vpRef.current;
+    if (!vp) return;
+
+    const zoomAt = (cx, cy, factor) => {
+      const r = vp.getBoundingClientRect();
+      const px = cx - r.left, py = cy - r.top;
+      const t = tf.current;
+      const next = Math.min(maxScale, Math.max(minScale, t.scale * factor));
+      const k = next / t.scale;
+      // --dc-inv-zoom consumers (.dc-sectionhead's CSS zoom, each section's
+      // marginBottom) reflow on every scale change, vertically shifting the
+      // world layout — so a world point mathematically pinned under the cursor
+      // drifts as you zoom (content creeps up on zoom-in, down on zoom-out).
+      // Anchor the DOM element under the cursor instead: record its screen Y,
+      // apply the transform + --dc-inv-zoom, then cancel whatever vertical
+      // drift the reflow introduced so it stays put on screen.
+      let marker = null, markerY0 = 0;
+      if (k !== 1) {
+        const hit = document.elementFromPoint(cx, cy);
+        marker = hit && hit.closest ? hit.closest('[data-dc-slot],[data-dc-section]') : null;
+        if (marker) markerY0 = marker.getBoundingClientRect().top;
+      }
+      // keep the world point under the cursor fixed
+      t.x = px - (px - t.x) * k;
+      t.y = py - (py - t.y) * k;
+      t.scale = next;
+      apply();
+      if (marker) {
+        // A pure zoom around (cx, cy) maps screen Y → cy + (Y - cy) * k. Any
+        // departure after the --dc-inv-zoom reflow is the layout drift.
+        const drift = marker.getBoundingClientRect().top - (cy + (markerY0 - cy) * k);
+        if (Math.abs(drift) > 0.1) { t.y -= drift; apply(); }
+      }
+    };
+
+    // Mouse-wheel vs trackpad-scroll heuristic. A physical wheel sends
+    // line-mode deltas (Firefox) or large integer pixel deltas with no X
+    // component (Chrome/Safari, typically multiples of 100/120). Trackpad
+    // two-finger scroll sends small/fractional pixel deltas, often with
+    // non-zero deltaX. ctrlKey is set by the browser for trackpad pinch.
+    const isMouseWheel = (e) =>
+      e.deltaMode !== 0 ||
+      (e.deltaX === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 40);
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      if (isGesturing) return; // Safari: gesture* owns the pinch — discard concurrent wheels
+      if ((e.ctrlKey || e.metaKey) && !isMouseWheel(e)) {
+        // trackpad pinch, or ctrl/cmd + smooth-scroll mouse. Notched
+        // wheels fall through to the fixed-step branch below.
+        zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.01));
+      } else if (isMouseWheel(e)) {
+        // notched mouse wheel — fixed-ratio step per click
+        zoomAt(e.clientX, e.clientY, Math.exp(-Math.sign(e.deltaY) * 0.18));
+      } else {
+        // trackpad two-finger scroll — pan
+        tf.current.x -= e.deltaX;
+        tf.current.y -= e.deltaY;
+        apply();
+      }
+    };
+
+    // Safari sends native gesture* events for trackpad pinch with a smooth
+    // e.scale; preferring these over the ctrl+wheel fallback gives a much
+    // better feel there. No-ops on other browsers. Safari also fires
+    // ctrlKey wheel events during the same pinch — isGesturing makes
+    // onWheel drop those entirely so they neither zoom nor pan.
+    let gsBase = 1;
+    let isGesturing = false;
+    const onGestureStart = (e) => { e.preventDefault(); isGesturing = true; gsBase = tf.current.scale; };
+    const onGestureChange = (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, (gsBase * e.scale) / tf.current.scale);
+    };
+    const onGestureEnd = (e) => { e.preventDefault(); isGesturing = false; };
+
+    // Drag-pan: middle button anywhere, or primary button on canvas
+    // background (anything that isn't an artboard or an inline editor).
+    let drag = null;
+    const onPointerDown = (e) => {
+      const onBg = !e.target.closest('[data-dc-slot], .dc-editable');
+      if (!(e.button === 1 || (e.button === 0 && onBg))) return;
+      e.preventDefault();
+      vp.setPointerCapture(e.pointerId);
+      drag = { id: e.pointerId, lx: e.clientX, ly: e.clientY };
+      vp.style.cursor = 'grabbing';
+    };
+    const onPointerMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      tf.current.x += e.clientX - drag.lx;
+      tf.current.y += e.clientY - drag.ly;
+      drag.lx = e.clientX; drag.ly = e.clientY;
+      apply();
+    };
+    const onPointerUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      vp.releasePointerCapture(e.pointerId);
+      drag = null;
+      vp.style.cursor = '';
+    };
+
+    // Host-driven zoom (toolbar % menu). Zooms around viewport centre so the
+    // visible midpoint stays fixed — matching the host's iframe-zoom feel.
+    const onHostMsg = (e) => {
+      const d = e.data;
+      if (d && d.type === '__dc_set_zoom' && typeof d.scale === 'number') {
+        const r = vp.getBoundingClientRect();
+        zoomAt(r.left + r.width / 2, r.top + r.height / 2, d.scale / tf.current.scale);
+      } else if (d && d.type === '__dc_probe') {
+        // Host's [readyGen] reset asks whether a canvas is present; it
+        // fires on the iframe's native 'load', which for canvases with
+        // images/fonts is after our mount-time announce, so re-announce.
+        // Clear the pan-tick guard so apply() re-posts the current scale
+        // even if it's unchanged — the host just reset dcScale to 1.
+        window.parent.postMessage({ type: '__dc_present' }, '*');
+        lastPostedScale.current = undefined;
+        apply();
+      }
+    };
+    window.addEventListener('message', onHostMsg);
+    // Announce canvas mode so the host toolbar proxies its % control here
+    // instead of scaling the iframe element (which would just shrink the
+    // viewport window of an infinite canvas). The apply() that follows emits
+    // the initial __dc_zoom so the toolbar % is correct before first pinch.
+    // lastPostedScale reset mirrors the __dc_probe handler: the layout
+    // effect's restore-path apply() may already have posted the restored
+    // scale (before __dc_present), so clear the guard to re-post it in order.
+    window.parent.postMessage({ type: '__dc_present' }, '*');
+    lastPostedScale.current = undefined;
+    apply();
+
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    vp.addEventListener('gesturestart', onGestureStart, { passive: false });
+    vp.addEventListener('gesturechange', onGestureChange, { passive: false });
+    vp.addEventListener('gestureend', onGestureEnd, { passive: false });
+    vp.addEventListener('pointerdown', onPointerDown);
+    vp.addEventListener('pointermove', onPointerMove);
+    vp.addEventListener('pointerup', onPointerUp);
+    vp.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      window.removeEventListener('message', onHostMsg);
+      vp.removeEventListener('wheel', onWheel);
+      vp.removeEventListener('gesturestart', onGestureStart);
+      vp.removeEventListener('gesturechange', onGestureChange);
+      vp.removeEventListener('gestureend', onGestureEnd);
+      vp.removeEventListener('pointerdown', onPointerDown);
+      vp.removeEventListener('pointermove', onPointerMove);
+      vp.removeEventListener('pointerup', onPointerUp);
+      vp.removeEventListener('pointercancel', onPointerUp);
+    };
+  }, [apply, minScale, maxScale]);
+
+  const gridSvg = `url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M120 0H0v120' fill='none' stroke='${encodeURIComponent(DC.grid)}' stroke-width='1'/%3E%3C/svg%3E")`;
+  return (
+    <div
+      ref={vpRef}
+      className="design-canvas"
+      style={{
+        height: '100vh', width: '100vw',
+        background: DC.bg,
+        overflow: 'hidden',
+        overscrollBehavior: 'none',
+        touchAction: 'none',
+        position: 'relative',
+        fontFamily: DC.font,
+        boxSizing: 'border-box',
+        ...style,
+      }}
+    >
+      <div
+        ref={worldRef}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          transformOrigin: '0 0',
+          willChange: 'transform',
+          width: 'max-content', minWidth: '100%',
+          minHeight: '100%',
+          padding: '60px 0 80px',
+        }}
+      >
+        <div style={{ position: 'absolute', inset: -6000, backgroundImage: gridSvg, backgroundSize: '120px 120px', pointerEvents: 'none', zIndex: -1 }} />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// DCSection — editable title + h-row of artboards in persisted order
+// ─────────────────────────────────────────────────────────────
+function DCSection({ id, title, subtitle, children, gap = 48 }) {
+  const ctx = React.useContext(DCCtx);
+  const sid = id ?? title;
+  const all = React.Children.toArray(dcFlatten(children));
+  const artboards = all.filter((c) => c && c.type === DCArtboard);
+  const rest = all.filter((c) => !(c && c.type === DCArtboard));
+  const sec = (ctx && sid && ctx.section(sid)) || {};
+  // Must match DesignCanvas's srcKey computation exactly (it filters falsy
+  // IDs), or onDelete persists a srcKey that DesignCanvas never recognizes.
+  const allIds = artboards.map((a) => a.props.id ?? a.props.label).filter(Boolean);
+  const srcKey = allIds.join('\x1f');
+  const hidden = sec.srcKey === srcKey ? (sec.hidden || []) : [];
+  const srcOrder = allIds.filter((k) => !hidden.includes(k));
+
+  const order = React.useMemo(() => {
+    const kept = (sec.order || []).filter((k) => srcOrder.includes(k));
+    return [...kept, ...srcOrder.filter((k) => !kept.includes(k))];
+  }, [sec.order, srcOrder.join('|')]);
+
+  const byId = Object.fromEntries(artboards.map((a) => [a.props.id ?? a.props.label, a]));
+
+  // marginBottom counter-scales so the on-screen gap between sections stays
+  // constant — otherwise at low zoom the (world-space) gap collapses while
+  // the screen-constant sectionhead below it doesn't, and the title reads as
+  // belonging to the section above. paddingBottom below is just enough for
+  // the 24px artboard-header (abs-positioned above each card) plus ~8px, so
+  // the title sits tight against its own row at every zoom.
+  return (
+    <div data-dc-section={sid}
+      style={{ marginBottom: 'calc(80px * var(--dc-inv-zoom, 1))', position: 'relative' }}>
+      <div style={{ padding: '0 60px' }}>
+        <div className="dc-sectionhead" style={{ paddingBottom: 36 }}>
+          <DCEditable tag="div" value={sec.title ?? title}
+            onChange={(v) => ctx && sid && ctx.patchSection(sid, { title: v })}
+            style={{ fontSize: 28, fontWeight: 600, color: DC.title, letterSpacing: -0.4, marginBottom: 6, display: 'inline-block' }} />
+          {subtitle && <div style={{ fontSize: 16, color: DC.subtitle }}>{subtitle}</div>}
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap, padding: '0 60px', alignItems: 'flex-start', width: 'max-content' }}>
+        {order.map((k) => (
+          <DCArtboardFrame key={k} sectionId={sid} artboard={byId[k]} order={order}
+            label={(sec.labels || {})[k] ?? byId[k].props.label}
+            onRename={(v) => ctx && ctx.patchSection(sid, (x) => ({ labels: { ...x.labels, [k]: v } }))}
+            onReorder={(next) => ctx && ctx.patchSection(sid, { order: next })}
+            onDelete={() => ctx && ctx.patchSection(sid, (x) => ({
+              hidden: [...(x.srcKey === srcKey ? (x.hidden || []) : []), k],
+              srcKey,
+            }))}
+            onFocus={() => ctx && ctx.setFocus(`${sid}/${k}`)} />
+        ))}
+      </div>
+      {rest}
+    </div>
+  );
+}
+
+// DCArtboard — marker; rendered by DCArtboardFrame via DCSection.
+function DCArtboard() { return null; }
+
+// Per-artboard export (kind: 'png' | 'html'). Both paths share the same
+// self-contained clone: computed styles baked in, @font-face / <img> /
+// inline-style background-image urls inlined as data URIs. PNG wraps the
+// clone in foreignObject→canvas at 3× the artboard's natural width×height
+// (same pipeline the host uses for page captures); HTML wraps it in a
+// minimal standalone document. Both are independent of viewport zoom.
+async function dcExport(node, w, h, name, kind) {
+  try { await document.fonts.ready; } catch {}
+  const toDataURL = (url) => fetch(url).then((r) => r.blob()).then((b) => new Promise((res) => {
+    const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => res(url); fr.readAsDataURL(b);
+  })).catch(() => url);
+
+  // Collect @font-face rules. ss.cssRules throws SecurityError on
+  // cross-origin sheets (e.g. fonts.googleapis.com) — in that case fetch
+  // the CSS text directly (those endpoints send ACAO:*) and regex-extract
+  // the blocks. @import and @media/@supports are walked so nested
+  // @font-face rules aren't missed.
+  const fontRules = [], pending = [], seen = new Set();
+  const scrapeCss = (href) => {
+    if (seen.has(href)) return; seen.add(href);
+    pending.push(fetch(href).then((r) => r.text()).then((css) => {
+      for (const m of css.match(/@font-face\s*{[^}]*}/g) || []) fontRules.push({ css: m, base: href });
+      for (const m of css.matchAll(/@import\s+(?:url\()?['"]?([^'")\s;]+)/g))
+        scrapeCss(new URL(m[1], href).href);
+    }).catch(() => {}));
+  };
+  const walk = (rules, base) => {
+    for (const r of rules) {
+      if (r.type === CSSRule.FONT_FACE_RULE) fontRules.push({ css: r.cssText, base });
+      else if (r.type === CSSRule.IMPORT_RULE && r.styleSheet) {
+        const ibase = r.styleSheet.href || base;
+        try { walk(r.styleSheet.cssRules, ibase); } catch { scrapeCss(ibase); }
+      } else if (r.cssRules) walk(r.cssRules, base);
+    }
+  };
+  for (const ss of document.styleSheets) {
+    const base = ss.href || location.href;
+    try { walk(ss.cssRules, base); } catch { if (ss.href) scrapeCss(ss.href); }
+  }
+  while (pending.length) await pending.shift();
+  const fontCss = (await Promise.all(fontRules.map(async (rule) => {
+    let out = rule.css, m; const re = /url\((['"]?)([^'")]+)\1\)/g;
+    while ((m = re.exec(rule.css))) {
+      if (m[2].indexOf('data:') === 0) continue;
+      let abs; try { abs = new URL(m[2], rule.base).href; } catch { continue; }
+      out = out.split(m[0]).join('url("' + await toDataURL(abs) + '")');
+    }
+    return out;
+  }))).join('\n');
+
+  const cloneStyled = (src) => {
+    if (src.nodeType === 8 || (src.nodeType === 1 && src.tagName === 'SCRIPT')) return document.createTextNode('');
+    const dst = src.cloneNode(false);
+    if (src.nodeType === 1) {
+      const cs = getComputedStyle(src); let txt = '';
+      for (let i = 0; i < cs.length; i++) txt += cs[i] + ':' + cs.getPropertyValue(cs[i]) + ';';
+      dst.setAttribute('style', txt + 'animation:none;transition:none;');
+      if (src.tagName === 'CANVAS') try { const im = document.createElement('img'); im.src = src.toDataURL(); im.setAttribute('style', txt); return im; } catch {}
+    }
+    for (let c = src.firstChild; c; c = c.nextSibling) dst.appendChild(cloneStyled(c));
+    return dst;
+  };
+  const clone = cloneStyled(node);
+  clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+  // Drop the card's own shadow/radius so the export is a flush w×h rect;
+  // the artboard's own background (if any) is already in the computed style.
+  clone.style.boxShadow = 'none'; clone.style.borderRadius = '0';
+
+  const jobs = [];
+  clone.querySelectorAll('img').forEach((el) => {
+    const s = el.getAttribute('src');
+    if (s && s.indexOf('data:') !== 0) jobs.push(toDataURL(el.src).then((d) => el.setAttribute('src', d)));
+  });
+  [clone, ...clone.querySelectorAll('*')].forEach((el) => {
+    const bg = el.style.backgroundImage; if (!bg) return;
+    let m; const re = /url\(["']?([^"')]+)["']?\)/g;
+    while ((m = re.exec(bg))) {
+      const tok = m[0], url = m[1];
+      if (url.indexOf('data:') === 0) continue;
+      jobs.push(toDataURL(url).then((d) => { el.style.backgroundImage = el.style.backgroundImage.split(tok).join('url("' + d + '")'); }));
+    }
+  });
+  await Promise.all(jobs);
+
+  const xml = new XMLSerializer().serializeToString(clone);
+  const save = (blob, ext) => {
+    if (!blob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name + '.' + ext; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  if (kind === 'html') {
+    const html = '<!doctype html><html><head><meta charset="utf-8"><title>' + name + '</title>' +
+      (fontCss ? '<style>' + fontCss + '</style>' : '') +
+      '</head><body style="margin:0">' + xml + '</body></html>';
+    return save(new Blob([html], { type: 'text/html' }), 'html');
+  }
+
+  // PNG: the SVG's own width/height must be the output resolution — an
+  // <img>-loaded SVG rasterizes at its intrinsic size, so sizing it at 1×
+  // and ctx.scale()-ing up would just upscale a 1× bitmap. viewBox maps the
+  // w×h foreignObject onto the px·w × px·h SVG canvas so the browser renders
+  // the HTML at full resolution.
+  const px = 3;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w * px + '" height="' + h * px +
+    '" viewBox="0 0 ' + w + ' ' + h + '"><foreignObject width="' + w + '" height="' + h + '">' +
+    (fontCss ? '<style><![CDATA[' + fontCss + ']]></style>' : '') + xml + '</foreignObject></svg>';
+  const img = new Image();
+  await new Promise((res, rej) => {
+    img.onload = res; img.onerror = () => rej(new Error('svg load failed'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+  const cv = document.createElement('canvas');
+  cv.width = w * px; cv.height = h * px;
+  cv.getContext('2d').drawImage(img, 0, 0);
+  cv.toBlob((blob) => save(blob, 'png'), 'image/png');
+}
+
+function DCArtboardFrame({ sectionId, artboard, label, order, onRename, onReorder, onFocus, onDelete }) {
+  const { id: rawId, label: rawLabel, width = 260, height = 480, children, style = {} } = artboard.props;
+  const id = rawId ?? rawLabel;
+  const ref = React.useRef(null);
+  const cardRef = React.useRef(null);
+  const menuRef = React.useRef(null);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+
+  // ⋯ menu: close on any outside pointerdown. Two-click delete lives inside
+  // the menu — first click arms the row, second commits; closing disarms.
+  React.useEffect(() => {
+    if (!menuOpen) { setConfirming(false); return; }
+    const off = (e) => { if (!menuRef.current || !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('pointerdown', off, true);
+    return () => document.removeEventListener('pointerdown', off, true);
+  }, [menuOpen]);
+
+  const doExport = (kind) => {
+    setMenuOpen(false);
+    if (!cardRef.current) return;
+    const name = String(label || id || 'artboard').replace(/[^\w\s.-]+/g, '_');
+    dcExport(cardRef.current, width, height, name, kind)
+      .catch((e) => console.error('[design-canvas] export failed:', e));
+  };
+
+  // Live drag-reorder: dragged card sticks to cursor; siblings slide into
+  // their would-be slots in real time via transforms. DOM order only
+  // changes on drop.
+  const onGripDown = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const me = ref.current;
+    // translateX is applied in local (pre-scale) space but pointer deltas and
+    // getBoundingClientRect().left are screen-space — divide by the viewport's
+    // current scale so the dragged card tracks the cursor at any zoom level.
+    const scale = me.getBoundingClientRect().width / me.offsetWidth || 1;
+    const peers = Array.from(document.querySelectorAll(`[data-dc-section="${sectionId}"] [data-dc-slot]`));
+    const homes = peers.map((el) => ({ el, id: el.dataset.dcSlot, x: el.getBoundingClientRect().left }));
+    const slotXs = homes.map((h) => h.x);
+    const startIdx = order.indexOf(id);
+    const startX = e.clientX;
+    let liveOrder = order.slice();
+    me.classList.add('dc-dragging');
+
+    const layout = () => {
+      for (const h of homes) {
+        if (h.id === id) continue;
+        const slot = liveOrder.indexOf(h.id);
+        h.el.style.transform = `translateX(${(slotXs[slot] - h.x) / scale}px)`;
+      }
+    };
+
+    const move = (ev) => {
+      const dx = ev.clientX - startX;
+      me.style.transform = `translateX(${dx / scale}px)`;
+      const cur = homes[startIdx].x + dx;
+      let nearest = 0, best = Infinity;
+      for (let i = 0; i < slotXs.length; i++) {
+        const d = Math.abs(slotXs[i] - cur);
+        if (d < best) { best = d; nearest = i; }
+      }
+      if (liveOrder.indexOf(id) !== nearest) {
+        liveOrder = order.filter((k) => k !== id);
+        liveOrder.splice(nearest, 0, id);
+        layout();
+      }
+    };
+
+    const up = () => {
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      const finalSlot = liveOrder.indexOf(id);
+      me.classList.remove('dc-dragging');
+      me.style.transform = `translateX(${(slotXs[finalSlot] - homes[startIdx].x) / scale}px)`;
+      // After the settle transition, kill transitions + clear transforms +
+      // commit the reorder in the same frame so there's no visual snap-back.
+      setTimeout(() => {
+        for (const h of homes) { h.el.style.transition = 'none'; h.el.style.transform = ''; }
+        if (liveOrder.join('|') !== order.join('|')) onReorder(liveOrder);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          for (const h of homes) h.el.style.transition = '';
+        }));
+      }, 180);
+    };
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+  };
+
+  return (
+    <div ref={ref} data-dc-slot={id} style={{ position: 'relative', flexShrink: 0 }}>
+      <div className="dc-header" data-noncommentable="" style={{ color: DC.label }} onPointerDown={(e) => e.stopPropagation()}>
+        <div className="dc-labelrow">
+          <div className="dc-grip" onPointerDown={onGripDown} title="Drag to reorder">
+            <svg width="9" height="13" viewBox="0 0 9 13" fill="currentColor"><circle cx="2" cy="2" r="1.1"/><circle cx="7" cy="2" r="1.1"/><circle cx="2" cy="6.5" r="1.1"/><circle cx="7" cy="6.5" r="1.1"/><circle cx="2" cy="11" r="1.1"/><circle cx="7" cy="11" r="1.1"/></svg>
+          </div>
+          <div className="dc-labeltext" onClick={onFocus} title="Click to focus">
+            <DCEditable value={label} onChange={onRename} onClick={(e) => e.stopPropagation()}
+              style={{ fontSize: 15, fontWeight: 500, color: DC.label, lineHeight: 1 }} />
+          </div>
+        </div>
+        <div className="dc-btns">
+          <div ref={menuRef} style={{ position: 'relative' }}>
+            <button className="dc-kebab" title="More" onClick={() => setMenuOpen((o) => !o)}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><circle cx="2.5" cy="6" r="1.1"/><circle cx="6" cy="6" r="1.1"/><circle cx="9.5" cy="6" r="1.1"/></svg>
+            </button>
+            {menuOpen && (
+              <div className="dc-menu" onPointerDown={(e) => e.stopPropagation()}>
+                <button onClick={() => doExport('png')}>Download PNG</button>
+                <button onClick={() => doExport('html')}>Download HTML</button>
+                <hr />
+                <button className="dc-danger"
+                  onClick={() => { if (confirming) { setMenuOpen(false); onDelete(); } else setConfirming(true); }}>
+                  {confirming ? 'Click again to delete' : 'Delete'}
+                </button>
+              </div>
+            )}
+          </div>
+          <button className="dc-expand" onClick={onFocus} title="Focus">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><path d="M7 1h4v4M5 11H1V7M11 1L7.5 4.5M1 11l3.5-3.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div ref={cardRef} className="dc-card"
+        style={{ borderRadius: 2, boxShadow: '0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06)', overflow: 'hidden', width, height, background: '#fff', ...style }}>
+        {children || <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: 13, fontFamily: DC.font }}>{id}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Inline rename — commits on blur or Enter.
+function DCEditable({ value, onChange, style, tag = 'span', onClick }) {
+  const T = tag;
+  return (
+    <T className="dc-editable" contentEditable suppressContentEditableWarning
+      onClick={onClick}
+      onPointerDown={(e) => e.stopPropagation()}
+      onBlur={(e) => onChange && onChange(e.currentTarget.textContent)}
+      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
+      style={style}>{value}</T>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Focus mode — overlay one artboard; ←/→ within section, ↑/↓ across
+// sections, Esc or backdrop click to exit.
+// ─────────────────────────────────────────────────────────────
+function DCFocusOverlay({ entry, sectionMeta, sectionOrder }) {
+  const ctx = React.useContext(DCCtx);
+  const { sectionId, artboard } = entry;
+  const sec = ctx.section(sectionId);
+  const meta = sectionMeta[sectionId];
+  const peers = meta.slotIds;
+  const aid = artboard.props.id ?? artboard.props.label;
+  const idx = peers.indexOf(aid);
+  const secIdx = sectionOrder.indexOf(sectionId);
+
+  const go = (d) => { const n = peers[(idx + d + peers.length) % peers.length]; if (n) ctx.setFocus(`${sectionId}/${n}`); };
+  const goSection = (d) => {
+    // Sections whose artboards are all deleted have slotIds:[] — step past
+    // them to the next non-empty section so ↑/↓ doesn't dead-end.
+    const n = sectionOrder.length;
+    for (let i = 1; i < n; i++) {
+      const ns = sectionOrder[(((secIdx + d * i) % n) + n) % n];
+      const first = sectionMeta[ns] && sectionMeta[ns].slotIds[0];
+      if (first) { ctx.setFocus(`${ns}/${first}`); return; }
+    }
+  };
+
+  React.useEffect(() => {
+    const k = (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); goSection(-1); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); goSection(1); }
+    };
+    document.addEventListener('keydown', k);
+    return () => document.removeEventListener('keydown', k);
+  });
+
+  const { width = 260, height = 480, children } = artboard.props;
+  const [vp, setVp] = React.useState({ w: window.innerWidth, h: window.innerHeight });
+  React.useEffect(() => { const r = () => setVp({ w: window.innerWidth, h: window.innerHeight }); window.addEventListener('resize', r); return () => window.removeEventListener('resize', r); }, []);
+  const scale = Math.max(0.1, Math.min((vp.w - 200) / width, (vp.h - 260) / height, 2));
+
+  const [ddOpen, setDd] = React.useState(false);
+  const Arrow = ({ dir, onClick }) => (
+    <button onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{ position: 'absolute', top: '50%', [dir]: 28, transform: 'translateY(-50%)',
+        border: 'none', background: 'rgba(255,255,255,.08)', color: 'rgba(255,255,255,.9)',
+        width: 44, height: 44, borderRadius: 22, fontSize: 18, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s' }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.18)')}
+      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.08)')}>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d={dir === 'left' ? 'M11 3L5 9l6 6' : 'M7 3l6 6-6 6'} /></svg>
+    </button>
+  );
+
+  // Portal to body so position:fixed is the real viewport regardless of any
+  // transform on DesignCanvas's ancestors (including the canvas zoom itself).
+  return ReactDOM.createPortal(
+    <div onClick={() => ctx.setFocus(null)}
+      onWheel={(e) => e.preventDefault()}
+      style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(24,20,16,.6)', backdropFilter: 'blur(14px)',
+        fontFamily: DC.font, color: '#fff' }}>
+
+      {/* top bar: section dropdown (left) · close (right) */}
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 72, display: 'flex', alignItems: 'flex-start', padding: '16px 20px 0', gap: 16 }}>
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setDd((o) => !o)}
+            style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', padding: '6px 8px',
+              borderRadius: 6, textAlign: 'left', fontFamily: 'inherit' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.3 }}>{meta.title}</span>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ opacity: .7 }}><path d="M2 4l3.5 3.5L9 4"/></svg>
+            </span>
+            {meta.subtitle && <span style={{ display: 'block', fontSize: 13, opacity: .6, fontWeight: 400, marginTop: 2 }}>{meta.subtitle}</span>}
+          </button>
+          {ddOpen && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#2a251f', borderRadius: 8,
+              boxShadow: '0 8px 32px rgba(0,0,0,.4)', padding: 4, minWidth: 200, zIndex: 10 }}>
+              {sectionOrder.filter((sid) => sectionMeta[sid].slotIds.length).map((sid) => (
+                <button key={sid} onClick={() => { setDd(false); const f = sectionMeta[sid].slotIds[0]; if (f) ctx.setFocus(`${sid}/${f}`); }}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                    background: sid === sectionId ? 'rgba(255,255,255,.1)' : 'transparent', color: '#fff',
+                    padding: '8px 12px', borderRadius: 5, fontSize: 14, fontWeight: sid === sectionId ? 600 : 400, fontFamily: 'inherit' }}>
+                  {sectionMeta[sid].title}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1 }} />
+        <button onClick={() => ctx.setFocus(null)}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,.12)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          style={{ border: 'none', background: 'transparent', color: 'rgba(255,255,255,.7)', width: 32, height: 32,
+            borderRadius: 16, fontSize: 20, cursor: 'pointer', lineHeight: 1, transition: 'background .12s' }}>×</button>
+      </div>
+
+      {/* card centered, label + index below — only the card itself stops
+          propagation so any backdrop click (including the margins around
+          the card) exits focus */}
+      <div
+        style={{ position: 'absolute', top: 64, bottom: 56, left: 100, right: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: width * scale, height: height * scale, position: 'relative' }}>
+          <div style={{ width, height, transform: `scale(${scale})`, transformOrigin: 'top left', background: '#fff', borderRadius: 2, overflow: 'hidden',
+            boxShadow: '0 20px 80px rgba(0,0,0,.4)' }}>
+            {children || <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb' }}>{aid}</div>}
+          </div>
+        </div>
+        <div onClick={(e) => e.stopPropagation()} style={{ fontSize: 14, fontWeight: 500, opacity: .85, textAlign: 'center' }}>
+          {(sec.labels || {})[aid] ?? artboard.props.label}
+          <span style={{ opacity: .5, marginLeft: 10, fontVariantNumeric: 'tabular-nums' }}>{idx + 1} / {peers.length}</span>
+        </div>
+      </div>
+
+      <Arrow dir="left" onClick={() => go(-1)} />
+      <Arrow dir="right" onClick={() => go(1)} />
+
+      {/* dots */}
+      <div onClick={(e) => e.stopPropagation()}
+        style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+        {peers.map((p, i) => (
+          <button key={p} onClick={() => ctx.setFocus(`${sectionId}/${p}`)}
+            style={{ border: 'none', padding: 0, cursor: 'pointer', width: 6, height: 6, borderRadius: 3,
+              background: i === idx ? '#fff' : 'rgba(255,255,255,.3)' }} />
+        ))}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Post-it — absolute-positioned sticky note
+// ─────────────────────────────────────────────────────────────
+function DCPostIt({ children, top, left, right, bottom, rotate = -2, width = 180 }) {
+  return (
+    <div style={{
+      position: 'absolute', top, left, right, bottom, width,
+      background: DC.postitBg, padding: '14px 16px',
+      fontFamily: '"Comic Sans MS", "Marker Felt", "Segoe Print", cursive',
+      fontSize: 14, lineHeight: 1.4, color: DC.postitText,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+      transform: `rotate(${rotate}deg)`,
+      zIndex: 5,
+    }}>{children}</div>
+  );
+}
+
+Object.assign(window, { DesignCanvas, DCSection, DCArtboard, DCPostIt });
+
+
+</script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ============================================================
+   Mark — буква R извлечена прямо из присланного референса
+   (assets/r-extracted.png) и положена на графитовый фон.
+   ============================================================ */
+
+const R_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAYAAAB/HSuDAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAEAKADAAQAAAABAAAEAAAAAADT3eodAABAAElEQVR4Aezdi3EkObIg2qqxFmIFeNI8gVeaK8Bqsdsx3VlMJvMTHzjgDpwxGyOZGYFwHEcACGey+tcv/yNAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgReC/x+/ZZ3CBAgQIAAgSiB//P//3//N6rtzO3+r//9P/YemRMkNgIECBCYWsAiPHV6dY4AAQIEegus+mDf2lmhoLWo9ggQIECAwK9fCgBGAQECBAgQ2CHgwX4H0qBDFAsGwbssAQIECJQTUAAolzIBEyBAgECEgAf8CNWxbSoMjPV3dQIECBDIJ6AAkC8nIiJAgACBAAEP+AGoxZtUICieQOETIECAwGEBBYDDZE4gQIAAgawCHvKzZqZWXAoDtfIlWgIECBDYL6AAsN/KkQQIECCQQMBDfoIkLBqCwsCiiddtAgQITCSgADBRMnWFAAECswl42J8to3P2R2FgzrzqFQECBGYUUACYMav6RIAAgaICHviLJk7YPwQUBX6QeIEA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gEBTAQ2ApoE3bQIEegrYjPWMu1kTsOG3BggQIEBgE9AAsA4IECDQVEAzoGngTbudgM1/u5CbMAECBO4KaADcpfECAQIE+ghoBvSJtZn2ErD57xVvsyVAgMBPAhoAPwl5nQABAg0FNAQaBt2UUwvY6KcOn8ETIEBgmoAGwDRqFyJAgEBuAU2B3PEz+loCNvy14mk2BAgQmCWgATBL2nUIECBQUEBToGBQTSmkgA1/yLAYFAECBNIJaACkC5kBEyBAIKaAZkDMuBhVLgEb/VzxMloCBAhkE9AAyBYx4yVAgEBwAY2A4AEyvLACNv9hQ2NgBAgQKCPwq8xMTIQAAQIEQgjYxIQIg0EQIECAAAECBK4E/AXAFYknCBAgQOBMAX8hcKauc0cW0ByLHB1jI0CAQA8BDYAecTZLAgQIpBPQKEgXsnYDtqFvF3ITJkCAQHoBDYD0ITQBAgQI1BbQCKgd34yzs/HPGDVjJkCAAIFNQAPAOiBAgACBdAKaAulClnrANvypw2fwBAgQIDAIaAAMGA4JECBAIK+ApkDe2EUauc1+pGgYCwECBAgcLaABcLSo8xEgQIBAOAHNgXAhWT4gG/3lITAAAgQIEFggoAGwAN0lCRAgQCCHgMZBjjjdGqUN/i0VzxEgQIBAdwENgO4rwPwJECBA4KGAJsBDnmUv2uAvo3dhAgQIEEgsoAGQOHiGToAAAQLxBDQMjouJTf5xls5EgAABAgQ2AQ0A64AAAQIECCwQqNwosHFfsKBckgABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQIECBAgAABAgQINBP4H8RsSy9T1N+EAAAAAElFTkSuQmCC";
+
+function Mark({
+  size = 1024,
+  bg = '#2a2e34',
+  scale = 1,           // image scale within the icon
+}) {
+  const inset = (1 - scale) / 2 * 100;
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      background: bg,
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <img
+        src={R_DATA_URL}
+        alt="R"
+        style={{
+          position: 'absolute',
+          top: `${inset}%`,
+          left: `${inset}%`,
+          width: `${scale * 100}%`,
+          height: `${scale * 100}%`,
+          objectFit: 'contain',
+          display: 'block',
+        }}
+      />
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   iOS icon — 1024 canvas, rounded squircle mask
+   ---------------------------------------------------------- */
+function IOSIcon({ children, size = 240, radiusRatio = 0.225, shadow = true }) {
+  const r = size * radiusRatio;
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: r, overflow: 'hidden',
+      boxShadow: shadow ? '0 30px 60px -20px rgba(0,0,0,0.4), 0 8px 16px -8px rgba(0,0,0,0.3)' : 'none',
+      position: 'relative',
+    }}>
+      <div style={{ width: '100%', height: '100%' }}>{children}</div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   iPhone home-screen frame
+   ---------------------------------------------------------- */
+function HomeScreen({ Icon, label = 'Bonusi' }) {
+  const W = 390, H = 844;
+  const apps = [
+    { name:'Phone', bg:'linear-gradient(180deg,#34c759,#1aa249)', glyph:'☏', white:true },
+    { name:'Mail', bg:'linear-gradient(180deg,#52a9ff,#0a7cff)', glyph:'✉', white:true },
+    { name:'Safari', bg:'linear-gradient(180deg,#e8eef5,#c8d3e0)', glyph:'🧭' },
+    { name:'Music', bg:'linear-gradient(180deg,#fa5b67,#ee2554)', glyph:'♪', white:true },
+    { name:'Maps', bg:'linear-gradient(180deg,#9fdcb8,#7ec88e)', glyph:'📍' },
+    { name:'Wallet', bg:'linear-gradient(180deg,#222,#111)', glyph:'💳' },
+    { name:'Photos', bg:'#fff', glyph:'❀' },
+    { name:'Camera', bg:'linear-gradient(180deg,#2a2a2a,#0a0a0a)', glyph:'◉', white:true },
+    { name:'Calendar', bg:'#fff', glyph:'14', ink:'#ff3b30', bold:true },
+    { name:'Notes', bg:'linear-gradient(180deg,#fff5b5,#f3d23a)', glyph:'≣' },
+    { name:'Weather', bg:'linear-gradient(180deg,#5aa6ff,#1565d8)', glyph:'☁', white:true },
+    { name:'Clock', bg:'#0a0a0a', glyph:'⏱', white:true },
+  ];
+  const iconSize = 64;
+  return (
+    <div style={{
+      width:W, height:H, borderRadius:54, overflow:'hidden', position:'relative',
+      background:`
+        radial-gradient(ellipse at 20% 10%, #4a3a2e 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 90%, #2b3b4a 0%, transparent 60%),
+        linear-gradient(180deg, #1a1c20, #0d0f12)
+      `,
+      boxShadow:'inset 0 0 0 3px #2a2a2a, 0 40px 80px -30px rgba(0,0,0,0.5)',
+      fontFamily:'-apple-system, "SF Pro Display", system-ui'
+    }}>
+      {/* status bar */}
+      <div style={{ position:'absolute', top:14, left:0, right:0, display:'flex', justifyContent:'space-between', padding:'0 30px', color:'#fff', fontSize:15, fontWeight:600 }}>
+        <span>9:41</span>
+        <div style={{ display:'flex', gap:5, alignItems:'center' }}>
+          <span style={{ fontSize:11 }}>●●●●</span>
+          <span style={{ fontSize:11 }}>📶</span>
+          <span style={{ border:'1.5px solid #fff', borderRadius:3, padding:'1px 4px', fontSize:9, fontWeight:700 }}>100</span>
+        </div>
+      </div>
+      {/* dynamic island */}
+      <div style={{ position:'absolute', top:11, left:'50%', transform:'translateX(-50%)', width:120, height:34, borderRadius:20, background:'#000' }}/>
+
+      {/* App grid */}
+      <div style={{ position:'absolute', top:70, left:24, right:24, display:'grid', gridTemplateColumns:'repeat(4, 1fr)', rowGap:22, columnGap:22 }}>
+        {/* Featured: our app, top-left */}
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+          <IOSIcon size={iconSize} shadow={false}>{Icon(iconSize)}</IOSIcon>
+          <div style={{ color:'#fff', fontSize:11, fontWeight:500 }}>{label}</div>
+        </div>
+        {apps.map((a,i)=>(
+          <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+            <div style={{
+              width:iconSize, height:iconSize, borderRadius:iconSize*0.225,
+              background:a.bg, display:'flex', alignItems:'center', justifyContent:'center',
+              color: a.ink || (a.white?'#fff':'#222'),
+              fontSize: a.bold? 22 : 28, fontWeight: a.bold?800:400,
+            }}>{a.glyph}</div>
+            <div style={{ color:'#fff', fontSize:11, fontWeight:500 }}>{a.name}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* dock */}
+      <div style={{ position:'absolute', bottom:30, left:18, right:18, height:90, borderRadius:34, background:'rgba(255,255,255,0.18)', backdropFilter:'blur(20px)', display:'flex', alignItems:'center', justifyContent:'space-around', padding:'0 14px' }}>
+        {[
+          { bg:'linear-gradient(180deg,#34c759,#1aa249)', glyph:'☏', white:true },
+          { bg:'linear-gradient(180deg,#52a9ff,#0a7cff)', glyph:'✉', white:true },
+          { bg:'linear-gradient(180deg,#e8eef5,#c8d3e0)', glyph:'🧭' },
+          { bg:'linear-gradient(180deg,#fa5b67,#ee2554)', glyph:'♪', white:true },
+        ].map((a,i)=>(
+          <div key={i} style={{
+            width:iconSize, height:iconSize, borderRadius:iconSize*0.225,
+            background:a.bg, display:'flex', alignItems:'center', justifyContent:'center',
+            color:a.white?'#fff':'#222', fontSize:28
+          }}>{a.glyph}</div>
+        ))}
+      </div>
+
+      {/* home indicator */}
+      <div style={{ position:'absolute', bottom:9, left:'50%', transform:'translateX(-50%)', width:134, height:5, borderRadius:3, background:'#fff' }}/>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   Icon size showcase row
+   ---------------------------------------------------------- */
+function SizeRow({ Icon }) {
+  const sizes = [
+    { px: 180, label: '180 — @3x App' },
+    { px: 120, label: '120 — @2x App' },
+    { px: 87,  label: '87 — Settings @3x' },
+    { px: 60,  label: '60 — Spotlight @3x' },
+    { px: 40,  label: '40 — Notification' },
+  ];
+  return (
+    <div style={{ display:'flex', alignItems:'flex-end', gap:38 }}>
+      {sizes.map(s=>(
+        <div key={s.px} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <IOSIcon size={s.px}>{Icon(s.px)}</IOSIcon>
+          <div className="mono" style={{ fontSize:11, color:'#7a7770', letterSpacing:0.2 }}>{s.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   Hero card — large icon + label
+   ---------------------------------------------------------- */
+function HeroCard({ title, sub, Icon, accent='#FF5A1F' }) {
+  return (
+    <div style={{
+      width: 760, height: 760, padding: 60, boxSizing:'border-box',
+      background:'#f3f1ec',
+      display:'flex', flexDirection:'column', justifyContent:'space-between'
+    }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+        <div>
+          <div className="mono" style={{ fontSize:12, letterSpacing:1.5, color:'#7a7770', textTransform:'uppercase' }}>iOS App Icon</div>
+          <div style={{ fontSize:42, fontWeight:800, marginTop:4, letterSpacing:-0.5 }}>{title}</div>
+          <div style={{ fontSize:16, color:'#5b5852', marginTop:6, maxWidth:360 }}>{sub}</div>
+        </div>
+        <div className="mono" style={{ fontSize:11, color:'#7a7770' }}>1024 × 1024</div>
+      </div>
+      <div style={{ display:'flex', justifyContent:'center' }}>
+        <IOSIcon size={520} radiusRatio={0.225}>{Icon(520)}</IOSIcon>
+      </div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div className="mono" style={{ fontSize:11, color:'#7a7770', letterSpacing:0.4 }}>R · АВТОСЕРВИС</div>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ width:14, height:14, borderRadius:7, background:accent }}/>
+          <span className="mono" style={{ fontSize:11, color:'#5b5852' }}>{accent}</span>
+          <span style={{ width:14, height:14, borderRadius:7, background:'#2a2e34', marginLeft:12 }}/>
+          <span className="mono" style={{ fontSize:11, color:'#5b5852' }}>#2A2E34</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   System notes card
+   ---------------------------------------------------------- */
+function NotesCard() {
+  return (
+    <div style={{
+      width: 760, height: 760, padding: 60, boxSizing:'border-box',
+      background:'#15171a', color:'#e8e4dc'
+    }}>
+      <div className="mono" style={{ fontSize:12, letterSpacing:1.5, color:'#FF5A1F', textTransform:'uppercase' }}>Заметки</div>
+      <div style={{ fontSize:38, fontWeight:800, marginTop:6, letterSpacing:-0.5, lineHeight:1.05 }}>
+        Графитовый фон,<br/>оранжевый знак.
+      </div>
+
+      <div style={{ marginTop:38, display:'grid', gridTemplateColumns:'1fr 1fr', gap:24 }}>
+        <div>
+          <div className="mono" style={{ fontSize:11, color:'#7a7770', textTransform:'uppercase', letterSpacing:1 }}>Палитра</div>
+          <div style={{ marginTop:14, display:'flex', flexDirection:'column', gap:10 }}>
+            {[
+              ['#FF5A1F','Orange — основной'],
+              ['#E84A12','Orange Deep — пресс'],
+              ['#2A2E34','Graphite — фон'],
+              ['#15171a','Graphite Deep'],
+              ['#363B42','Graphite Lift'],
+            ].map(([c,l])=>(
+              <div key={c} style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <span style={{ width:28, height:28, borderRadius:6, background:c, border: c==='#15171a'?'1px solid #2a2e34':'none' }}/>
+                <span className="mono" style={{ fontSize:12, color:'#a8a49b' }}>{c}</span>
+                <span style={{ fontSize:12, color:'#cfcabf' }}>{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="mono" style={{ fontSize:11, color:'#7a7770', textTransform:'uppercase', letterSpacing:1 }}>Правила</div>
+          <ul style={{ marginTop:14, paddingLeft:18, lineHeight:1.55, fontSize:14, color:'#cfcabf' }}>
+            <li>Минимальный отступ от края скругления — 12% от стороны.</li>
+            <li>Без градиентов на знаке — только плоский оранжевый.</li>
+            <li>Кольцо обводит знак, но не касается рамки иконки.</li>
+            <li>Под Dark Mode иконка не меняется.</li>
+            <li>Тень на знак не добавляем — flat.</li>
+          </ul>
+
+          <div className="mono" style={{ fontSize:11, color:'#7a7770', textTransform:'uppercase', letterSpacing:1, marginTop:26 }}>Экспорт</div>
+          <ul style={{ marginTop:10, paddingLeft:18, lineHeight:1.55, fontSize:14, color:'#cfcabf' }}>
+            <li>1024×1024 — AppStore</li>
+            <li>180/120/87/80/60/58/40 px</li>
+            <li>PNG, без альфа-канала для AppStore</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------
+   The canvas
+   ---------------------------------------------------------- */
+function App() {
+  const { DesignCanvas, DCSection, DCArtboard } = window;
+
+  // The one canonical mark — буква взята прямо из присланного референса.
+  const Main = (s) => <Mark size={s} />;
+  const Tight = (s) => <Mark size={s} scale={1.05} />;
+  const Loose = (s) => <Mark size={s} scale={0.9} />;
+
+  return (
+    <DesignCanvas title="Bonusi — App Icon" subtitle="Графитовая иконка с оранжевой R для автосервиса">
+
+      <DCSection id="hero" title="Финальная иконка">
+        <DCArtboard id="hero-main" label="Основная — кольцо + диагональный срез" width={760} height={760}>
+          <HeroCard
+            title="Bonusi"
+            sub="Буква извлечена напрямую из присланного референса — точная форма R и кольца. Положена на графитовый фон."
+            Icon={Main}
+          />
+        </DCArtboard>
+        <DCArtboard id="home-main" label="На главном экране iPhone" width={440} height={900}>
+          <div style={{display:'flex', justifyContent:'center', paddingTop:28}}>
+            <HomeScreen Icon={Main} label="Bonusi" />
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="sizes" title="Контрольные размеры iOS">
+        <DCArtboard id="sizes-row" label="Размеры (180 / 120 / 87 / 60 / 40 px)" width={1200} height={340}>
+          <div style={{padding:'48px 60px', background:'#f3f1ec', height:'100%', boxSizing:'border-box'}}>
+            <div className="mono" style={{fontSize:12, color:'#7a7770', letterSpacing:1.2, textTransform:'uppercase', marginBottom:28}}>Контрольные размеры iOS</div>
+            <SizeRow Icon={Main} />
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="alts" title="Микро-варианты масштаба буквы">
+        <DCArtboard id="alt-tight" label="Tight — буква крупнее" width={520} height={520}>
+          <div style={{padding:48, background:'#f3f1ec', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:18}}>
+            <IOSIcon size={360}>{Tight(360)}</IOSIcon>
+            <div className="mono" style={{fontSize:11, color:'#7a7770', letterSpacing:1, textTransform:'uppercase'}}>scale 1.05</div>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="alt-default" label="Default — как на референсе" width={520} height={520}>
+          <div style={{padding:48, background:'#f3f1ec', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:18}}>
+            <IOSIcon size={360}>{Main(360)}</IOSIcon>
+            <div className="mono" style={{fontSize:11, color:'#7a7770', letterSpacing:1, textTransform:'uppercase'}}>scale 1.0</div>
+          </div>
+        </DCArtboard>
+        <DCArtboard id="alt-loose" label="Loose — с большими полями" width={520} height={520}>
+          <div style={{padding:48, background:'#f3f1ec', height:'100%', boxSizing:'border-box', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:18}}>
+            <IOSIcon size={360}>{Loose(360)}</IOSIcon>
+            <div className="mono" style={{fontSize:11, color:'#7a7770', letterSpacing:1, textTransform:'uppercase'}}>scale 0.9</div>
+          </div>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="system" title="Палитра и правила">
+        <DCArtboard id="notes" label="Цвета / правила" width={760} height={760}>
+          <NotesCard />
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+function tryRender() {
+  if (window.DesignCanvas && window.DCSection && window.DCArtboard) {
+    root.render(<App/>);
+  } else {
+    setTimeout(tryRender, 30);
+  }
+}
+tryRender();
+</script>
+</body>
+</html>

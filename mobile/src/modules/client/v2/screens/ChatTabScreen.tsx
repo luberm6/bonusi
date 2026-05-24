@@ -262,7 +262,7 @@ export function ChatTabScreen({ navigation }: any) {
         <Pressable onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={8}>
           <Text style={s.backIcon}>‹</Text>
         </Pressable>
-        <Text style={s.headerTitle}>ЧАТ С МАСТЕРОМ</Text>
+        <Text style={s.headerTitle}>ЧАТ С СЕРВИСОМ</Text>
         <View style={s.onlineIndicator}>
           <View style={s.onlineDot} />
         </View>
@@ -332,7 +332,7 @@ export function ChatTabScreen({ navigation }: any) {
           <View style={s.emptyWrap}>
             <Text style={s.emptyIcon}>💬</Text>
             <Text style={s.emptyText}>Нет сообщений</Text>
-            <Text style={s.emptySubtext}>Напишите мастеру — он ответит в ближайшее время</Text>
+            <Text style={s.emptySubtext}>Напишите нам — мы ответим в ближайшее время</Text>
           </View>
         )}
       </ScrollView>

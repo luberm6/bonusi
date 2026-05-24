@@ -49,7 +49,6 @@ function toLoginErrorMessage(error: unknown): string {
 
 export function MobileRootShell() {
   const [booting, setBooting] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [session, setSession] = useState<AuthSession | null>(null);
   const [accessToken, setAccessToken] = useState("");
@@ -62,34 +61,21 @@ export function MobileRootShell() {
   useEffect(() => {
     (async () => {
       try {
-        const [onboardingSeen, persisted] = await Promise.all([
-          AsyncStorage.getItem(ONBOARDING_KEY),
-          restorePersistedSession()
-        ]);
+        const persisted = await restorePersistedSession();
 
         if (persisted) {
           setSession(persisted.session);
           setAccessToken(persisted.accessToken);
           setShowLogin(false);
-          setShowOnboarding(false);
           return;
         }
 
-        const seen = onboardingSeen === "true";
-        setShowOnboarding(!seen);
-        setShowLogin(seen);
+        setShowLogin(true);
       } finally {
         setBooting(false);
       }
     })();
   }, []);
-
-  const finishOnboarding = async () => {
-    fireHaptic("notificationSuccess");
-    await AsyncStorage.setItem(ONBOARDING_KEY, "true");
-    setShowOnboarding(false);
-    setShowLogin(true);
-  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -263,9 +249,7 @@ export function MobileRootShell() {
     <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
       {!session ? (
         <View style={{ flex: 1, paddingTop: insets.top }}>
-          {showOnboarding ? (
-            <OnboardingView onDone={finishOnboarding} onSkip={finishOnboarding} />
-          ) : showLogin ? (
+          {showLogin ? (
             <LoginView
               loading={loginLoading}
               error={loginError}
