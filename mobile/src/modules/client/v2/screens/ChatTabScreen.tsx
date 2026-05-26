@@ -388,7 +388,7 @@ const s = StyleSheet.create({
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
-  headerTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 2 },
+  headerTitle: { color: '#8ECAE6', fontSize: 14, fontWeight: '700', letterSpacing: 2 },
   onlineIndicator: { width: 36, alignItems: 'flex-end', justifyContent: 'center' },
   onlineDot: {
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#4CAF50',

@@ -68,7 +68,7 @@ export function HomeTabScreen({ navigation }: any) {
   })();
 
   const odometerLabel = me?.odometerKm != null
-    ? me.odometerKm.toLocaleString('ru-RU')
+    ? Number(me.odometerKm).toLocaleString('ru-RU')
     : null;
 
   // Вместо «0 КМ» справа — госномер (если есть), иначе год, иначе ничего
@@ -556,7 +556,7 @@ export function HomeTabScreen({ navigation }: any) {
             onPress={onPress}
           >
              <Text style={{
-              color: '#8ECAE6', fontFamily: F,
+              color: '#FFFFFF', fontFamily: F,
               fontSize: sx(14), textAlign: 'left', lineHeight: 20,
               letterSpacing: 1.6, textTransform: 'uppercase', // В точности как в HTML-референсе
             }}>
@@ -566,7 +566,7 @@ export function HomeTabScreen({ navigation }: any) {
             <View style={{ height: sx(24), width: sx(320), marginLeft: sx(-22), overflow: 'visible' }}>
               <Image 
                 source={ASSETS.menuUnderline} 
-                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180) }} 
+                style={{ position: 'absolute', left: sx(-65), top: sx(12) - sx(90), width: sx(280), height: sx(180) }} 
                 resizeMode="contain" 
               />
             </View>

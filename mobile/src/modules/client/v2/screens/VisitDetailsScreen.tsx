@@ -115,8 +115,8 @@ const s = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: colors.border,
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
-  headerTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 2 },
+  backIcon: { color: '#8ECAE6', fontSize: 28, lineHeight: 30, fontWeight: '300' },
+  headerTitle: { color: '#8ECAE6', fontSize: 14, fontWeight: '700', letterSpacing: 2 },
 
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 48, gap: 16 },
@@ -137,12 +137,12 @@ const s = StyleSheet.create({
   orderSum: { color: colors.text, fontSize: 20, fontWeight: '700' },
 
   attachBtn: {
-    backgroundColor: 'rgba(10,132,198,0.12)', borderRadius: 16,
-    borderWidth: 1, borderColor: 'rgba(10,132,198,0.3)',
+    backgroundColor: 'rgba(142,202,230,0.12)', borderRadius: 16,
+    borderWidth: 1, borderColor: 'rgba(142,202,230,0.3)',
     padding: 16, alignItems: 'center', justifyContent: 'center',
   },
-  attachBtnText: { color: colors.accent, fontSize: 15, fontWeight: '700', marginBottom: 4 },
-  attachBtnSub: { color: colors.accent, fontSize: 11, opacity: 0.7 },
+  attachBtnText: { color: '#8ECAE6', fontSize: 15, fontWeight: '700', marginBottom: 4 },
+  attachBtnSub: { color: '#8ECAE6', fontSize: 11, opacity: 0.7 },
 
   emptyCard: { padding: 32, alignItems: 'center' },
   emptyTitle: { color: colors.textSub, fontSize: 16 },

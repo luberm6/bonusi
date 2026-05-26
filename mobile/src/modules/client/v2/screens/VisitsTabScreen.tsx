@@ -163,8 +163,8 @@ const s = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: colors.border,
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
-  headerTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 2 },
+  backIcon: { color: '#8ECAE6', fontSize: 28, lineHeight: 30, fontWeight: '300' },
+  headerTitle: { color: '#8ECAE6', fontSize: 14, fontWeight: '700', letterSpacing: 2 },
 
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 48, gap: 12 },
@@ -172,11 +172,11 @@ const s = StyleSheet.create({
   // Сводка
   summaryCard: {
     backgroundColor: colors.surface, borderRadius: 16,
-    borderWidth: 1, borderColor: 'rgba(10,132,198,0.2)',
+    borderWidth: 1, borderColor: 'rgba(142,202,230,0.2)',
     flexDirection: 'row', overflow: 'hidden',
   },
   summaryItem: { flex: 1, alignItems: 'center', paddingVertical: 20 },
-  summaryValue: { color: colors.accent, fontSize: 28, fontWeight: '700' },
+  summaryValue: { color: '#8ECAE6', fontSize: 28, fontWeight: '700' },
   summaryLabel: { color: colors.textDim, fontSize: 11, marginTop: 4, letterSpacing: 1 },
   summaryDivider: { width: 1, backgroundColor: colors.border, marginVertical: 12 },
 
@@ -188,17 +188,17 @@ const s = StyleSheet.create({
   orderHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   orderNumWrap: {},
   orderNumLabel: { color: colors.textDim, fontSize: 9, letterSpacing: 2, fontWeight: '700' },
-  orderNum: { color: colors.accent, fontSize: 18, fontWeight: '700', letterSpacing: 1 },
+  orderNum: { color: '#8ECAE6', fontSize: 18, fontWeight: '700', letterSpacing: 1 },
   statusBadge: {
-    backgroundColor: 'rgba(10,132,198,0.12)',
+    backgroundColor: 'rgba(142,202,230,0.12)',
     borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
-  statusText: { color: colors.accent, fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
+  statusText: { color: '#8ECAE6', fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
   orderDate: { color: colors.textDim, fontSize: 11 },
   orderTitle: { color: colors.text, fontSize: 15, fontWeight: '700' },
   orderServices: { color: colors.textSub, fontSize: 12, lineHeight: 18 },
   orderFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  bonusLine: { color: colors.accent, fontSize: 12 },
+  bonusLine: { color: '#8ECAE6', fontSize: 12 },
   orderSum: { color: colors.text, fontSize: 18, fontWeight: '700' },
 
   loaderWrap: { paddingTop: 40, alignItems: 'center' },
@@ -215,12 +215,12 @@ const s = StyleSheet.create({
   },
   docCard: {
     backgroundColor: colors.surface, borderRadius: 14,
-    borderWidth: 1, borderColor: 'rgba(10,132,198,0.2)',
+    borderWidth: 1, borderColor: 'rgba(142,202,230,0.2)',
     padding: 14, gap: 6,
   },
   docDate: { color: colors.textDim, fontSize: 11 },
   docText: { color: colors.text, fontSize: 14, lineHeight: 20 },
-  docAttachment: { color: colors.accent, fontSize: 12 },
+  docAttachment: { color: '#8ECAE6', fontSize: 12 },
 
   // infoCard removed — now replaced by actual docCards when data exists
   infoCard: { display: 'none' },

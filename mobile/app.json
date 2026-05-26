@@ -31,7 +31,7 @@
     ],
     "ios": {
       "bundleIdentifier": "ru.radius47.service",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
         "NSCameraUsageDescription": "Приложению нужен доступ к камере, чтобы вы могли сделать фото и отправить его в чат.",
@@ -40,7 +40,7 @@
     },
     "android": {
       "package": "ru.radius47.service",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#000000"

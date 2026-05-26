@@ -105,8 +105,8 @@ const s = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: colors.border,
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
-  headerTitle: { color: colors.accent, fontSize: 14, fontWeight: '700', letterSpacing: 2 },
+  backIcon: { color: '#8ECAE6', fontSize: 28, lineHeight: 30, fontWeight: '300' },
+  headerTitle: { color: '#8ECAE6', fontSize: 14, fontWeight: '700', letterSpacing: 2 },
 
   scroll: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 48, gap: 12 },
@@ -116,7 +116,7 @@ const s = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0,188,212,0.3)',
+    borderColor: 'rgba(142,202,230,0.3)',
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -124,7 +124,7 @@ const s = StyleSheet.create({
   },
   balanceLeft: { flex: 1 },
   balanceLabel: { color: colors.textDim, fontSize: 10, letterSpacing: 2, fontWeight: '700' },
-  balanceValue: { color: colors.accent, fontSize: 48, fontWeight: '700', lineHeight: 54 },
+  balanceValue: { color: '#8ECAE6', fontSize: 48, fontWeight: '700', lineHeight: 54 },
   balanceSub: { color: colors.textSub, fontSize: 13 },
   balanceRight: {
     alignItems: 'center',
@@ -134,7 +134,7 @@ const s = StyleSheet.create({
     minWidth: 90,
   },
   rateLabel: { color: colors.textDim, fontSize: 9, letterSpacing: 2, fontWeight: '700' },
-  rateValue: { color: colors.accent, fontSize: 36, fontWeight: '700', lineHeight: 42 },
+  rateValue: { color: '#8ECAE6', fontSize: 36, fontWeight: '700', lineHeight: 42 },
   rateSub: { color: colors.textSub, fontSize: 10, textAlign: 'center', marginTop: 2 },
 
   sectionTitle: {
@@ -150,7 +150,7 @@ const s = StyleSheet.create({
   },
   stepNum: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#8ECAE6', alignItems: 'center', justifyContent: 'center',
     flexShrink: 0, marginTop: 2,
   },
   stepNumText: { color: '#000', fontSize: 14, fontWeight: '700' },
