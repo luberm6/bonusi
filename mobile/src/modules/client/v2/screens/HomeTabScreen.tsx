@@ -410,9 +410,9 @@ export function HomeTabScreen({ navigation }: any) {
           height: gaugeSize + sx(12),
           borderRadius: (gaugeSize + sx(12)) / 2,
           borderWidth: 1.5,
-          borderColor: '#0A84C6',
+          borderColor: '#8ECAE6',
           // Static shadow — View opacity drives visibility
-          shadowColor: '#0A84C6',
+          shadowColor: '#8ECAE6',
           shadowOpacity: 1,
           shadowRadius: 18,
           shadowOffset: { width: 0, height: 0 },
