@@ -18,6 +18,7 @@ export type CreateUserDto = {
   carPlate: string | null;
   carYear: number | null;
   odometerKm: number | null;
+  carVin: string | null;
 };
 
 export type UpdateUserDto = {
@@ -33,6 +34,7 @@ export type UpdateUserDto = {
   carPlate?: string | null;
   carYear?: number | null;
   odometerKm?: number | null;
+  carVin?: string | null;
 };
 
 export type ResetUserPasswordDto = {
@@ -139,8 +141,9 @@ export function parseCreateUserDto(body: unknown): CreateUserDto {
   const carPlate = parseOptionalString(input.carPlate, "carPlate", 24) ?? null;
   const carYear = parseOptionalNumber(input.carYear, "carYear", 1900, new Date().getFullYear() + 1) ?? null;
   const odometerKm = parseOptionalNumber(input.odometerKm, "odometerKm", 0, 9999999) ?? null;
+  const carVin = parseOptionalString(input.carVin, "carVin", 80) ?? null;
 
-  return { email, password, role, isActive, fullName, phone, notes, carBrand, carModel, carPlate, carYear, odometerKm };
+  return { email, password, role, isActive, fullName, phone, notes, carBrand, carModel, carPlate, carYear, odometerKm, carVin };
 }
 
 export function parseUpdateUserDto(body: unknown): UpdateUserDto {
@@ -199,6 +202,9 @@ export function parseUpdateUserDto(body: unknown): UpdateUserDto {
   }
   if (input.odometerKm !== undefined) {
     dto.odometerKm = parseOptionalNumber(input.odometerKm, "odometerKm", 0, 9999999) ?? null;
+  }
+  if (input.carVin !== undefined) {
+    dto.carVin = parseOptionalString(input.carVin, "carVin", 80) ?? null;
   }
 
   if (Object.keys(dto).length === 0) {

@@ -11,6 +11,7 @@ export type UserMe = {
   carPlate?: string | null;
   carYear?: number | null;
   odometerKm?: number | null;
+  carVin?: string | null;
 };
 
 export type BonusBalance = {

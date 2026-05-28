@@ -181,12 +181,15 @@
 
         <div class="spacer-16"></div>
         <section class="workspace-panel">
-          <div class="workspace-toolbar">
+          <div class="workspace-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
             <div>
               <h2 class="workspace-section-title">Список клиентов</h2>
               <p class="workspace-section-meta">Рабочий обзор по клиентам с быстрым переходом в карточку и историю визитов.</p>
             </div>
-            <span class="badge badge-soft">CRM</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <input class="input" id="search-phone" type="text" placeholder="Поиск по телефону..." style="width:240px; margin:0;" />
+              <span class="badge badge-soft">CRM</span>
+            </div>
           </div>
           <div class="spacer-16"></div>
           <p id="loading" class="workspace-helper">Загружаем данные...</p>
@@ -287,12 +290,13 @@
             <span class="badge badge-soft" id="client-car-badge">Данные авто</span>
           </div>
           <div class="spacer-16"></div>
-          <div class="workspace-client-summary" style="grid-template-columns: repeat(5, minmax(0, 1fr))">
+          <div class="workspace-client-summary" style="grid-template-columns: repeat(6, minmax(0, 1fr))">
             <article class="workspace-client-summary-card"><strong>Марка</strong><span id="client-profile-car-brand">—</span></article>
             <article class="workspace-client-summary-card"><strong>Модель</strong><span id="client-profile-car-model">—</span></article>
             <article class="workspace-client-summary-card"><strong>Госномер</strong><span id="client-profile-car-plate">—</span></article>
             <article class="workspace-client-summary-card"><strong>Год</strong><span id="client-profile-car-year">—</span></article>
             <article class="workspace-client-summary-card"><strong>Пробег, км</strong><span id="client-profile-odometer">—</span></article>
+            <article class="workspace-client-summary-card"><strong>VIN</strong><span id="client-profile-car-vin">—</span></article>
           </div>
           <div class="spacer-16"></div>
           <form id="client-car-form">
@@ -316,6 +320,10 @@
               <div class="workspace-field">
                 <label for="profile-odometer-km">Пробег, км</label>
                 <input class="input" id="profile-odometer-km" type="number" placeholder="50000" min="0" />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-car-vin">VIN номер</label>
+                <input class="input" id="profile-car-vin" type="text" placeholder="17-значный код" />
               </div>
             </div>
             <div class="spacer-16"></div>

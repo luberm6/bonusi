@@ -28,6 +28,7 @@ const profileCarModelSpan = document.getElementById("client-profile-car-model");
 const profileCarPlateSpan = document.getElementById("client-profile-car-plate");
 const profileCarYearSpan = document.getElementById("client-profile-car-year");
 const profileOdometerSpan = document.getElementById("client-profile-odometer");
+const profileCarVinSpan = document.getElementById("client-profile-car-vin");
 
 const carFormElement = document.getElementById("client-car-form");
 const carBrandInput = document.getElementById("profile-car-brand");
@@ -35,6 +36,7 @@ const carModelInput = document.getElementById("profile-car-model");
 const carPlateInput = document.getElementById("profile-car-plate");
 const carYearInput = document.getElementById("profile-car-year");
 const odometerInput = document.getElementById("profile-odometer-km");
+const carVinInput = document.getElementById("profile-car-vin");
 const carErrorElement = document.getElementById("client-car-error");
 const carSuccessElement = document.getElementById("client-car-success");
 const carSubmitElement = document.getElementById("client-car-submit");
@@ -47,8 +49,12 @@ const basicErrorElement = document.getElementById("client-basic-error");
 const basicSuccessElement = document.getElementById("client-basic-success");
 const basicSubmitElement = document.getElementById("client-basic-submit");
 
+const searchPhoneInput = document.getElementById("search-phone");
+
 let activeClient = null;
 let activeProfileClient = null;
+let allClients = [];
+let activeTableBody = null;
 
 const money = (value) =>
   `${Number(value || 0).toLocaleString("ru-RU", {
@@ -128,11 +134,13 @@ function resetClientProfile() {
   if (profileCarPlateSpan) profileCarPlateSpan.textContent = "—";
   if (profileCarYearSpan) profileCarYearSpan.textContent = "—";
   if (profileOdometerSpan) profileOdometerSpan.textContent = "—";
+  if (profileCarVinSpan) profileCarVinSpan.textContent = "—";
   if (carBrandInput) carBrandInput.value = "";
   if (carModelInput) carModelInput.value = "";
   if (carPlateInput) carPlateInput.value = "";
   if (carYearInput) carYearInput.value = "";
   if (odometerInput) odometerInput.value = "";
+  if (carVinInput) carVinInput.value = "";
   if (carErrorElement) carErrorElement.textContent = "";
   if (carSuccessElement) carSuccessElement.textContent = "";
   
@@ -173,6 +181,7 @@ function openClientProfile(client) {
   if (profileCarPlateSpan) profileCarPlateSpan.textContent = client.carPlate ? client.carPlate.toUpperCase() : "—";
   if (profileCarYearSpan) profileCarYearSpan.textContent = client.carYear ? String(client.carYear) : "—";
   if (profileOdometerSpan) profileOdometerSpan.textContent = client.odometerKm != null ? Number(client.odometerKm).toLocaleString("ru-RU") : "—";
+  if (profileCarVinSpan) profileCarVinSpan.textContent = client.carVin || "—";
 
   // Авто — inputs (prefill)
   if (carBrandInput) carBrandInput.value = client.carBrand || "";
@@ -180,6 +189,7 @@ function openClientProfile(client) {
   if (carPlateInput) carPlateInput.value = client.carPlate || "";
   if (carYearInput) carYearInput.value = client.carYear != null ? String(client.carYear) : "";
   if (odometerInput) odometerInput.value = client.odometerKm != null ? String(client.odometerKm) : "";
+  if (carVinInput) carVinInput.value = client.carVin || "";
   if (carErrorElement) carErrorElement.textContent = "";
   if (carSuccessElement) carSuccessElement.textContent = "";
 
@@ -387,6 +397,7 @@ carFormElement?.addEventListener("submit", async (event) => {
     carPlate: carPlateInput?.value.trim() || null,
     carYear: carYear ? Number(carYear) : null,
     odometerKm: odometerKm ? Number(odometerKm) : null,
+    carVin: carVinInput?.value.trim() || null,
   };
 
   try {
@@ -400,13 +411,15 @@ carFormElement?.addEventListener("submit", async (event) => {
     if (profileCarPlateSpan) profileCarPlateSpan.textContent = updated.carPlate ? updated.carPlate.toUpperCase() : "—";
     if (profileCarYearSpan) profileCarYearSpan.textContent = updated.carYear ? String(updated.carYear) : "—";
     if (profileOdometerSpan) profileOdometerSpan.textContent = updated.odometerKm != null ? Number(updated.odometerKm).toLocaleString("ru-RU") : "—";
+    if (profileCarVinSpan) profileCarVinSpan.textContent = updated.carVin || "—";
     // Обновляем локальный объект клиента
     Object.assign(activeProfileClient, {
       carBrand: updated.carBrand,
       carModel: updated.carModel,
       carPlate: updated.carPlate,
       carYear: updated.carYear,
-      odometerKm: updated.odometerKm
+      odometerKm: updated.odometerKm,
+      carVin: updated.carVin
     });
     if (carSuccessElement) carSuccessElement.textContent = "Данные автомобиля сохранены.";
   } catch (error) {
@@ -502,6 +515,52 @@ submitElement?.addEventListener("click", async () => {
   }
 });
 
+function renderFilteredClients() {
+  if (!activeTableBody) return;
+  activeTableBody.innerHTML = "";
+
+  const query = (searchPhoneInput?.value || "").trim();
+  const cleanQuery = query.replace(/\D/g, "");
+
+  const filtered = allClients.filter((client) => {
+    if (!query) return true;
+    const cleanPhone = (client.phone || "").replace(/\D/g, "");
+    if (cleanQuery) {
+      return cleanPhone.includes(cleanQuery);
+    }
+    return (client.phone || "").toLowerCase().includes(query.toLowerCase());
+  });
+
+  if (filtered.length === 0) {
+    activeTableBody.innerHTML = '<tr><td colspan="6"><p class="workspace-empty">Клиентов с таким номером телефона не найдено.</p></td></tr>';
+    return;
+  }
+
+  for (const client of filtered) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><strong>${escapeHtml(client.fullName || "Без имени")}</strong></td>
+      <td>${escapeHtml(client.email)}</td>
+      <td>${escapeHtml(client.phone || "—")}</td>
+      <td><span class="${client.isActive ? "badge-on" : "badge-off"}">${client.isActive ? "Активен" : "Отключен"}</span></td>
+      <td>${escapeHtml(formatAdminDate(client.lastSeen))}</td>
+      <td>
+        <div class="workspace-inline-actions">
+          <button class="btn" type="button" data-open-profile="${client.id}">Карточка</button>
+          <button class="btn" type="button" data-reset-password="${client.id}">Сменить пароль</button>
+        </div>
+      </td>
+    `;
+    activeTableBody.appendChild(row);
+    row.querySelector("[data-reset-password]")?.addEventListener("click", () => openResetModal(client));
+    row.querySelector("[data-open-profile]")?.addEventListener("click", () => {
+      void loadClientVisits(client);
+    });
+  }
+}
+
+searchPhoneInput?.addEventListener("input", renderFilteredClients);
+
 initAdminListPage({
   fetchPath: "/users",
   normalizeItems: (items) => items.filter((user) => user.role === "client"),
@@ -513,26 +572,8 @@ initAdminListPage({
   successTitle: () => "Клиентская база актуальна",
   successText: (items) => `Найдено клиентов: ${items.length}.`,
   renderRows: ({ items, tableBodyElement }) => {
-    for (const client of items) {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><strong>${escapeHtml(client.fullName || "Без имени")}</strong></td>
-        <td>${escapeHtml(client.email)}</td>
-        <td>${escapeHtml(client.phone || "—")}</td>
-        <td><span class="${client.isActive ? "badge-on" : "badge-off"}">${client.isActive ? "Активен" : "Отключен"}</span></td>
-        <td>${escapeHtml(formatAdminDate(client.lastSeen))}</td>
-        <td>
-          <div class="workspace-inline-actions">
-            <button class="btn" type="button" data-open-profile="${client.id}">Карточка</button>
-            <button class="btn" type="button" data-reset-password="${client.id}">Сменить пароль</button>
-          </div>
-        </td>
-      `;
-      tableBodyElement.appendChild(row);
-      row.querySelector("[data-reset-password]")?.addEventListener("click", () => openResetModal(client));
-      row.querySelector("[data-open-profile]")?.addEventListener("click", () => {
-        void loadClientVisits(client);
-      });
-    }
+    allClients = items;
+    activeTableBody = tableBodyElement;
+    renderFilteredClients();
   }
 });

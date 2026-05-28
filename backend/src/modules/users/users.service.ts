@@ -24,6 +24,7 @@ type UserRow = {
   car_plate: string | null;
   car_year: number | null;
   odometer_km: number | null;
+  car_vin: string | null;
 };
 
 function toUserView(row: UserRow) {
@@ -43,7 +44,8 @@ function toUserView(row: UserRow) {
     carModel: row.car_model,
     carPlate: row.car_plate,
     carYear: row.car_year,
-    odometerKm: row.odometer_km
+    odometerKm: row.odometer_km,
+    carVin: row.car_vin
   };
 }
 
@@ -72,7 +74,7 @@ function assertCanManageCreation(actor: AuthenticatedUser, roleToCreate: UserRol
 async function getUserRowById(userId: string, client?: PoolClient): Promise<UserRow> {
   const runner = client ?? pool;
   const result = await runner.query(
-    `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km
+    `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km, car_vin
      from public.users where id = $1 limit 1`,
     [userId]
   );
@@ -119,6 +121,7 @@ function buildUpdateQuery(dto: UpdateUserDto, passwordHash: string | null) {
   if (dto.carPlate !== undefined) push("car_plate", dto.carPlate);
   if (dto.carYear !== undefined) push("car_year", dto.carYear);
   if (dto.odometerKm !== undefined) push("odometer_km", dto.odometerKm);
+  if (dto.carVin !== undefined) push("car_vin", dto.carVin);
   if (passwordHash) push("password_hash", passwordHash);
 
   return { sets, values };
@@ -169,11 +172,11 @@ export async function createUser(actor: AuthenticatedUser, dto: CreateUserDto) {
     await client.query("begin");
     const created = await client.query(
       `insert into public.users
-       (email, password_hash, role, created_by, is_active, full_name, phone, notes, car_brand, car_model, car_plate, car_year, odometer_km)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+       (email, password_hash, role, created_by, is_active, full_name, phone, notes, car_brand, car_model, car_plate, car_year, odometer_km, car_vin)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        on conflict (email) do nothing
-       returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km`,
-      [dto.email, passwordHash, dto.role, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes, dto.carBrand, dto.carModel, dto.carPlate, dto.carYear, dto.odometerKm]
+       returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km, car_vin`,
+      [dto.email, passwordHash, dto.role, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes, dto.carBrand, dto.carModel, dto.carPlate, dto.carYear, dto.odometerKm, dto.carVin]
     );
     if (created.rowCount === 0) {
       throw new HttpError(409, "User with this email already exists");
@@ -209,12 +212,12 @@ export async function listUsers(actor: AuthenticatedUser) {
   const result =
     actor.role === "super_admin"
       ? await pool.query(
-          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km
+          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km, car_vin
            from public.users
            order by created_at desc`
         )
       : await pool.query(
-          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km
+          `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km, car_vin
            from public.users
            where role <> 'super_admin'
            order by created_at desc`
@@ -245,7 +248,7 @@ export async function updateUser(actor: AuthenticatedUser, userId: string, dto: 
     }
     update.values.push(userId);
     const sql = `update public.users set ${update.sets.join(", ")} where id = $${update.values.length}
-                 returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km`;
+                 returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km, car_vin`;
 
     const updated = await client.query(sql, update.values);
     if (updated.rowCount === 0) {

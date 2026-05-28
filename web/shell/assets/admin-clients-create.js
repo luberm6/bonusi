@@ -19,6 +19,7 @@ initAdminCreateForm({
       carPlate: document.getElementById("car-plate").value.trim() || null,
       carYear: carYear ? Number(carYear) : null,
       odometerKm: odometerKm ? Number(odometerKm) : null,
+      carVin: document.getElementById("car-vin").value.trim() || null,
     };
   },
   successMessage: (created) =>
