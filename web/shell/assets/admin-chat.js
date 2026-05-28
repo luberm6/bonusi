@@ -1,4 +1,4 @@
-import { authFetchJson, featureFlags } from "/assets/app.js";
+import { authFetchJson, featureFlags, getApiBase } from "/assets/app.js";
 import {
   formatWorkspaceError,
   initAdminWorkspace,
@@ -61,7 +61,7 @@ if (session) {
         const getFullUrl = (url) => {
           if (!url) return "";
           if (url.startsWith("http") || url.startsWith("data:")) return url;
-          const base = window.CONFIG?.API_BASE || "";
+          const base = getApiBase() || "";
           const cleanBase = base.replace(/\/api\/v1\/?$/, "");
           return cleanBase.replace(/\/+$/, "") + "/" + url.replace(/^\/+/, "");
         };
