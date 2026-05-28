@@ -26,6 +26,7 @@ export default function App() {
     'EurostileRound-BoldItalic': require('./assets/fonts/EurostileRound-BoldItalic.ttf'),
     'Rodondo': require('./assets/fonts/Rodondo.otf'),
     'AlarmClock': require('./assets/fonts/alarm_clock.ttf'),
+    'CondensansPaneurope-Medium': require('./assets/fonts/CondensansPaneurope-Medium.ttf'),
   });
 
   // Не блокируем рендер при ошибке — упадём на системный шрифт
