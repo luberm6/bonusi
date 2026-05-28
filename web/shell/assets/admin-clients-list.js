@@ -12,6 +12,7 @@ const cancelElement = document.getElementById("reset-password-cancel");
 
 const profileModalElement = document.getElementById("client-profile-modal");
 const profileCloseElement = document.getElementById("client-profile-close");
+const profileDeleteElement = document.getElementById("client-profile-delete");
 const profileTitleElement = document.getElementById("client-profile-title");
 const profileSubtitleElement = document.getElementById("client-profile-subtitle");
 const profileEmailElement = document.getElementById("client-profile-email");
@@ -340,6 +341,33 @@ resetModalElement?.addEventListener("click", (event) => {
 profileCloseElement?.addEventListener("click", closeClientProfile);
 profileModalElement?.addEventListener("click", (event) => {
   if (event.target === profileModalElement) closeClientProfile();
+});
+
+profileDeleteElement?.addEventListener("click", async () => {
+  if (!activeProfileClient) return;
+
+  const confirmed = window.confirm(
+    `Вы уверены, что хотите полностью удалить клиента ${
+      activeProfileClient.fullName || activeProfileClient.email
+    }? Это действие удалит все его визиты, сообщения в чате и транзакции. Отменить удаление невозможно!`
+  );
+  if (!confirmed) return;
+
+  profileDeleteElement.disabled = true;
+  profileDeleteElement.textContent = "Удаление...";
+
+  try {
+    await authFetchJson(`/users/${encodeURIComponent(activeProfileClient.id)}`, {
+      method: "DELETE"
+    });
+    alert("Клиент успешно удален.");
+    closeClientProfile();
+    window.location.reload();
+  } catch (error) {
+    alert(error instanceof Error ? error.message : "Не удалось удалить клиента.");
+    profileDeleteElement.disabled = false;
+    profileDeleteElement.textContent = "Удалить клиента";
+  }
 });
 
 carFormElement?.addEventListener("submit", async (event) => {

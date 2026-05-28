@@ -367,3 +367,57 @@ export async function getCurrentUser(actor: AuthenticatedUser) {
   const user = await getUserRowById(actor.id);
   return toUserView(user);
 }
+
+export async function deleteUser(actor: AuthenticatedUser, userId: string) {
+  if (actor.role === "client") {
+    throw new HttpError(403, "client cannot delete users");
+  }
+  if (userId === actor.id) {
+    throw new HttpError(400, "self-deletion is not allowed");
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    const target = await getUserRowById(userId, client);
+    if (actor.role === "admin" && target.role !== "client") {
+      throw new HttpError(403, "admin can only delete client users");
+    }
+
+    // 1. Delete messages
+    await client.query("delete from public.messages where sender_id = $1 or receiver_id = $1", [userId]);
+
+    // 2. Delete conversations
+    await client.query("delete from public.conversations where client_id = $1 or admin_id = $1", [userId]);
+
+    // 3. Delete bonus transactions
+    await client.query("delete from public.bonus_transactions where client_id = $1 or admin_id = $1", [userId]);
+
+    // 4. Delete visits (cascade deletes visit_services)
+    await client.query("delete from public.visits where client_id = $1", [userId]);
+
+    // 5. Delete refresh tokens & devices
+    await client.query("delete from public.refresh_tokens where user_id = $1", [userId]);
+    await client.query("delete from public.devices where user_id = $1", [userId]);
+
+    // 6. Delete user
+    await client.query("delete from public.users where id = $1", [userId]);
+
+    await logAudit({
+      actorUserId: actor.id,
+      action: "user.delete",
+      entityType: "users",
+      entityId: userId,
+      payload: { email: target.email, role: target.role, fullName: target.full_name },
+      client
+    });
+
+    await client.query("commit");
+    return { success: true };
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}

@@ -10,7 +10,8 @@ import {
   getUserById,
   listUsers,
   resetUserPassword,
-  updateUser
+  updateUser,
+  deleteUser
 } from "./users.service.js";
 
 export const usersRouter = Router();
@@ -90,5 +91,16 @@ usersRouter.post(
     const dto = parseResetUserPasswordDto(req.body);
     const payload = await resetUserPassword(req.authUser!, userId, dto);
     res.json(payload);
+  })
+);
+
+usersRouter.delete(
+  "/users/:id",
+  authGuard,
+  requireRoles("admin", "super_admin"),
+  asyncHandler(async (req, res) => {
+    const userId = parseUserId(getParamId(req.params.id));
+    await deleteUser(req.authUser!, userId);
+    res.json({ success: true });
   })
 );
