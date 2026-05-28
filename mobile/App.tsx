@@ -21,6 +21,7 @@ export default function App() {
     'Mont-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
     'Mont-Bold':    require('./assets/fonts/Montserrat-Bold.ttf'),
     'EurostileRound-HeavyItalic': require('./assets/fonts/EurostileRound-HeavyItalic.ttf'),
+    'EurostileRoundExtended-BlackItalic': require('./assets/fonts/EurostileRoundExtended-BlackItalic.ttf'),
   });
 
   // Не блокируем рендер при ошибке — упадём на системный шрифт

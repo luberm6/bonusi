@@ -41,12 +41,13 @@ export function HomeTabScreen({ navigation }: any) {
     'Orbitron-Bold':   require('../../../../../assets/fonts/Orbitron-Bold.ttf'),
     'Rajdhani-Bold':   require('../../../../../assets/fonts/Rajdhani-Bold.ttf'),
     'EurostileRound-HeavyItalic': require('../../../../../assets/fonts/EurostileRound-HeavyItalic.ttf'),
+    'EurostileRoundExtended-BlackItalic': require('../../../../../assets/fonts/EurostileRoundExtended-BlackItalic.ttf'),
   });
   const F   = fontsReady ? 'Inter-Regular' : undefined;
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
-  const FE  = fontsReady ? 'EurostileRound-HeavyItalic' : undefined;
+  const FE  = fontsReady ? 'EurostileRoundExtended-BlackItalic' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;
