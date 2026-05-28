@@ -195,7 +195,7 @@ export function LoginView(props: {
   onSendOtp?: (phone: string) => Promise<boolean>;
   onVerifyOtp?: (phone: string, code: string) => Promise<void>;
 }) {
-  const [tab, setTab] = React.useState<"email" | "phone">("email");
+  const [tab, setTab] = React.useState<"email" | "phone">("phone");
   const [phone, setPhone] = React.useState("");
   const [code, setCode] = React.useState("");
   const [step, setStep] = React.useState<1 | 2>(1);
@@ -277,7 +277,8 @@ export function LoginView(props: {
           Войдите в систему, чтобы открыть кабинет клиента или рабочее пространство.
         </Text>
 
-        {props.smsLoginEnabled && (
+        {/* Скрываем переключение табов (по просьбе клиента оставляем только вход по SMS) */}
+        {/* props.smsLoginEnabled && (
           <View style={styles.tabContainer}>
             <Pressable
               style={[styles.tabButton, tab === "email" && styles.tabButtonActive]}
@@ -302,7 +303,7 @@ export function LoginView(props: {
               </Text>
             </Pressable>
           </View>
-        )}
+        ) */}
 
         {tab === "email" ? (
           <View style={styles.loginForm}>
