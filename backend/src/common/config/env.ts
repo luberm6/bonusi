@@ -83,6 +83,11 @@ export const env = {
   smscUsePost: parseBoolean(process.env.SMSC_USE_POST, true),
   smscResponseFormat: process.env.SMSC_RESPONSE_FORMAT ?? "json",
   smscDebug: parseBoolean(process.env.SMSC_DEBUG, false),
+  smsaeroEmail: process.env.SMSAERO_EMAIL ?? "",
+  smsaeroApiKey: process.env.SMSAERO_API_KEY ?? "",
+  smsaeroSender: process.env.SMSAERO_SENDER ?? "SMS Aero",
+  smsaeroEndpoint: process.env.SMSAERO_ENDPOINT ?? "https://gate.smsaero.ru/v2/sms/send",
+  smsaeroDebug: parseBoolean(process.env.SMSAERO_DEBUG, false),
   testSmsEnabled: parseBoolean(process.env.TEST_SMS_ENABLED, false),
   testSmsPhone: process.env.TEST_SMS_PHONE ?? "",
   testSmsCode: process.env.TEST_SMS_CODE ?? ""
