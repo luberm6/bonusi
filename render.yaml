@@ -70,6 +70,38 @@ services:
         value: ""
       - key: S3_PUBLIC_BASE_URL
         value: ""
+      - key: SMS_PROVIDER
+        value: smsc
+      - key: SMS_OTP_ENABLED
+        value: true
+      - key: SMS_OTP_LENGTH
+        value: 6
+      - key: SMS_OTP_TTL_SECONDS
+        value: 300
+      - key: SMS_OTP_RESEND_SECONDS
+        value: 60
+      - key: SMS_OTP_MAX_ATTEMPTS
+        value: 5
+      - key: SMSC_LOGIN
+        value: ""
+      - key: SMSC_PASSWORD
+        value: ""
+      - key: SMSC_SENDER
+        value: ""
+      - key: SMSC_ENDPOINT
+        value: https://smsc.ru/sys/send.php
+      - key: SMSC_USE_POST
+        value: true
+      - key: SMSC_RESPONSE_FORMAT
+        value: json
+      - key: SMSC_DEBUG
+        value: false
+      - key: TEST_SMS_ENABLED
+        value: true
+      - key: TEST_SMS_PHONE
+        value: "+79990000000"
+      - key: TEST_SMS_CODE
+        value: "123456"
 
   - type: web
     env: static
