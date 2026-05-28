@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from "crypto";
+import type { PoolClient } from "pg";
 import { pool } from "../../common/db/pool.js";
 import { env } from "../../common/config/env.js";
 import { HttpError } from "../../common/http/error.js";
@@ -103,14 +104,15 @@ async function clearFailedLoginAttempts(email: string, ip: string) {
   );
 }
 
-async function upsertDevice(userId: string, device?: DeviceInput): Promise<string | null> {
+async function upsertDevice(userId: string, device?: DeviceInput, dbClient?: PoolClient): Promise<string | null> {
   if (!device?.platform) {
     return null;
   }
 
+  const runner = dbClient ?? pool;
   const explicitDeviceId = device.deviceId;
   if (explicitDeviceId) {
-    const updated = await pool.query(
+    const updated = await runner.query(
       `update public.devices
        set platform = $3,
            device_name = $4,
@@ -136,7 +138,7 @@ async function upsertDevice(userId: string, device?: DeviceInput): Promise<strin
   }
 
   if (device.pushToken) {
-    const byPushToken = await pool.query(
+    const byPushToken = await runner.query(
       `update public.devices
        set user_id = $1,
            platform = $2,
@@ -153,7 +155,7 @@ async function upsertDevice(userId: string, device?: DeviceInput): Promise<strin
     }
   }
 
-  const inserted = await pool.query(
+  const inserted = await runner.query(
     `insert into public.devices
      (user_id, platform, device_name, push_token, app_version, is_active, last_seen)
      values ($1, $2, $3, $4, $5, true, now())
@@ -706,7 +708,7 @@ export async function verifyOtpCode(input: {
       [user.id, phone]
     );
 
-    const deviceId = await upsertDevice(user.id, input.device);
+    const deviceId = await upsertDevice(user.id, input.device, client);
     const refreshToken = createRawRefreshToken();
     const refreshHash = hashRefreshToken(refreshToken);
     const familyId = randomUUID();
