@@ -37,11 +37,17 @@ export function HomeTabScreen({ navigation }: any) {
     'Inter-Bold':    require('../../../../../assets/fonts/Inter-Bold.ttf'),
     'Cormorant-Regular': require('../../../../../assets/fonts/CormorantGaramond_400Regular.ttf'),
     'Cormorant-Bold':    require('../../../../../assets/fonts/CormorantGaramond_700Bold.ttf'),
+    'Montserrat-Bold': require('../../../../../assets/fonts/Montserrat-Bold.ttf'),
+    'Orbitron-Bold':   require('../../../../../assets/fonts/Orbitron-Bold.ttf'),
+    'Rajdhani-Bold':   require('../../../../../assets/fonts/Rajdhani-Bold.ttf'),
   });
   const F   = fontsReady ? 'Inter-Regular' : undefined;
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
+  const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
+  const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
+  const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;
 
   const contentH = SH - insets.top - insets.bottom;
   const sx = (v: number) => (v * SW) / FW;
@@ -419,7 +425,7 @@ export function HomeTabScreen({ navigation }: any) {
       }}>
         <Animated.Text style={{
           fontSize: numSize + sx(10), lineHeight: numSize + sx(10),
-          color: '#fff', fontFamily: FCB,
+          color: '#fff', fontFamily: F_M,
           includeFontPadding: false,
           textAlign: 'center',
         }}>
