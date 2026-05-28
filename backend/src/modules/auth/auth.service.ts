@@ -669,11 +669,12 @@ export async function verifyOtpCode(input: {
       [otp.id]
     );
 
-    // Find user by phone_number or phone (to support both)
+    // Find user by phone_number or phone (supporting suffix match of last 10 digits to handle any formatting)
     const userResult = await client.query(
       `select id, email, role, is_active
        from public.users
-       where phone_number = $1 or phone = $1
+       where right(regexp_replace(coalesce(phone_number, ''), '\D', '', 'g'), 10) = right($1, 10)
+          or right(regexp_replace(coalesce(phone, ''), '\D', '', 'g'), 10) = right($1, 10)
        limit 1`,
       [phone]
     );
@@ -699,9 +700,10 @@ export async function verifyOtpCode(input: {
     await client.query(
       `update public.users
        set phone_verified_at = coalesce(phone_verified_at, now()),
-           last_sms_login_at = now()
+           last_sms_login_at = now(),
+           phone_number = $2
        where id = $1`,
-      [user.id]
+      [user.id, phone]
     );
 
     const deviceId = await upsertDevice(user.id, input.device);

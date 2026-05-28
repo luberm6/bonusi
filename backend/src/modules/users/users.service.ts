@@ -82,6 +82,20 @@ async function getUserRowById(userId: string, client?: PoolClient): Promise<User
   return result.rows[0] as UserRow;
 }
 
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("8") && digits.length === 11) {
+    return "+7" + digits.substring(1);
+  }
+  if (digits.startsWith("7") && digits.length === 11) {
+    return "+" + digits;
+  }
+  if (phone.trim().startsWith("+")) {
+    return "+" + digits;
+  }
+  return digits ? "+" + digits : "";
+}
+
 function buildUpdateQuery(dto: UpdateUserDto, passwordHash: string | null) {
   const sets: string[] = [];
   const values: unknown[] = [];
@@ -95,7 +109,10 @@ function buildUpdateQuery(dto: UpdateUserDto, passwordHash: string | null) {
   if (dto.role !== undefined) push("role", dto.role);
   if (dto.isActive !== undefined) push("is_active", dto.isActive);
   if (dto.fullName !== undefined) push("full_name", dto.fullName);
-  if (dto.phone !== undefined) push("phone", dto.phone);
+  if (dto.phone !== undefined) {
+    push("phone", dto.phone);
+    push("phone_number", dto.phone ? normalizePhone(dto.phone) : null);
+  }
   if (dto.notes !== undefined) push("notes", dto.notes);
   if (dto.carBrand !== undefined) push("car_brand", dto.carBrand);
   if (dto.carModel !== undefined) push("car_model", dto.carModel);

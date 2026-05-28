@@ -246,6 +246,38 @@
         <section class="workspace-panel">
           <div class="workspace-toolbar">
             <div>
+              <h3 class="workspace-section-title">Основная информация</h3>
+              <p class="workspace-section-meta">ФИО, Email и Номер телефона клиента. Можно изменить прямо здесь.</p>
+            </div>
+            <span class="badge badge-soft">Профиль</span>
+          </div>
+          <div class="spacer-16"></div>
+          <form id="client-basic-form">
+            <div class="workspace-form-grid">
+              <div class="workspace-field">
+                <label for="profile-full-name">ФИО</label>
+                <input class="input" id="profile-full-name" type="text" placeholder="Иван Иванов" />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-email">Email</label>
+                <input class="input" id="profile-email" type="email" placeholder="client@mail.ru" required />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-phone">Телефон</label>
+                <input class="input" id="profile-phone" type="text" placeholder="+7 (926) 123-45-67" />
+              </div>
+            </div>
+            <div class="spacer-16"></div>
+            <p id="client-basic-error" style="color:#dc2626;min-height:18px;font-size:14px;"></p>
+            <p id="client-basic-success" style="color:#16a34a;min-height:18px;font-size:14px;"></p>
+            <button class="btn btn-primary" id="client-basic-submit" type="submit">Сохранить профиль</button>
+          </form>
+        </section>
+
+        <div class="spacer-24"></div>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
               <h3 class="workspace-section-title">Автомобиль</h3>
               <p class="workspace-section-meta">Марка, модель, госномер и пробег клиента. Можно изменить прямо здесь.</p>
             </div>

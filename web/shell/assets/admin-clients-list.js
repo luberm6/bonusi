@@ -38,6 +38,14 @@ const carErrorElement = document.getElementById("client-car-error");
 const carSuccessElement = document.getElementById("client-car-success");
 const carSubmitElement = document.getElementById("client-car-submit");
 
+const basicFormElement = document.getElementById("client-basic-form");
+const fullNameInput = document.getElementById("profile-full-name");
+const emailInput = document.getElementById("profile-email");
+const phoneInput = document.getElementById("profile-phone");
+const basicErrorElement = document.getElementById("client-basic-error");
+const basicSuccessElement = document.getElementById("client-basic-success");
+const basicSubmitElement = document.getElementById("client-basic-submit");
+
 let activeClient = null;
 let activeProfileClient = null;
 
@@ -126,6 +134,12 @@ function resetClientProfile() {
   if (odometerInput) odometerInput.value = "";
   if (carErrorElement) carErrorElement.textContent = "";
   if (carSuccessElement) carSuccessElement.textContent = "";
+  
+  if (fullNameInput) fullNameInput.value = "";
+  if (emailInput) emailInput.value = "";
+  if (phoneInput) phoneInput.value = "";
+  if (basicErrorElement) basicErrorElement.textContent = "";
+  if (basicSuccessElement) basicSuccessElement.textContent = "";
   setVisitLoadingState("Загружаем историю визитов клиента...");
 }
 
@@ -144,6 +158,13 @@ function openClientProfile(client) {
   profilePhoneElement.textContent = client.phone || "Не указан";
   profileStatusElement.textContent = client.isActive ? "Активен" : "Отключен";
   profileLastSeenElement.textContent = formatAdminDate(client.lastSeen);
+
+  // Основная информация — inputs (prefill)
+  if (fullNameInput) fullNameInput.value = client.fullName || "";
+  if (emailInput) emailInput.value = client.email || "";
+  if (phoneInput) phoneInput.value = client.phone || "";
+  if (basicErrorElement) basicErrorElement.textContent = "";
+  if (basicSuccessElement) basicSuccessElement.textContent = "";
 
   // Авто — spans
   if (profileCarBrandSpan) profileCarBrandSpan.textContent = client.carBrand || "—";
@@ -364,6 +385,53 @@ carFormElement?.addEventListener("submit", async (event) => {
     if (carErrorElement) carErrorElement.textContent = error instanceof Error ? error.message : "Не удалось сохранить данные автомобиля.";
   } finally {
     if (carSubmitElement) carSubmitElement.disabled = false;
+  }
+});
+
+basicFormElement?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!activeProfileClient) return;
+
+  if (basicErrorElement) basicErrorElement.textContent = "";
+  if (basicSuccessElement) basicSuccessElement.textContent = "";
+  if (basicSubmitElement) basicSubmitElement.disabled = true;
+
+  const email = emailInput?.value.trim();
+  const phone = phoneInput?.value.trim() || null;
+  const fullName = fullNameInput?.value.trim() || null;
+
+  if (!email) {
+    if (basicErrorElement) basicErrorElement.textContent = "Email обязателен.";
+    if (basicSubmitElement) basicSubmitElement.disabled = false;
+    return;
+  }
+
+  const body = {
+    email,
+    phone,
+    fullName
+  };
+
+  try {
+    const updated = await authFetchJson(`/users/${encodeURIComponent(activeProfileClient.id)}`, {
+      method: "PATCH",
+      body
+    });
+    // Обновляем spans/titles
+    profileTitleElement.textContent = updated.fullName || "Без имени";
+    profileEmailElement.textContent = updated.email || "—";
+    profilePhoneElement.textContent = updated.phone || "Не указан";
+    // Обновляем локальный объект клиента
+    Object.assign(activeProfileClient, {
+      fullName: updated.fullName,
+      email: updated.email,
+      phone: updated.phone
+    });
+    if (basicSuccessElement) basicSuccessElement.textContent = "Данные профиля сохранены. Обновите страницу для обновления списка.";
+  } catch (error) {
+    if (basicErrorElement) basicErrorElement.textContent = error instanceof Error ? error.message : "Не удалось сохранить данные профиля.";
+  } finally {
+    if (basicSubmitElement) basicSubmitElement.disabled = false;
   }
 });
 

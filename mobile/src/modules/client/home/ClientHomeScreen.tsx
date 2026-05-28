@@ -1318,8 +1318,14 @@ export function ClientHomeScreen(props: ClientHomeProps) {
     <View style={styles.screenWrap}>
       {/* Fixed Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => fireHaptic("selection")} style={({ pressed }) => [pressed && styles.pressedSurface]}>
-          <Text style={{ fontSize: 24, color: "rgba(255,255,255,0.4)" }}>☰</Text>
+        <Pressable 
+          onPress={() => {
+            fireHaptic("impactLight");
+            props.onLogout();
+          }} 
+          style={({ pressed }) => [pressed && styles.pressedSurface]}
+        >
+          <Text style={{ fontSize: 13, color: "#FFDEAD", fontWeight: "600" }}>Выйти</Text>
         </Pressable>
         <Text style={styles.headerTitle}>OBSIDIAN</Text>
         <View style={styles.weatherWidget}>
