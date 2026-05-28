@@ -13,6 +13,7 @@ import {
   ActionSheetIOS,
   Image as RNImage,
   Linking,
+  Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useClientData } from '../ClientDataContext';
@@ -41,6 +42,7 @@ export function ChatTabScreen({ navigation }: any) {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [pendingFile, setPendingFile] = useState<PendingFile | null>(null);
+  const [activeImageUri, setActiveImageUri] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   React.useEffect(() => {
@@ -49,15 +51,32 @@ export function ChatTabScreen({ navigation }: any) {
 
   const myId = session?.userId;
 
-  const handleOpenAttachment = async (fileUrl?: string) => {
+  const getAttachmentUrl = (fileUrl?: string) => {
+    if (!fileUrl) return undefined;
+    if (fileUrl.startsWith('data:')) return fileUrl;
+    if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) return fileUrl;
+    const host = mobileEnv.apiBaseUrl.replace(/\/api\/v1\/?$/, '');
+    let path = fileUrl;
+    if (!path.startsWith('/api/v1') && path.startsWith('/files')) {
+      path = `/api/v1${path}`;
+    }
+    return `${host}${path}`;
+  };
+
+  const handleOpenAttachment = async (fileUrl?: string, isImage?: boolean) => {
     if (!fileUrl) {
       Alert.alert('Ошибка', 'Ссылка на файл отсутствует.');
       return;
     }
+    const fullUrl = getAttachmentUrl(fileUrl);
+    if (!fullUrl) return;
+
+    if (isImage) {
+      setActiveImageUri(fullUrl);
+      return;
+    }
+
     try {
-      const fullUrl = fileUrl.startsWith('/') 
-        ? `${mobileEnv.apiBaseUrl.replace(/\/api\/v1\/?$/, '')}${fileUrl}`
-        : fileUrl;
       const supported = await Linking.canOpenURL(fullUrl);
       if (supported) {
         await Linking.openURL(fullUrl);
@@ -293,15 +312,17 @@ export function ChatTabScreen({ navigation }: any) {
                       {m.text}
                     </Text>
                   ) : null}
-                  {m.attachments?.map((att) =>
-                    att.fileType === 'image' ? (
+                  {m.attachments?.map((att) => {
+                    const resolvedUrl = getAttachmentUrl(att.fileUrl);
+                    const isImg = att.fileType === 'image' || (att as any).mimeType?.startsWith('image/') || att.fileName?.match(/\.(jpe?g|png|gif|webp)$/i);
+                    return isImg ? (
                       <Pressable
                         key={att.id}
-                        onPress={() => handleOpenAttachment(att.fileUrl)}
+                        onPress={() => handleOpenAttachment(att.fileUrl, true)}
                         style={({ pressed }) => [pressed && s.pressed]}
                       >
                         <RNImage
-                          source={{ uri: att.fileUrl }}
+                          source={{ uri: resolvedUrl }}
                           style={s.attachmentImage}
                           resizeMode="cover"
                         />
@@ -309,14 +330,14 @@ export function ChatTabScreen({ navigation }: any) {
                     ) : (
                       <Pressable
                         key={att.id}
-                        onPress={() => handleOpenAttachment(att.fileUrl)}
+                        onPress={() => handleOpenAttachment(att.fileUrl, false)}
                         style={({ pressed }) => [s.attachmentPdf, pressed && s.pressed]}
                       >
                         <Text style={s.attachmentPdfIcon}>📄</Text>
                         <Text style={s.attachmentPdfName} numberOfLines={1}>{att.fileName}</Text>
                       </Pressable>
-                    )
-                  )}
+                    );
+                  })}
                   <Text style={s.bubbleTime}>
                     {new Date(m.createdAt).toLocaleTimeString('ru', {
                       hour: '2-digit',
@@ -374,6 +395,18 @@ export function ChatTabScreen({ navigation }: any) {
           }
         </Pressable>
       </View>
+
+      {/* ── Fullscreen Image Viewer Modal ── */}
+      {activeImageUri ? (
+        <Modal visible={!!activeImageUri} transparent animationType="fade" onRequestClose={() => setActiveImageUri(null)}>
+          <Pressable style={s.modalBackground} onPress={() => setActiveImageUri(null)}>
+            <RNImage source={{ uri: activeImageUri }} style={s.modalFullImage} resizeMode="contain" />
+            <Pressable style={s.modalCloseBtn} onPress={() => setActiveImageUri(null)}>
+              <Text style={s.modalCloseText}>✕</Text>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -466,4 +499,31 @@ const s = StyleSheet.create({
   },
   sendBtnDisabled: { backgroundColor: colors.textDim },
   sendIcon: { color: '#000000', fontSize: 16, fontWeight: '700' },
+
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalFullImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
 });
