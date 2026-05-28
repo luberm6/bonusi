@@ -443,32 +443,35 @@ export function HomeTabScreen({ navigation }: any) {
       />
 
 
-      {/* ── Цифра бонусов + «бонусов» — по центру чёрного круга ── */}
-      <Animated.View style={{
+      {/* ── Цифра бонусов — строго по центру круга ── */}
+      <Animated.Text style={{
         position: 'absolute',
         left: gaugeCX - sx(72),
-        top:  gaugeCY - sx(72),
-        width: sx(144), height: sx(144),
-        justifyContent: 'center', alignItems: 'center',
+        top:  gaugeCY - (numSize + sx(5)) / 2,
+        width: sx(144),
+        fontSize: numSize + sx(5), lineHeight: numSize + sx(5),
+        color: '#fff', fontFamily: FE,
+        includeFontPadding: false,
+        textAlign: 'center',
         opacity: dataOpacity,
       }}>
-        <Animated.Text style={{
-          fontSize: numSize + sx(5), lineHeight: numSize + sx(5),
-          color: '#fff', fontFamily: FE,
-          includeFontPadding: false,
-          textAlign: 'center',
-        }}>
-          {displayBonus}
-        </Animated.Text>
-        <Text style={{
-          color: '#fff', fontFamily: F,
-          fontSize: sx(10), letterSpacing: 2.0, // Увеличил на 25%
-          textAlign: 'center', marginTop: sx(10),
-          textTransform: 'uppercase',
-        }}>
-          бонусов
-        </Text>
-      </Animated.View>
+        {displayBonus}
+      </Animated.Text>
+
+      {/* ── «бонусов» — ниже цифр ── */}
+      <Animated.Text style={{
+        position: 'absolute',
+        left: gaugeCX - sx(72),
+        top:  gaugeCY + (numSize + sx(5)) / 2 + sx(4),
+        width: sx(144),
+        color: '#fff', fontFamily: F,
+        fontSize: sx(10), letterSpacing: 2.0,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        opacity: dataOpacity,
+      }}>
+        бонусов
+      </Animated.Text>
 
 
 
