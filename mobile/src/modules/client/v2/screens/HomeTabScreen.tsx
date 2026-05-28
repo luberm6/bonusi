@@ -61,8 +61,7 @@ export function HomeTabScreen({ navigation }: any) {
 
   const clientName =
     me?.fullName?.trim()?.toUpperCase() ||
-    me?.email?.toUpperCase() ||
-    'КЛИЕНТ';
+    'ИМЯ';
 
   // Данные автомобиля из профиля
   const carLabel = (() => {
@@ -71,7 +70,7 @@ export function HomeTabScreen({ navigation }: any) {
     if (brand && model) return `${brand} ${model}`.toUpperCase();
     if (brand) return brand.toUpperCase();
     if (model) return model.toUpperCase();
-    return 'Автомобиль не указан';
+    return 'МАРКА АВТО';
   })();
 
   const odometerLabel = me?.odometerKm != null
@@ -90,11 +89,33 @@ export function HomeTabScreen({ navigation }: any) {
       ? 'Г.В.'
       : null;
 
+  // Проверка полноты профиля для показа всплывающего баннера
+  const [dismissed, setDismissed] = useState(false);
+  const bannerAnim = useRef(new Animated.Value(0)).current;
+  const isProfileIncomplete = !!(me && (!me.fullName?.trim() || !me.carBrand?.trim() || !me.carVin?.trim()));
+
   // Погода — загружается один раз при монтировании
   const [weather, setWeather] = useState<WeatherData | null>(null);
   useEffect(() => {
     fetchSpbWeather().then(setWeather);
   }, []);
+
+  useEffect(() => {
+    if (isProfileIncomplete && !dismissed) {
+      Animated.spring(bannerAnim, {
+        toValue: 1,
+        tension: 40,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(bannerAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isProfileIncomplete, dismissed]);
 
   // Геометрия гейджа (Вариант 3: Уменьшен в перспективе и опущен глубже за руль)
   const gaugeSize = sx(206); // Было 240, сделали меньше
@@ -567,6 +588,83 @@ export function HomeTabScreen({ navigation }: any) {
         </Pressable>
 
       </Animated.View>
+
+      {/* ── Всплывающий баннер с просьбой заполнить VIN, Имя, Марку ── */}
+      {isProfileIncomplete && !dismissed && (
+        <Animated.View style={{
+          position: 'absolute',
+          bottom: insets.bottom + sy(15),
+          left: sx(16),
+          right: sx(16),
+          transform: [{
+            translateY: bannerAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [sx(300), 0],
+            })
+          }],
+          zIndex: 9999,
+        }}>
+          <View style={{
+            backgroundColor: 'rgba(15, 23, 30, 0.95)',
+            borderRadius: sx(16),
+            borderWidth: 1.5,
+            borderColor: 'rgba(10, 132, 198, 0.5)',
+            padding: sx(16),
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.5,
+            shadowRadius: 12,
+            elevation: 10,
+          }}>
+            <Text style={{
+              color: '#fff',
+              fontFamily: FB || F,
+              fontSize: sx(15),
+              fontWeight: '700',
+              marginBottom: sx(6),
+              letterSpacing: 0.5,
+            }}>
+              ЗАПОЛНИТЕ ПРОФИЛЬ
+            </Text>
+            <Text style={{
+              color: 'rgba(255, 255, 255, 0.82)',
+              fontFamily: F,
+              fontSize: sx(12),
+              lineHeight: sx(17),
+              marginBottom: sx(14),
+            }}>
+              Пожалуйста, отправьте администратору в чат ваш VIN-код, ФИО и марку автомобиля для завершения регистрации.
+            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: sx(10) }}>
+              <Pressable
+                onPress={() => setDismissed(true)}
+                style={({ pressed }) => [{
+                  paddingVertical: sx(8),
+                  paddingHorizontal: sx(16),
+                  borderRadius: sx(8),
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                }, pressed && { opacity: 0.6 }]}
+              >
+                <Text style={{ color: '#fff', fontFamily: F, fontSize: sx(12) }}>ЗАКРЫТЬ</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setDismissed(true);
+                  navigation.navigate('Chat');
+                }}
+                style={({ pressed }) => [{
+                  paddingVertical: sx(8),
+                  paddingHorizontal: sx(16),
+                  borderRadius: sx(8),
+                  backgroundColor: '#0A84C6',
+                }, pressed && { opacity: 0.6 }]}
+              >
+                <Text style={{ color: '#fff', fontFamily: FB || F, fontSize: sx(12), fontWeight: '700' }}>ЧАТ</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      )}
 
     </View>
   );
