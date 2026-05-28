@@ -435,25 +435,7 @@ export function HomeTabScreen({ navigation }: any) {
         </Text>
       </Animated.View>
 
-      {/* ── Декоративные статические значения (как на приборной панели) ── */}
-      <View style={{
-        position: 'absolute',
-        top: sy(56), // Идеальная золотая середина: ниже чёлки, но выше кольца
-        width: SW,
-        alignItems: 'center',
-      }} pointerEvents="none">
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: sx(13), fontFamily: F, letterSpacing: 1 }}>0 КМ</Text>
-      </View>
 
-      <View style={{
-        position: 'absolute',
-        top: gaugeCY - sx(50),     // Выровнял высоту
-        left: gaugeCX + sx(145),   // Ещё ближе
-        alignItems: 'center',
-      }} pointerEvents="none">
-        <Text style={{ color: '#fff', fontSize: sx(12), fontFamily: F }}>157</Text>
-        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: sx(8), fontFamily: F, letterSpacing: 1, marginTop: sx(1) }}>КМ</Text>
-      </View>
 
 
 
