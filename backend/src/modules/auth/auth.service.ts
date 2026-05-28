@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
 import { pool } from "../../common/db/pool.js";
 import { env } from "../../common/config/env.js";
 import { HttpError } from "../../common/http/error.js";
@@ -480,3 +480,277 @@ export async function revokeSession(userId: string, sessionId: string) {
   }
   return { success: true as const };
 }
+
+import { getSmsProvider } from "./sms.provider.js";
+
+export function normalizePhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("8") && digits.length === 11) {
+    return "+7" + digits.substring(1);
+  }
+  if (digits.startsWith("7") && digits.length === 11) {
+    return "+" + digits;
+  }
+  if (phone.trim().startsWith("+")) {
+    return "+" + digits;
+  }
+  return digits ? "+" + digits : "";
+}
+
+export async function requestOtpCode(input: { phone: string; ip: string; userAgent?: string }) {
+  if (!env.smsOtpEnabled) {
+    throw new HttpError(400, "SMS login is disabled");
+  }
+
+  const phone = normalizePhoneNumber(input.phone);
+  if (!phone || phone.length < 10) {
+    throw new HttpError(400, "Invalid phone number format");
+  }
+
+  // 1. Check rate limit: 1 SMS per 60 seconds
+  const recentOtp = await pool.query(
+    `select created_at
+     from public.sms_otp_codes
+     where phone_number = $1
+       and created_at > now() - interval '60 seconds'
+       and consumed_at is null
+     order by created_at desc
+     limit 1`,
+    [phone]
+  );
+
+  if (recentOtp.rowCount && recentOtp.rowCount > 0) {
+    throw new HttpError(429, "Please wait 60 seconds before requesting another code");
+  }
+
+  // 2. Invalidate all previous unconsumed codes for this phone
+  await pool.query(
+    `update public.sms_otp_codes
+     set consumed_at = now()
+     where phone_number = $1 and consumed_at is null`,
+    [phone]
+  );
+
+  // 3. Generate 6-digit code
+  let code = "";
+  const isTest = env.testSmsEnabled && phone === env.testSmsPhone;
+  if (isTest) {
+    code = env.testSmsCode || "123456";
+  } else {
+    // Generate secure 6-digit code
+    const length = env.smsOtpLength || 6;
+    let digits = "";
+    while (digits.length < length) {
+      digits += Math.floor(Math.random() * 10).toString();
+    }
+    code = digits;
+  }
+
+  const codeHash = createHash("sha256").update(code).digest("hex");
+  const expiresAt = new Date(Date.now() + (env.smsOtpTtlSeconds || 300) * 1000);
+
+  // 4. Send SMS (if not test phone)
+  let providerMessageId: string | undefined;
+  let provider = env.smsProvider;
+
+  if (isTest) {
+    provider = "test-mock";
+    providerMessageId = "test-session";
+    console.log(`[Test SMS OTP] Phone: ${phone}, Code: ${code}`);
+  } else {
+    const smsProvider = getSmsProvider();
+    const sendResult = await smsProvider.sendOtp(phone, code);
+    if (!sendResult.success) {
+      throw new HttpError(500, sendResult.error || "Failed to send SMS");
+    }
+    providerMessageId = sendResult.providerMessageId;
+  }
+
+  // 5. Store OTP in database
+  await pool.query(
+    `insert into public.sms_otp_codes
+     (phone_number, code_hash, purpose, expires_at, provider, provider_message_id, ip_address, user_agent)
+     values ($1, $2, $3, $4, $5, $6, $7::inet, $8)`,
+    [
+      phone,
+      codeHash,
+      "login",
+      expiresAt,
+      provider,
+      providerMessageId || null,
+      sanitizeIp(input.ip),
+      input.userAgent || null
+    ]
+  );
+
+  return {
+    success: true,
+    message: "Code sent"
+  };
+}
+
+export async function verifyOtpCode(input: {
+  phone: string;
+  code: string;
+  ip: string;
+  device?: DeviceInput;
+}) {
+  if (!env.smsOtpEnabled) {
+    throw new HttpError(400, "SMS login is disabled");
+  }
+
+  const phone = normalizePhoneNumber(input.phone);
+  const code = String(input.code).trim();
+
+  if (!phone || !code) {
+    throw new HttpError(400, "Phone and code are required");
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+
+    // Find the latest active OTP code for this phone
+    const otpResult = await client.query(
+      `select id, code_hash, expires_at, consumed_at, attempts_count, max_attempts
+       from public.sms_otp_codes
+       where phone_number = $1
+         and purpose = 'login'
+       order by created_at desc
+       limit 1
+       for update`,
+      [phone]
+    );
+
+    if (otpResult.rowCount === 0) {
+      throw new HttpError(400, "No code requested for this phone number");
+    }
+
+    const otp = otpResult.rows[0] as {
+      id: string;
+      code_hash: string;
+      expires_at: Date;
+      consumed_at: Date | null;
+      attempts_count: number;
+      max_attempts: number;
+    };
+
+    if (otp.consumed_at) {
+      throw new HttpError(400, "Code has already been used");
+    }
+
+    if (otp.expires_at.getTime() <= Date.now()) {
+      throw new HttpError(400, "Code has expired");
+    }
+
+    if (otp.attempts_count >= otp.max_attempts) {
+      throw new HttpError(400, "Too many incorrect attempts");
+    }
+
+    // Verify code
+    const targetHash = createHash("sha256").update(code).digest("hex");
+    if (otp.code_hash !== targetHash) {
+      // Increment attempts
+      await client.query(
+        `update public.sms_otp_codes
+         set attempts_count = attempts_count + 1
+         where id = $1`,
+         [otp.id]
+      );
+      await client.query("commit");
+      throw new HttpError(400, "Invalid code");
+    }
+
+    // Mark as consumed
+    await client.query(
+      `update public.sms_otp_codes
+       set consumed_at = now()
+       where id = $1`,
+      [otp.id]
+    );
+
+    // Find user by phone_number or phone (to support both)
+    const userResult = await client.query(
+      `select id, email, role, is_active
+       from public.users
+       where phone_number = $1 or phone = $1
+       limit 1`,
+      [phone]
+    );
+
+    if (userResult.rowCount === 0) {
+      await client.query("commit");
+      throw new HttpError(404, "User with this phone number is not registered. Please contact administrator.");
+    }
+
+    const user = userResult.rows[0] as {
+      id: string;
+      email: string;
+      role: UserRole;
+      is_active: boolean;
+    };
+
+    if (!user.is_active) {
+      await client.query("commit");
+      throw new HttpError(403, "User is deactivated");
+    }
+
+    // Save phone verification info & last login
+    await client.query(
+      `update public.users
+       set phone_verified_at = coalesce(phone_verified_at, now()),
+           last_sms_login_at = now()
+       where id = $1`,
+      [user.id]
+    );
+
+    const deviceId = await upsertDevice(user.id, input.device);
+    const refreshToken = createRawRefreshToken();
+    const refreshHash = hashRefreshToken(refreshToken);
+    const familyId = randomUUID();
+
+    const session = await client.query(
+       `insert into public.refresh_tokens
+       (user_id, device_id, token_hash, family_id, expires_at)
+       values ($1, $2, $3, $4, ${refreshExpirySql(env.refreshTokenTtlDays)})
+       returning id`,
+      [user.id, deviceId, refreshHash, familyId]
+    );
+
+    const sessionId = session.rows[0].id as string;
+    const accessToken = signAccessToken({
+      sub: user.id,
+      sid: sessionId,
+      did: deviceId,
+      typ: "access"
+    });
+
+    await client.query("commit");
+
+    await logAudit({
+      actorUserId: user.id,
+      action: "auth.sms_login_success",
+      entityType: "auth_sessions",
+      entityId: sessionId,
+      payload: { deviceId, ip: sanitizeIp(input.ip) }
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isActive: user.is_active
+      },
+      deviceId
+    };
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+

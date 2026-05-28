@@ -191,7 +191,74 @@ export function LoginView(props: {
   onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSubmit: () => void;
+  smsLoginEnabled?: boolean;
+  onSendOtp?: (phone: string) => Promise<boolean>;
+  onVerifyOtp?: (phone: string, code: string) => Promise<void>;
 }) {
+  const [tab, setTab] = React.useState<"email" | "phone">("email");
+  const [phone, setPhone] = React.useState("");
+  const [code, setCode] = React.useState("");
+  const [step, setStep] = React.useState<1 | 2>(1);
+  const [resendTimer, setResendTimer] = React.useState(0);
+
+  React.useEffect(() => {
+    let interval: any;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const handlePhoneChange = (text: string) => {
+    // Keep only digits
+    const cleaned = text.replace(/\D/g, "");
+    if (!cleaned) {
+      setPhone("");
+      return;
+    }
+    // Format on the fly
+    let formatted = "+7";
+    const startIdx = (cleaned.startsWith("7") || cleaned.startsWith("8")) ? 1 : 0;
+    const rest = cleaned.substring(startIdx);
+    if (rest.length > 0) {
+      formatted += " (" + rest.substring(0, 3);
+    }
+    if (rest.length > 3) {
+      formatted += ") " + rest.substring(3, 6);
+    }
+    if (rest.length > 6) {
+      formatted += "-" + rest.substring(6, 8);
+    }
+    if (rest.length > 8) {
+      formatted += "-" + rest.substring(8, 10);
+    }
+    setPhone(formatted);
+  };
+
+  const handleSend = async () => {
+    if (!phone || phone.replace(/\D/g, "").length < 11) return;
+    const success = await props.onSendOtp?.(phone);
+    if (success) {
+      setStep(2);
+      setResendTimer(60);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!phone || code.length < 4) return;
+    await props.onVerifyOtp?.(phone, code);
+  };
+
+  const handleResend = async () => {
+    if (resendTimer > 0) return;
+    const success = await props.onSendOtp?.(phone);
+    if (success) {
+      setResendTimer(60);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.centeredShell}
@@ -210,34 +277,126 @@ export function LoginView(props: {
           Войдите в систему, чтобы открыть кабинет клиента или рабочее пространство.
         </Text>
 
-        <View style={styles.loginForm}>
-          <AppInput
-            label="Электронная почта"
-            value={props.email}
-            onChangeText={props.onEmailChange}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="example@mail.ru"
-          />
-          <AppInput
-            label="Пароль"
-            value={props.password}
-            onChangeText={props.onPasswordChange}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="Введите пароль"
-            error={props.error}
-          />
-          <AppButton
-            label={props.loading ? "Входим..." : "Войти"}
-            onPress={props.onSubmit}
-            disabled={props.loading || !props.email.trim() || !props.password}
-            haptic="impactLight"
-            style={{ backgroundColor: '#FFDEAD', shadowColor: '#FFDEAD' }} // Бежевый цвет в тон логотипу
-          />
-        </View>
+        {props.smsLoginEnabled && (
+          <View style={styles.tabContainer}>
+            <Pressable
+              style={[styles.tabButton, tab === "email" && styles.tabButtonActive]}
+              onPress={() => {
+                fireHaptic("selection");
+                setTab("email");
+              }}
+            >
+              <Text style={[styles.tabButtonText, tab === "email" && styles.tabButtonTextActive]}>
+                Email
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tabButton, tab === "phone" && styles.tabButtonActive]}
+              onPress={() => {
+                fireHaptic("selection");
+                setTab("phone");
+              }}
+            >
+              <Text style={[styles.tabButtonText, tab === "phone" && styles.tabButtonTextActive]}>
+                Телефон
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {tab === "email" ? (
+          <View style={styles.loginForm}>
+            <AppInput
+              label="Электронная почта"
+              value={props.email}
+              onChangeText={props.onEmailChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="example@mail.ru"
+            />
+            <AppInput
+              label="Пароль"
+              value={props.password}
+              onChangeText={props.onPasswordChange}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="Введите пароль"
+              error={props.error}
+            />
+            <AppButton
+              label={props.loading ? "Входим..." : "Войти"}
+              onPress={props.onSubmit}
+              disabled={props.loading || !props.email.trim() || !props.password}
+              haptic="impactLight"
+              style={{ backgroundColor: '#FFDEAD', shadowColor: '#FFDEAD' }} // Бежевый цвет в тон логотипу
+            />
+          </View>
+        ) : (
+          <View style={styles.loginForm}>
+            {step === 1 ? (
+              <>
+                <AppInput
+                  label="Номер телефона"
+                  value={phone}
+                  onChangeText={handlePhoneChange}
+                  keyboardType="phone-pad"
+                  placeholder="+7 (999) 000-00-00"
+                  error={props.error}
+                />
+                <AppButton
+                  label={props.loading ? "Отправка..." : "Получить код"}
+                  onPress={() => void handleSend()}
+                  disabled={props.loading || phone.replace(/\D/g, "").length < 11}
+                  haptic="impactLight"
+                  style={{ backgroundColor: '#FFDEAD', shadowColor: '#FFDEAD' }}
+                />
+              </>
+            ) : (
+              <>
+                <AppInput
+                  label="Код подтверждения"
+                  value={code}
+                  onChangeText={setCode}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  placeholder="000000"
+                  error={props.error}
+                />
+                <AppButton
+                  label={props.loading ? "Проверка..." : "Войти"}
+                  onPress={() => void handleVerify()}
+                  disabled={props.loading || code.length < 4}
+                  haptic="impactLight"
+                  style={{ backgroundColor: '#FFDEAD', shadowColor: '#FFDEAD' }}
+                />
+
+                {resendTimer > 0 ? (
+                  <Text style={styles.resendText}>
+                    Повторный запрос через {resendTimer} сек.
+                  </Text>
+                ) : (
+                  <Pressable onPress={() => void handleResend()}>
+                    <Text style={[styles.resendText, styles.resendLink]}>
+                      Отправить код повторно
+                    </Text>
+                  </Pressable>
+                )}
+
+                <Pressable onPress={() => {
+                  fireHaptic("selection");
+                  setStep(1);
+                  setCode("");
+                }}>
+                  <Text style={styles.backToPhone}>
+                    Изменить номер телефона
+                  </Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        )}
       </GlassCard>
     </KeyboardAvoidingView>
   );
@@ -401,5 +560,47 @@ const styles = StyleSheet.create({
   },
   loginForm: {
     gap: mobileTokens.spacing[16]
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 8,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 6,
+  },
+  tabButtonActive: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  tabButtonText: {
+    color: mobileTokens.color.textSecondary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  tabButtonTextActive: {
+    color: "#FFFFFF",
+  },
+  resendText: {
+    textAlign: "center",
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    marginTop: 8,
+  },
+  resendLink: {
+    color: "#FFDEAD",
+    textDecorationLine: "underline",
+  },
+  backToPhone: {
+    textAlign: "center",
+    color: mobileTokens.color.textSecondary,
+    fontSize: 13,
+    marginTop: 12,
+    textDecorationLine: "underline",
   }
 });

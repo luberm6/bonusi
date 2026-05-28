@@ -142,6 +142,84 @@ export function MobileRootShell() {
     setLoginError(null);
   };
 
+  const handleSendOtp = async (phone: string): Promise<boolean> => {
+    setLoginLoading(true);
+    setLoginError(null);
+    try {
+      const response = await fetch(`${mobileEnv.apiBaseUrl}/auth/otp/request`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({ phone })
+      });
+
+      const text = await response.text();
+      const payload = text ? JSON.parse(text) : null;
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.message || payload?.error || "Не удалось отправить код");
+      }
+      fireHaptic("selection");
+      return true;
+    } catch (error: any) {
+      fireHaptic("notificationError");
+      setLoginError(error.message || "Не удалось отправить код. Попробуйте еще раз.");
+      return false;
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (phone: string, code: string): Promise<void> => {
+    setLoginLoading(true);
+    setLoginError(null);
+    try {
+      const response = await fetch(`${mobileEnv.apiBaseUrl}/auth/otp/verify`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          phone,
+          code,
+          device: {
+            platform: Platform.OS,
+            deviceName: Platform.OS === "android" ? "Android App" : "iPhone App",
+            appVersion: APP_VERSION.versionName
+          }
+        })
+      });
+
+      const text = await response.text();
+      const payload = text ? (JSON.parse(text) as LoginResponse & { message?: string; error?: string }) : null;
+      if (!response.ok || !payload?.accessToken || !payload?.refreshToken || !payload.user?.id || !payload.user?.role) {
+        throw new Error(payload?.message || payload?.error || "Неверный код или ошибка входа");
+      }
+
+      const nextSession: AuthSession = {
+        userId: payload.user.id,
+        role: payload.user.role,
+        token: payload.accessToken
+      };
+      await persistSession(
+        {
+          session: nextSession,
+          accessToken: payload.accessToken
+        },
+        payload.refreshToken
+      );
+      fireHaptic("notificationSuccess");
+      setSession(nextSession);
+      setAccessToken(payload.accessToken);
+      setShowLogin(false);
+    } catch (error: any) {
+      fireHaptic("notificationError");
+      setLoginError(error.message || "Неверный код или ошибка входа");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
   const refreshAccessToken = async (): Promise<void> => {
     const refreshToken = await getRefreshToken();
     if (!refreshToken || !session) return;
@@ -258,6 +336,9 @@ export function MobileRootShell() {
               onEmailChange={setEmail}
               onPasswordChange={setPassword}
               onSubmit={() => void handleLogin()}
+              smsLoginEnabled={mobileEnv.smsLoginEnabled}
+              onSendOtp={handleSendOtp}
+              onVerifyOtp={handleVerifyOtp}
             />
           ) : (
             <AnonymousView onOpenLogin={() => setShowLogin(true)} />

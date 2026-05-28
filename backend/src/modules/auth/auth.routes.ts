@@ -12,7 +12,9 @@ import {
   listActiveSessions,
   revokeSession,
   registerDevice,
-  rotateRefreshToken
+  rotateRefreshToken,
+  requestOtpCode,
+  verifyOtpCode
 } from "./auth.service.js";
 
 export const authRouter = Router();
@@ -34,6 +36,51 @@ authRouter.post(
     const payload = await login({
       email: String(email),
       password: String(password),
+      ip: req.ip || "unknown",
+      device: device
+        ? {
+            deviceId: device.deviceId,
+            platform: device.platform,
+            deviceName: device.deviceName,
+            pushToken: device.pushToken,
+            appVersion: device.appVersion
+          }
+        : undefined
+    });
+    res.json(payload);
+  })
+);
+
+authRouter.post(
+  "/auth/otp/request",
+  loginRateLimiter,
+  asyncHandler(async (req, res) => {
+    const { phone } = req.body ?? {};
+    if (!phone) {
+      throw new HttpError(400, "phone is required");
+    }
+
+    const payload = await requestOtpCode({
+      phone: String(phone),
+      ip: req.ip || "unknown",
+      userAgent: req.get("user-agent")
+    });
+    res.json(payload);
+  })
+);
+
+authRouter.post(
+  "/auth/otp/verify",
+  loginRateLimiter,
+  asyncHandler(async (req, res) => {
+    const { phone, code, device } = req.body ?? {};
+    if (!phone || !code) {
+      throw new HttpError(400, "phone and code are required");
+    }
+
+    const payload = await verifyOtpCode({
+      phone: String(phone),
+      code: String(code),
       ip: req.ip || "unknown",
       device: device
         ? {

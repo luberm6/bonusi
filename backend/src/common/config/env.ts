@@ -69,5 +69,21 @@ export const env = {
   s3AccessKeyId: process.env.S3_ACCESS_KEY_ID ?? process.env.S3_ACCESS_KEY ?? "",
   s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? process.env.S3_SECRET_KEY ?? "",
   s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? "",
-  fcmServerKey: process.env.FCM_SERVER_KEY ?? ""
+  fcmServerKey: process.env.FCM_SERVER_KEY ?? "",
+  smsProvider: process.env.SMS_PROVIDER ?? "mock",
+  smsOtpEnabled: parseBoolean(process.env.SMS_OTP_ENABLED, false),
+  smsOtpLength: parsePositiveNumber(process.env.SMS_OTP_LENGTH, 6),
+  smsOtpTtlSeconds: parsePositiveNumber(process.env.SMS_OTP_TTL_SECONDS, 300),
+  smsOtpResendSeconds: parsePositiveNumber(process.env.SMS_OTP_RESEND_SECONDS, 60),
+  smsOtpMaxAttempts: parsePositiveNumber(process.env.SMS_OTP_MAX_ATTEMPTS, 5),
+  smscLogin: process.env.SMSC_LOGIN ?? "",
+  smscPassword: process.env.SMSC_PASSWORD ?? "",
+  smscSender: process.env.SMSC_SENDER ?? "",
+  smscEndpoint: process.env.SMSC_ENDPOINT ?? "https://smsc.ru/sys/send.php",
+  smscUsePost: parseBoolean(process.env.SMSC_USE_POST, true),
+  smscResponseFormat: process.env.SMSC_RESPONSE_FORMAT ?? "json",
+  smscDebug: parseBoolean(process.env.SMSC_DEBUG, false),
+  testSmsEnabled: parseBoolean(process.env.TEST_SMS_ENABLED, false),
+  testSmsPhone: process.env.TEST_SMS_PHONE ?? "",
+  testSmsCode: process.env.TEST_SMS_CODE ?? ""
 };
