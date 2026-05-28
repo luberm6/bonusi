@@ -44,12 +44,13 @@ export function HomeTabScreen({ navigation }: any) {
     'EurostileRoundExtended-BlackItalic': require('../../../../../assets/fonts/EurostileRoundExtended-BlackItalic.ttf'),
     'Microgramma-D-OT-Medium-Extended': require('../../../../../assets/fonts/Microgramma-D-OT-Medium-Extended.ttf'),
     'EurostileRound-BoldItalic': require('../../../../../assets/fonts/EurostileRound-BoldItalic.ttf'),
+    'Rodondo': require('../../../../../assets/fonts/Rodondo.otf'),
   });
   const F   = fontsReady ? 'Inter-Regular' : undefined;
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
-  const FE  = fontsReady ? 'EurostileRound-BoldItalic' : undefined;
+  const FE  = fontsReady ? 'Rodondo' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;

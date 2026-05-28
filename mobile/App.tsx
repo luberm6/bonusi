@@ -24,6 +24,7 @@ export default function App() {
     'EurostileRoundExtended-BlackItalic': require('./assets/fonts/EurostileRoundExtended-BlackItalic.ttf'),
     'Microgramma-D-OT-Medium-Extended': require('./assets/fonts/Microgramma-D-OT-Medium-Extended.ttf'),
     'EurostileRound-BoldItalic': require('./assets/fonts/EurostileRound-BoldItalic.ttf'),
+    'Rodondo': require('./assets/fonts/Rodondo.otf'),
   });
 
   // Не блокируем рендер при ошибке — упадём на системный шрифт
