@@ -43,12 +43,13 @@ export function HomeTabScreen({ navigation }: any) {
     'EurostileRound-HeavyItalic': require('../../../../../assets/fonts/EurostileRound-HeavyItalic.ttf'),
     'EurostileRoundExtended-BlackItalic': require('../../../../../assets/fonts/EurostileRoundExtended-BlackItalic.ttf'),
     'Microgramma-D-OT-Medium-Extended': require('../../../../../assets/fonts/Microgramma-D-OT-Medium-Extended.ttf'),
+    'EurostileRound-BoldItalic': require('../../../../../assets/fonts/EurostileRound-BoldItalic.ttf'),
   });
   const F   = fontsReady ? 'Inter-Regular' : undefined;
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
-  const FE  = fontsReady ? 'Microgramma-D-OT-Medium-Extended' : undefined;
+  const FE  = fontsReady ? 'EurostileRound-BoldItalic' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;
@@ -453,7 +454,6 @@ export function HomeTabScreen({ navigation }: any) {
           color: '#fff', fontFamily: FE,
           includeFontPadding: false,
           textAlign: 'center',
-          transform: [{ skewX: '-10deg' }],
         }}>
           {displayBonus}
         </Animated.Text>
