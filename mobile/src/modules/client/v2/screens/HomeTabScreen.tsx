@@ -455,54 +455,7 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: sx(8), fontFamily: F, letterSpacing: 1, marginTop: sx(1) }}>КМ</Text>
       </View>
 
-      {/* ── Составная дуга справа (По референсу) ── */}
-      {/* 1. Верхний сегмент (сероватый/градиентный) */}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: gaugeCX,
-          top: gaugeCY - sx(98),
-          width: sx(136),
-          height: sx(100), // Уменьшили высоту, чтобы увеличить зазор
-          overflow: 'hidden',
-        }}
-      >
-        <View style={{
-          position: 'absolute',
-          left: -sx(136),
-          top: -sx(39),
-          width: sx(136) * 2,
-          height: sx(136) * 2,
-          borderRadius: sx(136),
-          borderWidth: 1.5,
-          borderColor: 'rgba(255,255,255,0.25)', // Сероватый
-        }} />
-      </View>
 
-      {/* 2. Нижний сегмент (яркий белый) */}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: gaugeCX,
-          top: gaugeCY + sx(24), // Опустили еще ниже, увеличив разрыв в 2 раза
-          width: sx(136),
-          height: sx(74), // Уменьшили остаточную высоту
-          overflow: 'hidden',
-        }}
-      >
-        <View style={{
-          position: 'absolute',
-          left: -sx(136),
-          top: -sx(161), // -39 - (98 + 24) = -161
-          width: sx(136) * 2,
-          height: sx(136) * 2,
-          borderRadius: sx(136),
-          borderWidth: 2, // Чуть толще/ярче
-          borderColor: '#fff', // Чистый белый
-        }} />
-      </View>
 
       {/* ── Нижний блок: датчики, имя, модель, кнопки (slide-up fade) ── */}
       <Animated.View style={{
