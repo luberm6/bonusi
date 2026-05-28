@@ -98,7 +98,7 @@ export function HomeTabScreen({ navigation }: any) {
 
   // Геометрия гейджа (Вариант 3: Уменьшен в перспективе и опущен глубже за руль)
   const gaugeSize = sx(206); // Было 240, сделали меньше
-  const gaugeL    = sx(126); // Было 109, центрируем по горизонтали (+17px)
+  const gaugeL    = sx(117); // Центрируем по горизонтали: (440 - 206) / 2 = 117
   const gaugeT    = sy(106); // Было 84, опустили вниз (+22px)
   const gaugeCX   = gaugeL + gaugeSize / 2;
   const gaugeCY   = gaugeT + gaugeSize / 2;
