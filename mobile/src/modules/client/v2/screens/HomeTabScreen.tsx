@@ -121,11 +121,11 @@ export function HomeTabScreen({ navigation }: any) {
 
   // Геометрия гейджа (Вариант 3: Уменьшен в перспективе и опущен глубже за руль)
   const gaugeSize = sx(206); // Было 240, сделали меньше
-  const gaugeL    = sx(117); // Центрируем по горизонтали: (440 - 206) / 2 = 117
+  const gaugeL    = (SW - gaugeSize) / 2; // Центрируем по горизонтали динамически
   const gaugeT    = sy(106); // Было 84, опустили вниз (+22px)
   const gaugeCX   = gaugeL + gaugeSize / 2;
   const gaugeCY   = gaugeT + gaugeSize / 2;
-  const numSize   = sx(68); // Было 55, увеличили на 25%
+  const numSize   = sx(34); // Уменьшили на 50% (было 68)
 
   // Чёрная зона сверху: минимум 42%, но всегда закрывает весь круг пузырьков + отступ
   const topBlack = Math.max(contentH * 0.42, gaugeT + gaugeSize + sy(12));
@@ -447,7 +447,7 @@ export function HomeTabScreen({ navigation }: any) {
         opacity: dataOpacity,
       }}>
         <Animated.Text style={{
-          fontSize: numSize + sx(10), lineHeight: numSize + sx(10),
+          fontSize: numSize + sx(5), lineHeight: numSize + sx(5),
           color: '#fff', fontFamily: FE,
           includeFontPadding: false,
           textAlign: 'center',
