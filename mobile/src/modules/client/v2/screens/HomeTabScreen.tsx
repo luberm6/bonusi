@@ -417,24 +417,24 @@ export function HomeTabScreen({ navigation }: any) {
       {/* ── Цифра бонусов + «бонусов» — по центру чёрного круга ── */}
       <Animated.View style={{
         position: 'absolute',
-        left: gaugeCX - sx(60),
-        top:  gaugeCY - sx(40),
-        width: sx(120), height: sx(80),
+        left: gaugeCX - sx(72),
+        top:  gaugeCY - sx(72),
+        width: sx(144), height: sx(144),
         justifyContent: 'center', alignItems: 'center',
         opacity: dataOpacity,
       }}>
         <Animated.Text style={{
-          fontSize: sx(36), lineHeight: sx(36),
-          color: '#fff', fontFamily: F_M,
+          fontSize: numSize + sx(10), lineHeight: numSize + sx(10),
+          color: '#fff', fontFamily: FCB,
           includeFontPadding: false,
           textAlign: 'center',
         }}>
           {displayBonus}
         </Animated.Text>
         <Text style={{
-          color: 'rgba(255,255,255,0.7)', fontFamily: F,
-          fontSize: sx(9), letterSpacing: 1.5,
-          textAlign: 'center', marginTop: sx(4),
+          color: '#fff', fontFamily: F,
+          fontSize: sx(10), letterSpacing: 2.0, // Увеличил на 25%
+          textAlign: 'center', marginTop: sx(10),
           textTransform: 'uppercase',
         }}>
           бонусов
