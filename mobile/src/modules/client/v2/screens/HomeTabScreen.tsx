@@ -45,12 +45,13 @@ export function HomeTabScreen({ navigation }: any) {
     'Microgramma-D-OT-Medium-Extended': require('../../../../../assets/fonts/Microgramma-D-OT-Medium-Extended.ttf'),
     'EurostileRound-BoldItalic': require('../../../../../assets/fonts/EurostileRound-BoldItalic.ttf'),
     'Rodondo': require('../../../../../assets/fonts/Rodondo.otf'),
+    'AlarmClock': require('../../../../../assets/fonts/alarm_clock.ttf'),
   });
   const F   = fontsReady ? 'Inter-Regular' : undefined;
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
-  const FE  = fontsReady ? 'Rodondo' : undefined;
+  const FE  = fontsReady ? 'AlarmClock' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;

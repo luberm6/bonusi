@@ -25,6 +25,7 @@ export default function App() {
     'Microgramma-D-OT-Medium-Extended': require('./assets/fonts/Microgramma-D-OT-Medium-Extended.ttf'),
     'EurostileRound-BoldItalic': require('./assets/fonts/EurostileRound-BoldItalic.ttf'),
     'Rodondo': require('./assets/fonts/Rodondo.otf'),
+    'AlarmClock': require('./assets/fonts/alarm_clock.ttf'),
   });
 
   // Не блокируем рендер при ошибке — упадём на системный шрифт
