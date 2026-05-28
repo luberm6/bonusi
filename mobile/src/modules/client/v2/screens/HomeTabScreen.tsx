@@ -552,13 +552,13 @@ export function HomeTabScreen({ navigation }: any) {
             <View style={{ height: sx(24), width: sx(320), marginLeft: sx(-22), overflow: 'visible' }}>
               <Image 
                 source={ASSETS.menuUnderline} 
-                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180) }} 
+                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180), tintColor: '#8ECAE6' }} 
                 resizeMode="contain" 
               />
               {/* Дублируем с оверлеем для максимальной насыщенности и сочности линии */}
               <Image 
                 source={ASSETS.menuUnderline} 
-                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180), opacity: 0.7 }} 
+                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180), opacity: 0.7, tintColor: '#8ECAE6' }} 
                 resizeMode="contain" 
               />
             </View>
