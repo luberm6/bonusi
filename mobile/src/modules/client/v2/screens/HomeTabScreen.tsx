@@ -656,10 +656,12 @@ export function HomeTabScreen({ navigation }: any) {
                   paddingVertical: sx(8),
                   paddingHorizontal: sx(16),
                   borderRadius: sx(8),
-                  backgroundColor: '#0A84C6',
+                  backgroundColor: 'rgba(10, 132, 198, 0.12)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(10, 132, 198, 0.5)',
                 }, pressed && { opacity: 0.6 }]}
               >
-                <Text style={{ color: '#fff', fontFamily: FB || F, fontSize: sx(12), fontWeight: '700' }}>ЧАТ</Text>
+                <Text style={{ color: '#0A84C6', fontFamily: FB || F, fontSize: sx(12), fontWeight: '700' }}>ЧАТ</Text>
               </Pressable>
             </View>
           </View>
