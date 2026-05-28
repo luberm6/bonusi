@@ -418,13 +418,13 @@ export function HomeTabScreen({ navigation }: any) {
       <Animated.View style={{
         position: 'absolute',
         left: gaugeCX - sx(60),
-        top:  gaugeCY - sx(46),
-        width: sx(120), height: sx(92),
+        top:  gaugeCY - sx(40),
+        width: sx(120), height: sx(80),
         justifyContent: 'center', alignItems: 'center',
         opacity: dataOpacity,
       }}>
         <Animated.Text style={{
-          fontSize: sx(54), lineHeight: sx(54),
+          fontSize: sx(36), lineHeight: sx(36),
           color: '#fff', fontFamily: F_M,
           includeFontPadding: false,
           textAlign: 'center',
