@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../../../theme/colors';
 
 const PHONE_1 = '+7 931 394 4747';
@@ -28,9 +29,11 @@ function VKLogo({ size = 40 }: { size?: number }) {
 }
 
 export function BookingTabScreen({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={s.root}>
-      <View style={s.header}>
+      <View style={[s.header, { paddingTop: insets.top || 12 }]}>
         <Pressable onPress={() => navigation?.goBack()} style={s.backBtn} hitSlop={8}>
           <Text style={s.backIcon}>‹</Text>
         </Pressable>
@@ -131,19 +134,19 @@ const s = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { color: colors.accent, fontSize: 28, lineHeight: 30, fontWeight: '300' },
+  backIcon: { color: '#8ECAE6', fontSize: 28, lineHeight: 30, fontWeight: '300' },
   headerTitle: {
-    flex: 1,
-    color: colors.accent,
+    color: '#8ECAE6',
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 2,
-    textAlign: 'center',
   },
 
   logoBox: { justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
@@ -221,7 +224,7 @@ const s = StyleSheet.create({
     fontWeight: '700',
   },
   socialHandle: {
-    color: colors.accent,
+    color: '#8ECAE6',
     fontSize: 12,
     letterSpacing: 0.5,
   },
@@ -246,6 +249,6 @@ const s = StyleSheet.create({
   infoLabel: { color: colors.textDim, fontSize: 11, letterSpacing: 1 },
   infoValue: { color: colors.text, fontSize: 14, marginTop: 2, fontWeight: '600' },
   infoDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: 16 },
-  chevron: { color: colors.accent, fontSize: 22 },
+  chevron: { color: '#8ECAE6', fontSize: 22 },
   pressed: { opacity: 0.65 },
 });
