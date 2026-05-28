@@ -38,6 +38,7 @@ export function HomeTabScreen({ navigation }: any) {
     'Cormorant-Regular': require('../../../../../assets/fonts/CormorantGaramond_400Regular.ttf'),
     'Cormorant-Bold':    require('../../../../../assets/fonts/CormorantGaramond_700Bold.ttf'),
     'Montserrat-Bold': require('../../../../../assets/fonts/Montserrat-Bold.ttf'),
+    'Montserrat-Regular': require('../../../../../assets/fonts/Montserrat-Regular.ttf'),
     'Orbitron-Bold':   require('../../../../../assets/fonts/Orbitron-Bold.ttf'),
     'Rajdhani-Bold':   require('../../../../../assets/fonts/Rajdhani-Bold.ttf'),
   });
@@ -46,6 +47,7 @@ export function HomeTabScreen({ navigation }: any) {
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
+  const F_MR = fontsReady ? 'Montserrat-Regular' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;
 
@@ -425,14 +427,14 @@ export function HomeTabScreen({ navigation }: any) {
       }}>
         <Animated.Text style={{
           fontSize: sx(54), lineHeight: sx(54),
-          color: '#fff', fontFamily: F_M,
+          color: '#fff', fontFamily: F_MR,
           includeFontPadding: false,
           textAlign: 'center',
         }}>
           {displayBonus}
         </Animated.Text>
         <Text style={{
-          color: 'rgba(255,255,255,0.7)', fontFamily: F,
+          color: 'rgba(255,255,255,0.7)', fontFamily: F_MR,
           fontSize: sx(9), letterSpacing: 1.5,
           textAlign: 'center', marginTop: sx(4),
           textTransform: 'uppercase',
@@ -464,7 +466,7 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{
           position: 'absolute',
           top: sy(375), left: sx(100), width: SW - sx(200), textAlign: 'center', // Ограничил ширину, чтобы не наезжало на датчики
-          color: '#b3b9c0', fontFamily: FCB, // Серебристый оттенок
+          color: '#b3b9c0', fontFamily: F_MR, // Серебристый оттенок
           fontSize: sx(20), letterSpacing: 1.5, // Элегантный размер
           textShadowColor: 'rgba(0,0,0,1)', // Жёсткая глубокая тень для эффекта вдавленности
           textShadowOffset: { width: 0, height: 2 },
@@ -481,7 +483,7 @@ export function HomeTabScreen({ navigation }: any) {
         <Text style={{
           position: 'absolute',
           top: sy(405), left: sx(100), width: SW - sx(200), textAlign: 'center',
-          color: 'rgba(179, 185, 192, 0.7)', fontFamily: F, // Чуть темнее серебристый
+          color: 'rgba(179, 185, 192, 0.7)', fontFamily: F_MR, // Чуть темнее серебристый
           fontSize: sx(14), letterSpacing: 1, // Аккуратный размер для марки
           textShadowColor: 'rgba(0,0,0,1)',
           textShadowOffset: { width: 0, height: 2 },
