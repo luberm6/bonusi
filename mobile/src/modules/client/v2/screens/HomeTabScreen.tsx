@@ -555,6 +555,12 @@ export function HomeTabScreen({ navigation }: any) {
                 style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180) }} 
                 resizeMode="contain" 
               />
+              {/* Дублируем с оверлеем для максимальной насыщенности и сочности линии */}
+              <Image 
+                source={ASSETS.menuUnderline} 
+                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180), opacity: 0.7 }} 
+                resizeMode="contain" 
+              />
             </View>
           </Pressable>
         ))}
