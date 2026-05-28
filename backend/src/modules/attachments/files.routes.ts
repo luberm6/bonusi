@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { env } from "../../common/config/env.js";
+import { pool } from "../../common/db/pool.js";
 import { authGuard } from "../../common/guards/auth.guard.js";
 import { asyncHandler } from "../../common/http/async-handler.js";
 import { HttpError } from "../../common/http/error.js";
@@ -36,6 +37,29 @@ filesRouter.post(
     const dto = parseUploadFileDto(req.body);
     const result = await uploadFileForMessage(req.authUser!, dto);
     res.status(201).json(result);
+  })
+);
+
+filesRouter.get(
+  "/files/download/:id",
+  asyncHandler(async (req, res) => {
+    const fileId = getParamId(req.params.id);
+    const result = await pool.query(
+      `select file_data, file_type, file_name from public.attachment_data where file_id = $1 limit 1`,
+      [fileId]
+    );
+    if (!result.rowCount) {
+      throw new HttpError(404, "File not found");
+    }
+    const { file_data, file_type, file_name } = result.rows[0] as {
+      file_data: Buffer;
+      file_type: string;
+      file_name: string;
+    };
+    
+    res.setHeader("Content-Type", file_type);
+    res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file_name)}"`);
+    res.send(file_data);
   })
 );
 

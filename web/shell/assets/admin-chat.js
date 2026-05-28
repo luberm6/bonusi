@@ -60,9 +60,10 @@ if (session) {
       if (message.attachments && message.attachments.length > 0) {
         const getFullUrl = (url) => {
           if (!url) return "";
-          if (url.startsWith("http")) return url;
+          if (url.startsWith("http") || url.startsWith("data:")) return url;
           const base = window.CONFIG?.API_BASE || "";
-          return base.replace(/\/+$/, "") + "/" + url.replace(/^\/+/, "");
+          const cleanBase = base.replace(/\/api\/v1\/?$/, "");
+          return cleanBase.replace(/\/+$/, "") + "/" + url.replace(/^\/+/, "");
         };
         attachmentsHtml = message.attachments.map(att => {
           const fullUrl = getFullUrl(att.fileUrl);

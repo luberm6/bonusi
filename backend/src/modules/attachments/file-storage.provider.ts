@@ -1,5 +1,5 @@
 import { env } from "../../common/config/env.js";
-import { DataUrlFileStorageService } from "./file-storage.dataurl.js";
+import { DatabaseFileStorageService } from "./file-storage.database.js";
 import { DisabledFileStorageService } from "./file-storage.disabled.js";
 import type { FileStorageService } from "./file-storage.service.js";
 import { S3CompatibleFileStorageService } from "./file-storage.s3.js";
@@ -20,8 +20,8 @@ export function getFileStorageService(): FileStorageService {
     return singleton;
   }
 
-  // No S3 → fall back to data-URL storage (stores base64 inline, no external service needed)
-  console.info("[files] S3 not configured — using data-URL inline storage.");
-  singleton = new DataUrlFileStorageService();
+  // No S3 → fall back to PostgreSQL database storage (stores files inside db and serves via rest endpoint)
+  console.info("[files] S3 not configured — using database-backed file storage.");
+  singleton = new DatabaseFileStorageService();
   return singleton;
 }
