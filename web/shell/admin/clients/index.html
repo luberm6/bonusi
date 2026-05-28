@@ -66,7 +66,7 @@
       }
       .workspace-client-summary {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 12px;
         margin-top: 16px;
       }
@@ -167,7 +167,7 @@
             <a class="btn btn-primary" href="/admin/clients/create/">Новый клиент</a>
           </div>
         </header>
-
+ 
         <div class="spacer-16"></div>
         <section class="workspace-panel" id="page-state">
           <div class="workspace-state">
@@ -178,7 +178,7 @@
             <span class="badge badge-soft">Клиенты</span>
           </div>
         </section>
-
+ 
         <div class="spacer-16"></div>
         <section class="workspace-panel">
           <div class="workspace-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
@@ -204,7 +204,7 @@
         </section>
       </section>
     </main>
-
+ 
     <div class="workspace-modal-backdrop" id="reset-password-modal" aria-hidden="true">
       <section class="workspace-modal">
         <h2 class="workspace-section-title">Сменить пароль</h2>
@@ -226,7 +226,7 @@
         </div>
       </section>
     </div>
-
+ 
     <div class="workspace-client-profile-backdrop" id="client-profile-modal" aria-hidden="true">
       <section class="workspace-client-profile">
         <div class="workspace-client-profile-head">
@@ -240,14 +240,15 @@
             <button class="btn" id="client-profile-close" type="button">Закрыть</button>
           </div>
         </div>
-
+ 
         <section class="workspace-client-summary">
           <article class="workspace-client-summary-card"><strong>Email</strong><span id="client-profile-email">—</span></article>
           <article class="workspace-client-summary-card"><strong>Телефон</strong><span id="client-profile-phone">—</span></article>
           <article class="workspace-client-summary-card"><strong>Статус</strong><span id="client-profile-status">—</span></article>
           <article class="workspace-client-summary-card"><strong>Последняя активность</strong><span id="client-profile-last-seen">—</span></article>
+          <article class="workspace-client-summary-card" style="border: 1px solid rgba(234, 179, 8, 0.3); background: rgba(234, 179, 8, 0.05);"><strong>Бонусный баланс</strong><span id="client-profile-bonuses" style="color: #facc15; font-weight: bold;">—</span></article>
         </section>
-
+ 
         <div class="spacer-24"></div>
         <section class="workspace-panel">
           <div class="workspace-toolbar">
@@ -279,7 +280,7 @@
             <button class="btn btn-primary" id="client-basic-submit" type="submit">Сохранить профиль</button>
           </form>
         </section>
-
+ 
         <div class="spacer-24"></div>
         <section class="workspace-panel">
           <div class="workspace-toolbar">
@@ -332,6 +333,42 @@
             <button class="btn btn-primary" id="client-car-submit" type="submit">Сохранить данные авто</button>
           </form>
         </section>
+
+        <div class="spacer-24"></div>
+        <section class="workspace-panel">
+          <div class="workspace-toolbar">
+            <div>
+              <h3 class="workspace-section-title">Ручное управление бонусами</h3>
+              <p class="workspace-section-meta">Начислите или спишите бонусы клиента. История операций обновится автоматически.</p>
+            </div>
+            <span class="badge badge-soft" id="client-bonus-badge">Бонусы</span>
+          </div>
+          <div class="spacer-16"></div>
+          <form id="client-bonus-form">
+            <div class="workspace-form-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+              <div class="workspace-field">
+                <label for="profile-bonus-type">Тип операции</label>
+                <select class="input" id="profile-bonus-type" style="width: 100%; height: 42px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 0 12px;">
+                  <option value="accrual">Начислить (в плюс)</option>
+                  <option value="writeoff">Списать (в минус)</option>
+                </select>
+              </div>
+              <div class="workspace-field">
+                <label for="profile-bonus-amount">Сумма бонусов</label>
+                <input class="input" id="profile-bonus-amount" type="number" step="0.01" min="0.01" placeholder="100.00" required />
+              </div>
+              <div class="workspace-field">
+                <label for="profile-bonus-comment">Комментарий</label>
+                <input class="input" id="profile-bonus-comment" type="text" placeholder="Например: Подарок на день рождения" />
+              </div>
+            </div>
+            <div class="spacer-16"></div>
+            <p id="client-bonus-error" style="color:#dc2626;min-height:18px;font-size:14px;"></p>
+            <p id="client-bonus-success" style="color:#16a34a;min-height:18px;font-size:14px;"></p>
+            <button class="btn btn-primary" id="client-bonus-submit" type="submit">Применить</button>
+          </form>
+        </section>
+
 
         <div class="spacer-24"></div>
         <section class="workspace-panel">

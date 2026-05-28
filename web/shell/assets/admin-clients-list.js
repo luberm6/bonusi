@@ -49,6 +49,15 @@ const basicErrorElement = document.getElementById("client-basic-error");
 const basicSuccessElement = document.getElementById("client-basic-success");
 const basicSubmitElement = document.getElementById("client-basic-submit");
 
+const profileBonusesSpan = document.getElementById("client-profile-bonuses");
+const bonusFormElement = document.getElementById("client-bonus-form");
+const bonusTypeSelect = document.getElementById("profile-bonus-type");
+const bonusAmountInput = document.getElementById("profile-bonus-amount");
+const bonusCommentInput = document.getElementById("profile-bonus-comment");
+const bonusErrorElement = document.getElementById("client-bonus-error");
+const bonusSuccessElement = document.getElementById("client-bonus-success");
+const bonusSubmitElement = document.getElementById("client-bonus-submit");
+
 const searchPhoneInput = document.getElementById("search-phone");
 
 let activeClient = null;
@@ -122,6 +131,23 @@ function openResetModal(client) {
   newPasswordElement.focus();
 }
 
+async function loadClientBonusBalance(client) {
+  if (profileBonusesSpan) profileBonusesSpan.textContent = "Загрузка...";
+  try {
+    const data = await authFetchJson(`/bonuses/balance?client_id=${encodeURIComponent(client.id)}`);
+    if (activeProfileClient?.id !== client.id) return;
+    if (profileBonusesSpan) {
+      profileBonusesSpan.textContent = `${Number(data.balance || 0).toLocaleString("ru-RU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })} Б`;
+    }
+  } catch (error) {
+    if (activeProfileClient?.id !== client.id) return;
+    if (profileBonusesSpan) profileBonusesSpan.textContent = "Ошибка";
+  }
+}
+
 function resetClientProfile() {
   profileTitleElement.textContent = "Клиент";
   profileSubtitleElement.textContent = "Загружаем данные клиента и историю визитов.";
@@ -149,6 +175,14 @@ function resetClientProfile() {
   if (phoneInput) phoneInput.value = "";
   if (basicErrorElement) basicErrorElement.textContent = "";
   if (basicSuccessElement) basicSuccessElement.textContent = "";
+
+  if (profileBonusesSpan) profileBonusesSpan.textContent = "—";
+  if (bonusTypeSelect) bonusTypeSelect.value = "accrual";
+  if (bonusAmountInput) bonusAmountInput.value = "";
+  if (bonusCommentInput) bonusCommentInput.value = "";
+  if (bonusErrorElement) bonusErrorElement.textContent = "";
+  if (bonusSuccessElement) bonusSuccessElement.textContent = "";
+
   setVisitLoadingState("Загружаем историю визитов клиента...");
 }
 
@@ -194,6 +228,7 @@ function openClientProfile(client) {
   if (carSuccessElement) carSuccessElement.textContent = "";
 
   setVisitLoadingState("Загружаем историю визитов клиента...");
+  void loadClientBonusBalance(client);
   profileModalElement.dataset.open = "true";
   profileModalElement.setAttribute("aria-hidden", "false");
 }
@@ -512,6 +547,65 @@ submitElement?.addEventListener("click", async () => {
     errorElement.textContent = error instanceof Error ? error.message : "Не удалось изменить пароль. Попробуйте ещё раз.";
   } finally {
     submitElement.disabled = false;
+  }
+});
+
+bonusFormElement?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!activeProfileClient) return;
+
+  if (bonusErrorElement) bonusErrorElement.textContent = "";
+  if (bonusSuccessElement) bonusSuccessElement.textContent = "";
+  if (bonusSubmitElement) bonusSubmitElement.disabled = true;
+
+  const type = bonusTypeSelect?.value;
+  const amountStr = bonusAmountInput?.value.trim();
+  const comment = bonusCommentInput?.value.trim() || null;
+
+  if (!amountStr) {
+    if (bonusErrorElement) bonusErrorElement.textContent = "Укажите сумму бонусов.";
+    if (bonusSubmitElement) bonusSubmitElement.disabled = false;
+    return;
+  }
+
+  const amount = Number(amountStr);
+  if (isNaN(amount) || amount <= 0) {
+    if (bonusErrorElement) bonusErrorElement.textContent = "Сумма бонусов должна быть больше 0.";
+    if (bonusSubmitElement) bonusSubmitElement.disabled = false;
+    return;
+  }
+
+  const path = type === "writeoff" ? "/bonuses/writeoff" : "/bonuses/accrual";
+
+  try {
+    await authFetchJson(path, {
+      method: "POST",
+      body: {
+        clientId: activeProfileClient.id,
+        amount,
+        comment
+      }
+    });
+
+    if (bonusSuccessElement) {
+      bonusSuccessElement.textContent = type === "writeoff" 
+        ? "Бонусы успешно списаны." 
+        : "Бонусы успешно начислены.";
+    }
+
+    if (bonusAmountInput) bonusAmountInput.value = "";
+    if (bonusCommentInput) bonusCommentInput.value = "";
+
+    void loadClientBonusBalance(activeProfileClient);
+    void loadClientVisits(activeProfileClient);
+  } catch (error) {
+    if (bonusErrorElement) {
+      bonusErrorElement.textContent = error instanceof Error 
+        ? error.message 
+        : "Не удалось провести операцию с бонусами.";
+    }
+  } finally {
+    if (bonusSubmitElement) bonusSubmitElement.disabled = false;
   }
 });
 
