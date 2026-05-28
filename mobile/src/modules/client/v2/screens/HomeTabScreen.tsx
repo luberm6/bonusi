@@ -542,7 +542,7 @@ export function HomeTabScreen({ navigation }: any) {
             onPress={onPress}
           >
              <Text style={{
-              color: '#FFFFFF', fontFamily: F,
+              color: '#8ECAE6', fontFamily: F,
               fontSize: sx(14), textAlign: 'left', lineHeight: 20,
               letterSpacing: 1.6, textTransform: 'uppercase', // В точности как в HTML-референсе
             }}>
