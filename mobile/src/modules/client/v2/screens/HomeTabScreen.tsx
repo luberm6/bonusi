@@ -40,11 +40,13 @@ export function HomeTabScreen({ navigation }: any) {
     'Montserrat-Bold': require('../../../../../assets/fonts/Montserrat-Bold.ttf'),
     'Orbitron-Bold':   require('../../../../../assets/fonts/Orbitron-Bold.ttf'),
     'Rajdhani-Bold':   require('../../../../../assets/fonts/Rajdhani-Bold.ttf'),
+    'EurostileRound-HeavyItalic': require('../../../../../assets/fonts/EurostileRound-HeavyItalic.ttf'),
   });
   const F   = fontsReady ? 'Inter-Regular' : undefined;
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
+  const FE  = fontsReady ? 'EurostileRound-HeavyItalic' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;
@@ -446,7 +448,7 @@ export function HomeTabScreen({ navigation }: any) {
       }}>
         <Animated.Text style={{
           fontSize: numSize + sx(10), lineHeight: numSize + sx(10),
-          color: '#fff', fontFamily: FCB,
+          color: '#fff', fontFamily: FE,
           includeFontPadding: false,
           textAlign: 'center',
         }}>

@@ -20,6 +20,7 @@ export default function App() {
     Montserrat_700Bold,
     'Mont-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
     'Mont-Bold':    require('./assets/fonts/Montserrat-Bold.ttf'),
+    'EurostileRound-HeavyItalic': require('./assets/fonts/EurostileRound-HeavyItalic.ttf'),
   });
 
   // Не блокируем рендер при ошибке — упадём на системный шрифт
