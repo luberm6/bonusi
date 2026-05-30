@@ -493,6 +493,10 @@ export function normalizePhoneNumber(phone: string): string {
   if (digits.startsWith("7") && digits.length === 11) {
     return "+" + digits;
   }
+  // 10-digit number without country code — assume Russian (+7)
+  if (digits.length === 10) {
+    return "+7" + digits;
+  }
   if (phone.trim().startsWith("+")) {
     return "+" + digits;
   }
@@ -559,6 +563,13 @@ export async function requestOtpCode(input: { phone: string; ip: string; userAge
     provider = "test-mock";
     providerMessageId = "test-session";
     console.log(`[Test SMS OTP] Phone: ${phone}, Code: ${code}`);
+  } else if (env.testSmsEnabled) {
+    // testSmsEnabled is on but this is not the designated test phone —
+    // still bypass real SMS to avoid hangs when provider isn't configured.
+    // Log the code so an admin can retrieve it from server logs.
+    provider = "test-mock";
+    providerMessageId = "test-session";
+    console.log(`[Dev SMS OTP] Phone: ${phone}, Code: ${code} (real SMS skipped — TEST_SMS_ENABLED=true)`);
   } else {
     const smsProvider = getSmsProvider();
     const sendResult = await smsProvider.sendOtp(phone, code);
