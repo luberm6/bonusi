@@ -52,7 +52,7 @@ export function HomeTabScreen({ navigation }: any) {
   const FB  = fontsReady ? 'Inter-Bold'    : undefined;
   const FC  = fontsReady ? 'Cormorant-Regular' : undefined;
   const FCB = fontsReady ? 'Cormorant-Bold' : undefined;
-  const FE  = fontsReady ? 'CondensansPaneurope-Medium' : undefined;
+  const FE  = fontsReady ? 'Microgramma-D-OT-Medium-Extended' : undefined;
   const F_M = fontsReady ? 'Montserrat-Bold' : undefined;
   const F_O = fontsReady ? 'Orbitron-Bold' : undefined;
   const F_R = fontsReady ? 'Rajdhani-Bold' : undefined;
