@@ -539,7 +539,7 @@ export async function requestOtpCode(input: { phone: string; ip: string; userAge
 
   // 3. Generate 6-digit code
   let code = "";
-  const isTest = env.testSmsEnabled && phone === env.testSmsPhone;
+  const isTest = env.testSmsEnabled && phone === normalizePhoneNumber(env.testSmsPhone);
   if (isTest) {
     code = env.testSmsCode || "123456";
   } else {

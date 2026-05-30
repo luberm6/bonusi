@@ -53,19 +53,7 @@ function deriveRenderApiBase() {
 }
 
 function resolveApiBase() {
-  const configured = normalizeApiBase(globalThis.__AUTOSERVICE_API_BASE__);
-  if (configured) {
-    const browserHost = typeof window === "undefined" ? "" : window.location.hostname;
-    if (!isLoopbackTarget(configured) || isLocalBrowserHost(browserHost)) {
-      return configured;
-    }
-  }
-
-  if (typeof window !== "undefined") {
-    return deriveRenderApiBase() || `${window.location.origin.replace(/\/+$/, "")}/api/v1`;
-  }
-
-  return "/api/v1";
+  return RENDER_BACKEND_API_BASE;
 }
 
 const DEFAULT_API_BASE = resolveApiBase();
