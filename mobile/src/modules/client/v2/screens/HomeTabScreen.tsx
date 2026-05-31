@@ -553,21 +553,47 @@ export function HomeTabScreen({ navigation }: any) {
             onPress={onPress}
           >
              <Text style={{
-              color: '#8ECAE6', fontFamily: F,
+              color: '#b3b9c0', fontFamily: F,
               fontSize: sx(14), textAlign: 'left', lineHeight: 20,
               letterSpacing: 1.6, textTransform: 'uppercase', // В точности как в HTML-референсе
             }}>
               {label}
             </Text>
-            {/* Underline: картинка горизонтального блика из HTML-референса (в правильных пропорциях, чтобы не было "лесенки") */}
-            <View style={{ height: sx(24), width: sx(320), marginLeft: sx(-22), overflow: 'visible' }}>
-              <Image 
-                source={ASSETS.menuUnderline} 
-                style={{ position: 'absolute', left: sx(-10), top: sx(12) - sx(90), width: sx(280), height: sx(180) }} 
-                resizeMode="contain" 
-              />
-            </View>
-          </Pressable>
+             {/* Programmatic glowing underline (vector) instead of stretched bitmap image */}
+             <View style={{
+               position: 'absolute',
+               left: sx(-21),
+               top: sy(50),
+               width: sx(280),
+               height: 6,
+               justifyContent: 'center',
+               overflow: 'visible',
+             }}>
+               {/* Soft ambient blue glow */}
+               <LinearGradient
+                 colors={['transparent', 'rgba(142, 202, 230, 0.25)', 'rgba(142, 202, 230, 0.6)', 'rgba(142, 202, 230, 0.25)', 'transparent']}
+                 start={{ x: 0, y: 0.5 }}
+                 end={{ x: 1, y: 0.5 }}
+                 style={{
+                   position: 'absolute',
+                   width: '100%',
+                   height: 4,
+                   borderRadius: 2,
+                 }}
+               />
+               {/* Sharp white core */}
+               <LinearGradient
+                 colors={['transparent', 'rgba(255, 255, 255, 0.5)', 'rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.5)', 'transparent']}
+                 start={{ x: 0, y: 0.5 }}
+                 end={{ x: 1, y: 0.5 }}
+                 style={{
+                   position: 'absolute',
+                   width: '100%',
+                   height: 1.2,
+                 }}
+               />
+             </View>
+           </Pressable>
         ))}
 
         {/* FAB "начать чат": используем экспортированное кольцо из Bonusi.html */}
