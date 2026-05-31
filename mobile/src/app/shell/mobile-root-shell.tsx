@@ -146,24 +146,51 @@ export function MobileRootShell() {
     setLoginLoading(true);
     setLoginError(null);
     try {
-      const response = await fetch(`${mobileEnv.apiBaseUrl}/auth/otp/request`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify({ phone })
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+      let response;
+      try {
+        response = await fetch(`${mobileEnv.apiBaseUrl}/auth/sms/request-code`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({ phone }),
+          signal: controller.signal
+        });
+      } catch (netError: any) {
+        if (netError.name === "AbortError" || (typeof netError === 'object' && netError !== null && netError.name === 'AbortError')) {
+          throw netError;
+        }
+        throw new Error("Нет соединения с сервером. Проверьте интернет и попробуйте ещё раз.");
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!response.ok) {
+        if (response.status >= 500) {
+          throw new Error("Сервер временно недоступен. Попробуйте позже.");
+        }
+        const text = await response.text();
+        const payload = text ? JSON.parse(text) : null;
+        throw new Error(payload?.message || payload?.error || "Не удалось отправить код");
+      }
 
       const text = await response.text();
       const payload = text ? JSON.parse(text) : null;
-      if (!response.ok || !payload?.success) {
+      if (!payload?.success) {
         throw new Error(payload?.message || payload?.error || "Не удалось отправить код");
       }
       fireHaptic("selection");
       return true;
     } catch (error: any) {
       fireHaptic("notificationError");
-      setLoginError(error.message || "Не удалось отправить код. Попробуйте еще раз.");
+      if (error.name === "AbortError") {
+        setLoginError("Сервер не отвечает. Возможно, он только запускается — подождите 30 секунд и попробуйте снова.");
+      } else {
+        setLoginError(error.message || "Не удалось отправить код. Попробуйте еще раз.");
+      }
       return false;
     } finally {
       setLoginLoading(false);
@@ -174,25 +201,48 @@ export function MobileRootShell() {
     setLoginLoading(true);
     setLoginError(null);
     try {
-      const response = await fetch(`${mobileEnv.apiBaseUrl}/auth/otp/verify`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json"
-        },
-        body: JSON.stringify({
-          phone,
-          code,
-          device: {
-            platform: Platform.OS,
-            deviceName: Platform.OS === "android" ? "Android App" : "iPhone App",
-            appVersion: APP_VERSION.versionName
-          }
-        })
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+      let response;
+      try {
+        response = await fetch(`${mobileEnv.apiBaseUrl}/auth/sms/verify-code`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json"
+          },
+          body: JSON.stringify({
+            phone,
+            code,
+            device: {
+              platform: Platform.OS,
+              deviceName: Platform.OS === "android" ? "Android App" : "iPhone App",
+              appVersion: APP_VERSION.versionName
+            }
+          }),
+          signal: controller.signal
+        });
+      } catch (netError: any) {
+        if (netError.name === "AbortError" || (typeof netError === 'object' && netError !== null && netError.name === 'AbortError')) {
+          throw netError;
+        }
+        throw new Error("Нет соединения с сервером. Проверьте интернет и попробуйте ещё раз.");
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!response.ok) {
+        if (response.status >= 500) {
+          throw new Error("Сервер временно недоступен. Попробуйте позже.");
+        }
+        const text = await response.text();
+        const payload = text ? JSON.parse(text) : null;
+        throw new Error(payload?.message || payload?.error || "Неверный код или ошибка входа");
+      }
 
       const text = await response.text();
       const payload = text ? (JSON.parse(text) as LoginResponse & { message?: string; error?: string }) : null;
-      if (!response.ok || !payload?.accessToken || !payload?.refreshToken || !payload.user?.id || !payload.user?.role) {
+      if (!payload?.accessToken || !payload?.refreshToken || !payload.user?.id || !payload.user?.role) {
         throw new Error(payload?.message || payload?.error || "Неверный код или ошибка входа");
       }
 
@@ -214,7 +264,11 @@ export function MobileRootShell() {
       setShowLogin(false);
     } catch (error: any) {
       fireHaptic("notificationError");
-      setLoginError(error.message || "Неверный код или ошибка входа");
+      if (error.name === "AbortError") {
+        setLoginError("Сервер не отвечает. Возможно, он только запускается — подождите 30 секунд и попробуйте снова.");
+      } else {
+        setLoginError(error.message || "Неверный код или ошибка входа");
+      }
     } finally {
       setLoginLoading(false);
     }

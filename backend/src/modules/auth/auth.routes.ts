@@ -52,7 +52,7 @@ authRouter.post(
 );
 
 authRouter.post(
-  "/auth/otp/request",
+  ["/auth/otp/request", "/auth/sms/request-code"],
   loginRateLimiter,
   asyncHandler(async (req, res) => {
     const { phone } = req.body ?? {};
@@ -70,7 +70,7 @@ authRouter.post(
 );
 
 authRouter.post(
-  "/auth/otp/verify",
+  ["/auth/otp/verify", "/auth/sms/verify-code"],
   loginRateLimiter,
   asyncHandler(async (req, res) => {
     const { phone, code, device } = req.body ?? {};
@@ -92,7 +92,11 @@ authRouter.post(
           }
         : undefined
     });
-    res.json(payload);
+    res.json({
+      success: true,
+      token: payload.accessToken,
+      ...payload
+    });
   })
 );
 
