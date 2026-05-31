@@ -396,11 +396,17 @@ export function HomeTabScreen({ navigation }: any) {
                   transform: [{ scale: rippleScale }],
                 }}
               >
-                <Image
-                  source={ASSETS.gaugeBubble}
-                  style={{ width: gaugeSize, height: gaugeSize }}
-                  resizeMode="cover"
-                />
+                 <Image
+                   source={ASSETS.gaugeBubble}
+                   style={{
+                     position: 'absolute',
+                     left: -sx(8),
+                     top: 0,
+                     width: gaugeSize + sx(16),
+                     height: gaugeSize,
+                   }}
+                   resizeMode="cover"
+                 />
               </Animated.View>
             );
           })}
