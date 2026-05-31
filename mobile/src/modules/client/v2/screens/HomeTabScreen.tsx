@@ -4,7 +4,7 @@ import {
   StyleSheet, useWindowDimensions, Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, RadialGradient, Stop, Ellipse, Rect, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 // ExpoLinearGradient скомпилирован в нативный бинарник при rebuild --device.
 // Используем LinearGradient для настоящего diagonal gradient без круглых артефактов.
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -559,39 +559,52 @@ export function HomeTabScreen({ navigation }: any) {
             }}>
               {label}
             </Text>
-             {/* Programmatic glowing underline (vector) instead of stretched bitmap image */}
+             {/* Custom SVG lens flare underline that mimics menu_underline.png in vector quality */}
              <View style={{
                position: 'absolute',
                left: sx(-21),
-               top: sy(50),
+               top: sy(46), // Adjusted to sit nicely under the text
                width: sx(280),
-               height: 6,
+               height: sx(30),
                justifyContent: 'center',
+               alignItems: 'center',
                overflow: 'visible',
              }}>
-               {/* Soft ambient blue glow */}
-               <LinearGradient
-                 colors={['transparent', 'rgba(142, 202, 230, 0.25)', 'rgba(142, 202, 230, 0.6)', 'rgba(142, 202, 230, 0.25)', 'transparent']}
-                 start={{ x: 0, y: 0.5 }}
-                 end={{ x: 1, y: 0.5 }}
-                 style={{
-                   position: 'absolute',
-                   width: '100%',
-                   height: 4,
-                   borderRadius: 2,
-                 }}
-               />
-               {/* Sharp white core */}
-               <LinearGradient
-                 colors={['transparent', 'rgba(255, 255, 255, 0.5)', 'rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.5)', 'transparent']}
-                 start={{ x: 0, y: 0.5 }}
-                 end={{ x: 1, y: 0.5 }}
-                 style={{
-                   position: 'absolute',
-                   width: '100%',
-                   height: 1.2,
-                 }}
-               />
+               <Svg width={sx(280)} height={sx(30)} viewBox="0 0 280 30" style={{ overflow: 'visible' }}>
+                 <Defs>
+                   {/* Horizontal line gradient */}
+                   <SvgLinearGradient id="lineGrad" x1="0" y1="0.5" x2="1" y2="0.5">
+                     <Stop offset="0%" stopColor="#8ECAE6" stopOpacity="0" />
+                     <Stop offset="15%" stopColor="#8ECAE6" stopOpacity="0.2" />
+                     <Stop offset="47%" stopColor="#8ECAE6" stopOpacity="0.8" />
+                     <Stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+                     <Stop offset="53%" stopColor="#8ECAE6" stopOpacity="0.8" />
+                     <Stop offset="85%" stopColor="#8ECAE6" stopOpacity="0.2" />
+                     <Stop offset="100%" stopColor="#8ECAE6" stopOpacity="0" />
+                   </SvgLinearGradient>
+                   {/* Soft blue flare halo gradient */}
+                   <RadialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+                     <Stop offset="0%" stopColor="#8ECAE6" stopOpacity="0.85" />
+                     <Stop offset="25%" stopColor="#8ECAE6" stopOpacity="0.45" />
+                     <Stop offset="65%" stopColor="#8ECAE6" stopOpacity="0.1" />
+                     <Stop offset="100%" stopColor="#8ECAE6" stopOpacity="0" />
+                   </RadialGradient>
+                   {/* White hot spot core */}
+                   <RadialGradient id="centerWhite" cx="50%" cy="50%" r="50%">
+                     <Stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                     <Stop offset="40%" stopColor="#ffffff" stopOpacity="0.75" />
+                     <Stop offset="100%" stopColor="#8ECAE6" stopOpacity="0" />
+                   </RadialGradient>
+                 </Defs>
+                 {/* 1. Large soft ambient background glow */}
+                 <Ellipse cx="140" cy="15" rx="75" ry="12" fill="url(#glowGrad)" />
+                 {/* 2. Main horizontal line */}
+                 <Rect x="0" y="14" width="280" height="1.5" fill="url(#lineGrad)" />
+                 {/* 3. Horizontal bright diamond flare core */}
+                 <Ellipse cx="140" cy="15" rx="45" ry="3.5" fill="url(#centerWhite)" />
+                 {/* 4. Central vertical highlight for volumetric lens flare effect */}
+                 <Ellipse cx="140" cy="15" rx="15" ry="6.5" fill="url(#centerWhite)" opacity="0.9" />
+               </Svg>
              </View>
            </Pressable>
         ))}
