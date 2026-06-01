@@ -324,28 +324,6 @@ export function HomeTabScreen({ navigation }: any) {
         </Text>
       </Pressable>
 
-      {/* ── EXIT (LOGOUT) ── */}
-      <Pressable
-        style={{
-          position: 'absolute',
-          top: insets.top + sy(12),
-          left: sx(110),
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}
-        onPress={() => {
-          onLogout();
-        }}
-        hitSlop={12}
-      >
-        <Text style={{
-          color: '#FFDEAD', fontFamily: FB || F,
-          fontSize: sx(14), letterSpacing: 1.5,
-          textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2,
-        }}>
-          EXIT
-        </Text>
-      </Pressable>
 
       {/* ── Виджет погоды (правый верхний угол) — рендерится всегда ── */}
       <View style={{ position: 'absolute', top: insets.top + sy(12), right: sx(18), alignItems: 'flex-end' }}>
