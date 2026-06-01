@@ -214,7 +214,7 @@ if (session) {
               </label>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <input type="file" id="file-input" style="display:none;">
+              <input type="file" id="file-input" style="display:none;" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
               <button class="btn btn-outline" id="attach-btn" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:6px 12px;font-size:12px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:4px;">
                 📎 Прикрепить файл
               </button>
@@ -240,6 +240,53 @@ if (session) {
     const filePreviewIcon = document.getElementById("file-preview-icon");
     const fileCancelBtn = document.getElementById("file-cancel-btn");
     let selectedFile = null;
+
+    const chatBoard = chatPanel.querySelector(".workspace-chat-board");
+    if (chatBoard) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        chatBoard.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, false);
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        chatBoard.addEventListener(eventName, () => {
+          chatBoard.style.outline = "2px dashed #00bcd4";
+          chatBoard.style.outlineOffset = "-4px";
+          chatBoard.style.backgroundColor = "rgba(0, 188, 212, 0.05)";
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        chatBoard.addEventListener(eventName, () => {
+          chatBoard.style.outline = "";
+          chatBoard.style.outlineOffset = "";
+          chatBoard.style.backgroundColor = "";
+        }, false);
+      });
+
+      chatBoard.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        if (!file) return;
+
+        if (file.size > 10 * 1024 * 1024) {
+          showToast("Файл слишком большой. Максимальный размер 10 МБ", "error");
+          return;
+        }
+
+        selectedFile = file;
+        filePreviewName.textContent = file.name;
+        if (file.type && file.type.startsWith("image/")) {
+          filePreviewIcon.textContent = "🖼️";
+        } else {
+          filePreviewIcon.textContent = "📄";
+        }
+        filePreviewBar.style.display = "flex";
+        syncSendState();
+      }, false);
+    }
 
     const readAsBase64 = (file) => {
       return new Promise((resolve, reject) => {

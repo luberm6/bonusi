@@ -16,6 +16,8 @@ import {
   Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 import { mobileEnv } from '../../../../shared/config/mobile-env';
@@ -77,11 +79,15 @@ export function ChatTabScreen({ navigation }: any) {
     }
 
     try {
-      const supported = await Linking.canOpenURL(fullUrl);
-      if (supported) {
+      if (fullUrl.startsWith('http://') || fullUrl.startsWith('https://')) {
         await Linking.openURL(fullUrl);
       } else {
-        Alert.alert('Ошибка', 'Не удалось открыть этот тип файла.');
+        const supported = await Linking.canOpenURL(fullUrl);
+        if (supported) {
+          await Linking.openURL(fullUrl);
+        } else {
+          Alert.alert('Ошибка', 'Не удалось открыть этот тип файла.');
+        }
       }
     } catch {
       Alert.alert('Ошибка', 'Не удалось открыть файл.');
@@ -235,6 +241,30 @@ export function ChatTabScreen({ navigation }: any) {
     }
   };
 
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        setPendingFile({
+          uri: asset.uri,
+          base64: base64,
+          fileName: asset.name || `file_${Date.now()}`,
+          mimeType: asset.mimeType || 'application/octet-stream',
+          size: asset.size || 0,
+        });
+      }
+    } catch (err) {
+      Alert.alert('Ошибка', 'Не удалось прочитать выбранный файл.');
+    }
+  };
+
   const handleAttach = () => {
     // Если сервер сообщил что файлы отключены — показываем понятное сообщение сразу
     if (!filesEnabled) {
@@ -248,12 +278,13 @@ export function ChatTabScreen({ navigation }: any) {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Отмена', 'Фото из галереи', 'Сделать фото'],
+          options: ['Отмена', 'Фото из галереи', 'Сделать фото', 'Выбрать документ/файл'],
           cancelButtonIndex: 0,
         },
         (idx) => {
           if (idx === 1) pickFromLibrary();
           if (idx === 2) takePhoto();
+          if (idx === 3) pickDocument();
         }
       );
     } else {
@@ -264,6 +295,7 @@ export function ChatTabScreen({ navigation }: any) {
           { text: 'Отмена', style: 'cancel' },
           { text: 'Фото из галереи', onPress: pickFromLibrary },
           { text: 'Сделать фото', onPress: takePhoto },
+          { text: 'Документ', onPress: pickDocument },
         ],
         { cancelable: true }
       );
@@ -361,7 +393,13 @@ export function ChatTabScreen({ navigation }: any) {
       {/* ── Pending file preview ── */}
       {pendingFile ? (
         <View style={s.previewBar}>
-          <RNImage source={{ uri: pendingFile.uri }} style={s.previewThumb} resizeMode="cover" />
+          {pendingFile.mimeType.startsWith('image/') ? (
+            <RNImage source={{ uri: pendingFile.uri }} style={s.previewThumb} resizeMode="cover" />
+          ) : (
+            <View style={[s.previewThumb, { backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', borderRadius: 6 }]}>
+              <Text style={{ fontSize: 20 }}>📄</Text>
+            </View>
+          )}
           <Text style={s.previewName} numberOfLines={1}>{pendingFile.fileName}</Text>
           <Pressable onPress={() => setPendingFile(null)} hitSlop={8} style={s.previewRemove}>
             <Text style={s.previewRemoveText}>✕</Text>
