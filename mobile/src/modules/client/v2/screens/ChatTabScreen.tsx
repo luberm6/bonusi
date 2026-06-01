@@ -16,8 +16,6 @@ import {
   Modal,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 import { mobileEnv } from '../../../../shared/config/mobile-env';
@@ -243,6 +241,8 @@ export function ChatTabScreen({ navigation }: any) {
 
   const pickDocument = async () => {
     try {
+      const DocumentPicker = require('expo-document-picker');
+      const FileSystem = require('expo-file-system');
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*',
         copyToCacheDirectory: true,
@@ -261,7 +261,7 @@ export function ChatTabScreen({ navigation }: any) {
         });
       }
     } catch (err) {
-      Alert.alert('Ошибка', 'Не удалось прочитать выбранный файл.');
+      Alert.alert('Обновите приложение', 'Для отправки файлов необходимо установить последнее обновление приложения из TestFlight.');
     }
   };
 
