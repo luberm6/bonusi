@@ -230,7 +230,6 @@ function buildVisitWhere(actor: AuthenticatedUser, filters: VisitsFilterDto) {
   if (filters.branchId) push("v.branch_id =", filters.branchId);
   if (filters.dateFrom) push("v.visit_date >=", filters.dateFrom);
   if (filters.dateTo) push("v.visit_date <=", filters.dateTo);
-  if (actor.role === "admin") clauses.push("coalesce(u_admin.role, 'admin') <> 'super_admin'");
 
   return {
     whereSql: clauses.length ? `where ${clauses.join(" and ")}` : "",
@@ -306,13 +305,6 @@ async function fetchVisitRowById(visitId: string) {
 async function assertVisitReadable(actor: AuthenticatedUser, visit: VisitRow) {
   if (actor.role === "client" && visit.client_id !== actor.id) {
     throw new HttpError(403, "Access denied");
-  }
-  if (actor.role === "admin" && visit.admin_id) {
-    const adminRole = await pool.query("select role from public.users where id = $1 limit 1", [visit.admin_id]);
-    const row = adminRole.rows[0] as { role: string } | undefined;
-    if (row?.role === "super_admin" && visit.admin_id !== actor.id) {
-      throw new HttpError(403, "Access denied");
-    }
   }
 }
 
