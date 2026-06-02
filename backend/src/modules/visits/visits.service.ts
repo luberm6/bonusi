@@ -335,26 +335,41 @@ export async function createVisit(actor: AuthenticatedUser, dto: CreateVisitDto)
     await assertUserRole(client, actor.id, "admin", "admin");
     await assertBranchActive(client, dto.branchId);
 
-    const serviceIds = [...new Set(dto.services.map((s) => s.serviceId))];
-    const serviceResult = await client.query(
-      `select id, name, base_price, is_active
-       from public.services
-       where id = any($1::uuid[])`,
-      [serviceIds]
-    );
-    const serviceMap = new Map(
-      serviceResult.rows.map((r) => [
-        r.id as string,
-        { name: r.name as string, basePrice: Number(r.base_price), isActive: r.is_active as boolean }
-      ])
-    );
+    const serviceIds = [...new Set(dto.services.map((s) => s.serviceId).filter((id): id is string => id !== null))];
+    let serviceMap = new Map<string, { name: string; basePrice: number; isActive: boolean }>();
+    if (serviceIds.length > 0) {
+      const serviceResult = await client.query(
+        `select id, name, base_price, is_active
+         from public.services
+         where id = any($1::uuid[])`,
+        [serviceIds]
+      );
+      serviceMap = new Map(
+        serviceResult.rows.map((r) => [
+          r.id as string,
+          { name: r.name as string, basePrice: Number(r.base_price), isActive: r.is_active as boolean }
+        ])
+      );
 
-    for (const id of serviceIds) {
-      if (!serviceMap.has(id)) throw new HttpError(404, `Service not found: ${id}`);
-      if (!serviceMap.get(id)!.isActive) throw new HttpError(400, `Service is inactive: ${id}`);
+      for (const id of serviceIds) {
+        if (!serviceMap.has(id)) throw new HttpError(404, `Service not found: ${id}`);
+        if (!serviceMap.get(id)!.isActive) throw new HttpError(400, `Service is inactive: ${id}`);
+      }
     }
 
     const preparedItems = dto.services.map((item) => {
+      if (item.serviceId === null) {
+        const price = item.price!;
+        const quantity = Number(item.quantity.toFixed(2));
+        const total = Number((price * quantity).toFixed(2));
+        return {
+          serviceId: null,
+          serviceNameSnapshot: item.serviceName || "Дополнительная сумма",
+          price: Number(price.toFixed(2)),
+          quantity,
+          total
+        };
+      }
       const service = serviceMap.get(item.serviceId)!;
       const price = item.price ?? service.basePrice;
       const quantity = Number(item.quantity.toFixed(2));

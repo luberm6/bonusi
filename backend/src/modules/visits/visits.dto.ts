@@ -3,7 +3,8 @@ import { HttpError } from "../../common/http/error.js";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export type VisitItemDto = {
-  serviceId: string;
+  serviceId: string | null;
+  serviceName?: string;
   price?: number;
   quantity: number;
 };
@@ -72,14 +73,23 @@ export function parseCreateVisitDto(body: unknown): CreateVisitDto {
   const services = input.services.map((item, idx) => {
     if (!item || typeof item !== "object") throw new HttpError(400, `services[${idx}] must be object`);
     const row = item as Record<string, unknown>;
+    const serviceId = row.serviceId === null || row.serviceId === undefined ? null : parseUuid(row.serviceId, `services[${idx}].serviceId`);
+    const serviceName = typeof row.serviceName === "string" ? row.serviceName.trim() : undefined;
+    
+    if (serviceId === null && row.price === undefined) {
+      throw new HttpError(400, `services[${idx}].price is required when serviceId is null`);
+    }
+
     return {
-      serviceId: parseUuid(row.serviceId, `services[${idx}].serviceId`),
+      serviceId,
+      serviceName,
       price: row.price === undefined ? undefined : parseMoney(row.price, `services[${idx}].price`),
       quantity: parseQty(row.quantity)
     };
   });
-  const serviceIds = services.map((s) => s.serviceId);
-  if (new Set(serviceIds).size !== serviceIds.length) {
+
+  const realServiceIds = services.map((s) => s.serviceId).filter((id): id is string => id !== null);
+  if (new Set(realServiceIds).size !== realServiceIds.length) {
     throw new HttpError(400, "services must not contain duplicate serviceId");
   }
 

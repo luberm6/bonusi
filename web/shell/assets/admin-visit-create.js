@@ -28,6 +28,10 @@ if (session) {
   const bonusPreviewText = document.getElementById("bonus-preview-text");
   const visitAmountsText = document.getElementById("visit-amounts-text");
 
+  const customNameInput = document.getElementById("add-custom-name");
+  const customPriceInput = document.getElementById("add-custom-price");
+  const customAddBtn = document.getElementById("add-custom-btn");
+
   if (window.flatpickr) {
     flatpickr(dateInput, {
       locale: "ru",
@@ -236,6 +240,21 @@ if (session) {
     renderServicesTable();
   });
 
+  customAddBtn.addEventListener("click", () => {
+    const price = parseFloat(customPriceInput.value);
+    if (isNaN(price) || price < 0) return;
+    const name = customNameInput.value.trim() || "Дополнительная сумма";
+    selectedServices.push({
+      serviceId: null,
+      name,
+      quantity: 1,
+      price
+    });
+    customNameInput.value = "";
+    customPriceInput.value = "";
+    renderServicesTable();
+  });
+
   discountInput.addEventListener("input", refreshBonusPreview);
 
   form.addEventListener("submit", async (event) => {
@@ -274,6 +293,8 @@ if (session) {
         discountAmount,
         services: selectedServices.map((service) => ({
           serviceId: service.serviceId,
+          serviceName: service.serviceId === null ? service.name : undefined,
+          price: service.serviceId === null ? service.price : undefined,
           quantity: service.quantity
         }))
       };
