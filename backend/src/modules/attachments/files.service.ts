@@ -5,8 +5,26 @@ import { assertConversationAccess } from "../chat/chat.service.js";
 import { getFileStorageService } from "./file-storage.provider.js";
 import type { UploadFileDto } from "./files.dto.js";
 
-function mapFileTypeToChat(fileType: string): "image" | "pdf" {
-  return fileType === "application/pdf" ? "pdf" : "image";
+function mapFileTypeToChat(fileType: string, fileName?: string): "image" | "pdf" | "document" {
+  if (fileType === "application/pdf") return "pdf";
+  const docTypes = [
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  ];
+  if (docTypes.includes(fileType)) return "document";
+  if (fileName) {
+    const lower = fileName.toLowerCase();
+    if (lower.endsWith(".pdf")) return "pdf";
+    if (lower.endsWith(".doc") || lower.endsWith(".docx") || lower.endsWith(".xls") || lower.endsWith(".xlsx")) {
+      return "document";
+    }
+  }
+  if (fileType && (fileType.includes("word") || fileType.includes("excel") || fileType.includes("officedocument") || fileType.includes("sheet"))) {
+    return "document";
+  }
+  return "image";
 }
 
 function decodeBase64(contentBase64: string): Buffer {
@@ -48,7 +66,7 @@ export async function uploadFileForMessage(actor: AuthenticatedUser, input: Uplo
       `insert into public.attachments (message_id, file_url, file_type, file_name, size)
        values ($1, $2, $3, $4, $5)
        returning id, message_id, file_url, file_type, file_name, size, created_at`,
-      [input.messageId, uploaded.url, mapFileTypeToChat(input.fileType), input.fileName, input.size]
+      [input.messageId, uploaded.url, mapFileTypeToChat(input.fileType, input.fileName), input.fileName, input.size]
     );
     const row = inserted.rows[0] as {
       id: string;

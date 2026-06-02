@@ -8,7 +8,7 @@ export type SendMessageDto = {
   isRepairHistory?: boolean;
   attachments?: Array<{
     fileUrl: string;
-    fileType: "image" | "pdf";
+    fileType: "image" | "pdf" | "document";
     fileName: string;
     size: number;
   }>;
@@ -55,8 +55,8 @@ export function parseSendMessageDto(body: unknown): SendMessageDto {
       const size = Number(row.size);
       if (!fileUrl) throw new HttpError(400, `attachments[${idx}].fileUrl is required`);
       if (!fileName) throw new HttpError(400, `attachments[${idx}].fileName is required`);
-      if (fileType !== "image" && fileType !== "pdf") {
-        throw new HttpError(400, `attachments[${idx}].fileType must be image|pdf`);
+      if (fileType !== "image" && fileType !== "pdf" && fileType !== "document") {
+        throw new HttpError(400, `attachments[${idx}].fileType must be image|pdf|document`);
       }
       if (!Number.isFinite(size) || size <= 0) throw new HttpError(400, `attachments[${idx}].size must be > 0`);
       return { fileUrl, fileType, fileName, size: Math.floor(size) };

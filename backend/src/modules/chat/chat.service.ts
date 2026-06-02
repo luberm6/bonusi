@@ -236,7 +236,7 @@ export async function sendMessage(
   input: {
     clientMessageId: string;
     text?: string;
-    attachments?: Array<{ fileUrl: string; fileType: "image" | "pdf"; fileName: string; size: number }>;
+    attachments?: Array<{ fileUrl: string; fileType: "image" | "pdf" | "document"; fileName: string; size: number }>;
     isRepairHistory?: boolean;
   }
 ) {

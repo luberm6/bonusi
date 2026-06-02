@@ -348,7 +348,7 @@ export function ChatTabScreen({ navigation }: any) {
                   ) : null}
                   {m.attachments?.map((att) => {
                     const resolvedUrl = getAttachmentUrl(att.fileUrl);
-                    const isImg = att.fileType === 'image' || (att as any).mimeType?.startsWith('image/') || att.fileName?.match(/\.(jpe?g|png|gif|webp)$/i);
+                    const isImg = (att.fileType === 'image' || (att as any).mimeType?.startsWith('image/') || att.fileName?.match(/\.(jpe?g|png|gif|webp)$/i)) && !att.fileName?.match(/\.(pdf|doc|docx|xls|xlsx)$/i);
                     return isImg ? (
                       <Pressable
                         key={att.id}

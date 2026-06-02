@@ -7,7 +7,8 @@ const ALLOWED_CONTENT_TYPES = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/octet-stream"
+  "application/octet-stream",
+  "document"
 ]);
 
 export type UploadFileDto = {
