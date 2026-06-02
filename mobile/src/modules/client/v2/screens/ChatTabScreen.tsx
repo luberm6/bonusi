@@ -250,7 +250,7 @@ export function ChatTabScreen({ navigation }: any) {
       if (!result.canceled && result.assets && result.assets[0]) {
         const asset = result.assets[0];
         const base64 = await FileSystem.readAsStringAsync(asset.uri, {
-          encoding: FileSystem.EncodingType.Base64,
+          encoding: 'base64',
         });
         setPendingFile({
           uri: asset.uri,
@@ -282,9 +282,11 @@ export function ChatTabScreen({ navigation }: any) {
           cancelButtonIndex: 0,
         },
         (idx) => {
-          if (idx === 1) pickFromLibrary();
-          if (idx === 2) takePhoto();
-          if (idx === 3) pickDocument();
+          setTimeout(() => {
+            if (idx === 1) pickFromLibrary();
+            if (idx === 2) takePhoto();
+            if (idx === 3) pickDocument();
+          }, 300);
         }
       );
     } else {
