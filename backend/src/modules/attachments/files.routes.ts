@@ -57,8 +57,23 @@ filesRouter.get(
       file_name: string;
     };
     
+    const isInlineType = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "application/pdf"
+    ].includes(file_type);
+    const disposition = isInlineType ? "inline" : "attachment";
+
+    // Support ASCII fallback and UTF-8 filename in Content-Disposition
+    const safeFileName = file_name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const encodedFileName = encodeURIComponent(file_name);
+
     res.setHeader("Content-Type", file_type);
-    res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file_name)}"`);
+    res.setHeader(
+      "Content-Disposition",
+      `${disposition}; filename="${safeFileName}"; filename*=UTF-8''${encodedFileName}`
+    );
     res.send(file_data);
   })
 );
