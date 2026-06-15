@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 
@@ -29,7 +29,22 @@ const DETAILS = [
 ];
 
 export function CashbackScreen({ navigation }: any) {
-  const { bonusBalance } = useClientData();
+  const { bonusBalance, refreshClientData } = useClientData();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refreshClientData(false);
+    setRefreshing(false);
+  }, [refreshClientData]);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      void refreshClientData(false);
+    });
+    return unsubscribe;
+  }, [navigation, refreshClientData]);
 
   return (
     <View style={s.root}>
@@ -41,7 +56,14 @@ export function CashbackScreen({ navigation }: any) {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+      >
 
         {/* Текущий баланс */}
         <View style={s.balanceCard}>

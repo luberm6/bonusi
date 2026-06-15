@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { AppState } from "react-native";
 
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -51,6 +52,7 @@ interface ClientDataContextValues {
   openConversation: (id: string) => Promise<void>;
   sendMessage: (text: string) => Promise<boolean>;
   presentToast: (type: "success" | "error", message: string) => void;
+  refreshClientData: (showLoading?: boolean) => Promise<void>;
 }
 
 const ClientDataContext = createContext<ClientDataContextValues | null>(null);
@@ -282,6 +284,59 @@ export function ClientDataProvider(props: {
     return () => clearInterval(timer);
   }, [activeConversationId, props.accessToken]);
 
+  const refreshClientData = useCallback(async (showLoading = false) => {
+    if (showLoading) {
+      setVisitsLoading(true);
+      setBonusHistoryLoading(true);
+      setRepairDocumentsLoading(true);
+    }
+    try {
+      const [meData, balanceData, visitsData, docsData, historyData] = await Promise.all([
+        requestJson<UserMe>("/users/me", props.accessToken),
+        requestJson<{balance: number}>(`/bonuses/balance?client_id=${encodeURIComponent(props.session.userId)}`, props.accessToken),
+        requestJson<VisitRow[]>(`/clients/${encodeURIComponent(props.session.userId)}/visits`, props.accessToken),
+        requestJson<RepairDocumentRow[]>(`/clients/${encodeURIComponent(props.session.userId)}/repair-documents`, props.accessToken).catch(() => [] as RepairDocumentRow[]),
+        requestJson<BonusHistoryRow[]>(`/bonuses/history?client_id=${encodeURIComponent(props.session.userId)}`, props.accessToken)
+      ]);
+
+      setMe(meData);
+      setBonusBalance(Number(balanceData.balance ?? 0));
+      const sortedVisits = (visitsData || []).sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime());
+      setVisits(sortedVisits);
+      setRepairDocuments(docsData);
+      setBonusHistory(historyData);
+    } catch (err) {
+      console.warn("Error refreshing client data:", err);
+    } finally {
+      if (showLoading) {
+        setVisitsLoading(false);
+        setBonusHistoryLoading(false);
+        setRepairDocumentsLoading(false);
+      }
+    }
+  }, [props.accessToken, props.session.userId]);
+
+  // Polling data every 25 seconds when app is active
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void refreshClientData(false);
+    }, 25000);
+    return () => clearInterval(timer);
+  }, [refreshClientData]);
+
+  // Refetch when app returns from background to active
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === "active") {
+        void refreshClientData(false);
+      }
+    };
+    const subscription = AppState.addEventListener("change", handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshClientData]);
+
   return (
     <ClientDataContext.Provider value={{
       session: props.session,
@@ -295,7 +350,7 @@ export function ClientDataProvider(props: {
       conversations, activeConversationId, messages, chatLoading,
       toast,
       ensureVisitsLoaded, ensureRepairDocumentsLoaded, ensureBonusHistoryLoaded, ensureBranchesLoaded, ensureChatLoaded,
-      openConversation, sendMessage, presentToast
+      openConversation, sendMessage, presentToast, refreshClientData
     }}>
       {props.children}
     </ClientDataContext.Provider>

@@ -68,7 +68,7 @@ export function VisitDetailsScreen({ route, navigation }: any) {
               day: '2-digit', month: 'long', year: 'numeric',
             })}
           </Text>
-          <Text style={s.orderTitle}>{visit.branchName || 'Ремонтные работы'}</Text>
+          <Text style={s.orderTitle}>{'Ремонтные работы'}</Text>
           
           <View style={s.divider} />
           

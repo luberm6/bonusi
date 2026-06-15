@@ -1,17 +1,32 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Alert } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Linking, Alert, RefreshControl } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 import { mobileEnv } from '../../../../shared/config/mobile-env';
 
 export function VisitsTabScreen({ navigation }: any) {
   const { visits, visitsLoading, ensureVisitsLoaded,
-    repairDocuments, repairDocumentsLoading, ensureRepairDocumentsLoaded } = useClientData();
+    repairDocuments, repairDocumentsLoading, ensureRepairDocumentsLoaded, refreshClientData } = useClientData();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refreshClientData(false);
+    setRefreshing(false);
+  }, [refreshClientData]);
 
   React.useEffect(() => {
     ensureVisitsLoaded();
     ensureRepairDocumentsLoaded();
   }, [ensureVisitsLoaded, ensureRepairDocumentsLoaded]);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      void refreshClientData(false);
+    });
+    return unsubscribe;
+  }, [navigation, refreshClientData]);
 
   const handleOpenAttachment = async (fileUrl?: string) => {
     if (!fileUrl) {
@@ -46,7 +61,14 @@ export function VisitsTabScreen({ navigation }: any) {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+      >
 
         {/* Сводка */}
         <View style={s.summaryCard}>
@@ -119,8 +141,7 @@ export function VisitsTabScreen({ navigation }: any) {
                 })}
               </Text>
 
-              {/* Название */}
-              <Text style={s.orderTitle}>{v.branchName || 'Ремонтные работы'}</Text>
+
 
               {/* Услуги */}
               {v.serviceNames && v.serviceNames.length > 0 && (

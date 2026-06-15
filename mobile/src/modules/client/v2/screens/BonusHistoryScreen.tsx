@@ -1,15 +1,30 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { useClientData } from '../ClientDataContext';
 import { colors } from '../../../../theme/colors';
 
 export function BonusHistoryScreen({ navigation }: any) {
-  const { bonusBalance, bonusHistory, bonusHistoryLoading, ensureBonusHistoryLoaded } =
+  const { bonusBalance, bonusHistory, bonusHistoryLoading, ensureBonusHistoryLoaded, refreshClientData } =
     useClientData();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refreshClientData(false);
+    setRefreshing(false);
+  }, [refreshClientData]);
 
   React.useEffect(() => {
     ensureBonusHistoryLoaded();
   }, [ensureBonusHistoryLoaded]);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      void refreshClientData(false);
+    });
+    return unsubscribe;
+  }, [navigation, refreshClientData]);
 
   return (
     <View style={s.root}>
@@ -26,6 +41,9 @@ export function BonusHistoryScreen({ navigation }: any) {
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
       >
         {/* ── Balance card ── */}
         <View style={s.balanceCard}>

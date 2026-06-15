@@ -64,8 +64,15 @@ export function HomeTabScreen({ navigation }: any) {
   const {
     bonusBalance, me,
     ensureBranchesLoaded, ensureVisitsLoaded, ensureBonusHistoryLoaded,
-    onLogout,
+    onLogout, refreshClientData,
   } = useClientData();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      void refreshClientData(false);
+    });
+    return unsubscribe;
+  }, [navigation, refreshClientData]);
 
   const clientName =
     me?.fullName?.trim()?.toUpperCase() ||
