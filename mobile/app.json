@@ -2,7 +2,7 @@
   "expo": {
     "name": "Centr Radius Service",
     "slug": "autoservice",
-    "version": "1.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
