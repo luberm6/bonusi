@@ -284,7 +284,6 @@ describe("история посещений клиента", () => {
     });
     await flush();
 
-    expect(renderer.root.findAllByProps({ children: "Северный филиал" }).length).toBeGreaterThan(0);
     expect(renderer.root.findAllByProps({ children: "Мойка" }).length).toBeGreaterThan(0);
 
     const detailPressable = findPressableByLabel(renderer.root, "Нажмите, чтобы открыть детали посещения.");

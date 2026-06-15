@@ -187,7 +187,7 @@ export function ClientDataProvider(props: {
       const rows = await requestJson<BranchRow[]>("/branches", props.accessToken);
       setBranches(rows.filter((b) => b.isActive));
     } catch {
-      presentToast("error", "Не удалось загрузить филиалы");
+      presentToast("error", "Не удалось загрузить данные");
     } finally {
       setBranchesLoading(false);
     }

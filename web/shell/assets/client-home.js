@@ -225,7 +225,7 @@ if (session) {
       branches = Array.isArray(payload) ? payload.filter((branch) => branch.isActive !== false) : [];
     } catch (error) {
       branches = [];
-      const message = friendlyErrorMessage(error, "Не удалось загрузить филиалы. Попробуйте ещё раз чуть позже.");
+      const message = friendlyErrorMessage(error, "Не удалось загрузить данные для записи. Попробуйте ещё раз чуть позже.");
       homeError = homeError || message;
       showToast("error", message);
     } finally {

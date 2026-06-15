@@ -783,7 +783,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
       const rows = await requestJson<BranchRow[]>("/branches", props.accessToken);
       setBranches(rows.filter((branch) => branch.isActive));
     } catch (error) {
-      presentToast("error", friendlyErrorMessage(error, "Не удалось загрузить филиалы. Попробуйте ещё раз чуть позже."), "notificationError");
+      presentToast("error", friendlyErrorMessage(error, "Не удалось загрузить данные для записи. Попробуйте ещё раз чуть позже."), "notificationError");
       setBranches([]);
     } finally {
       setBranchesLoading(false);
@@ -1028,7 +1028,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
             >
               <GlassCard elevated style={styles.listCard}>
                 <Text style={styles.listTitle}>{formatVisitDate(visit.visitDate)}</Text>
-                <Text style={styles.listSubtitle}>{visit.branchName || "Филиал сервиса"}</Text>
+
                 <View style={styles.visitServiceTags}>
                   {(visit.serviceNames?.length ? visit.serviceNames : ["Состав услуг появится в деталях"]).map((serviceName) => (
                     <View key={`${visit.id}-${serviceName}`} style={styles.visitServiceTag}>
@@ -1072,7 +1072,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
           <>
             <GlassCard elevated style={styles.detailHeroCard}>
               <Text style={styles.detailHeroTitle}>{formatVisitDate(detail?.visitDate ?? selectedVisit.visitDate)}</Text>
-              <Text style={styles.detailHeroSubtitle}>{detail?.branchName || selectedVisit.branchName || "Филиал сервиса"}</Text>
+
               {detail?.adminName ? <Text style={styles.detailHeroHint}>Оформил: {detail.adminName}</Text> : null}
               {detail?.comment ? <Text style={styles.detailHeroHint}>Комментарий: {detail.comment}</Text> : null}
             </GlassCard>
@@ -1173,7 +1173,7 @@ export function ClientHomeScreen(props: ClientHomeProps) {
         {branchesLoading && !branches ? (
           <ListSkeleton rows={2} />
         ) : !branches?.length ? (
-          <EmptyState title="Запись пока недоступна" description="Подходящие филиалы скоро появятся здесь. Пока можно написать нам в чат." />
+          <EmptyState title="Запись пока недоступна" description="Автосервис скоро будет доступен для онлайн-записи. Пока можно написать нам в чат." />
         ) : (
           branches.map((branch) => (
             <GlassCard key={branch.id} elevated style={styles.listCard}>

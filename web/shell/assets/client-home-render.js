@@ -247,12 +247,10 @@ export function renderClientHomeApp(state) {
       <section class="client-screen client-fade">
         <div class="client-section-header">
           <h2 class="client-section-title">История посещений</h2>
-        </div>
         <div class="client-list">
           ${visits.map((visit) => `
             <article class="glass card client-list-card">
               <h3 class="client-list-title">${escapeHtml(formatDate(visit.visitDate))}</h3>
-              <p class="client-list-subtitle">${escapeHtml(visit.branchName || "Филиал сервиса")}</p>
               <p class="client-list-value">${escapeHtml(money(visit.finalAmount))}</p>
               ${visit.comment ? `<p class="client-list-hint">${escapeHtml(visit.comment)}</p>` : ""}
             </article>
@@ -305,7 +303,7 @@ export function renderClientHomeApp(state) {
   function renderBookingScreen() {
     if (branchesLoading && !branches) return renderListSkeleton(2);
     if (!branches?.length) {
-      return renderEmpty("Запись пока недоступна", "Подходящие филиалы скоро появятся здесь. Пока можно написать нам в чат.");
+      return renderEmpty("Запись пока недоступна", "Автосервис скоро будет доступен для онлайн-записи. Пока можно написать нам в чат.");
     }
     return `
       <section class="client-screen client-fade">

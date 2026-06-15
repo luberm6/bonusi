@@ -143,7 +143,7 @@
           <div class="workspace-toolbar">
             <div>
               <h2 class="workspace-section-title">История визитов</h2>
-              <p class="workspace-section-meta">Фильтруйте визиты по клиенту, филиалу, администратору и периоду.</p>
+              <p class="workspace-section-meta">Фильтруйте визиты по клиенту, администратору и периоду.</p>
             </div>
             <span class="badge badge-soft">Админка</span>
           </div>
@@ -156,7 +156,7 @@
                   <option value="">Все клиенты</option>
                 </select>
               </div>
-              <div class="workspace-field">
+              <div class="workspace-field" style="display:none;">
                 <label for="filter-branch">Филиал</label>
                 <select id="filter-branch" class="input">
                   <option value="">Все филиалы</option>
@@ -201,7 +201,7 @@
                 <tr>
                   <th>Дата</th>
                   <th>Клиент</th>
-                  <th>Филиал</th>
+                  <th style="display:none;">Филиал</th>
                   <th>Администратор</th>
                   <th>Сумма до скидки</th>
                   <th>Скидка</th>
@@ -232,7 +232,7 @@
         <section class="workspace-detail-grid" id="detail-grid">
           <article class="workspace-detail-card"><strong>Дата</strong><span id="detail-date">—</span></article>
           <article class="workspace-detail-card"><strong>Клиент</strong><span id="detail-client">—</span></article>
-          <article class="workspace-detail-card"><strong>Филиал</strong><span id="detail-branch">—</span></article>
+          <article class="workspace-detail-card" style="display:none;"><strong>Филиал</strong><span id="detail-branch">—</span></article>
           <article class="workspace-detail-card"><strong>Администратор</strong><span id="detail-admin">—</span></article>
           <article class="workspace-detail-card"><strong>Статус</strong><span id="detail-status">—</span></article>
           <article class="workspace-detail-card"><strong>Комментарий</strong><span id="detail-comment">—</span></article>

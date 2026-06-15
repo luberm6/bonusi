@@ -141,7 +141,7 @@ if (session) {
       pageState,
       "default",
       "Загружаем справочники",
-      "Подтягиваем клиентов, филиалы и список активных услуг.",
+      "Подтягиваем клиентов и список активных услуг.",
       "Визиты"
     );
 
@@ -195,8 +195,8 @@ if (session) {
       (branch) => branch.name
     );
 
-    // Автовыбор "СПб Центр" по умолчанию
-    const spbBranch = branches.find(b => b.name.toLowerCase().includes("спб центр") || b.name.toLowerCase().includes("спб"));
+    // Автовыбор филиала по умолчанию
+    const spbBranch = branches.find(b => b.name.toLowerCase().includes("спб центр") || b.name.toLowerCase().includes("спб")) || branches.filter(b => b.isActive)[0];
     if (spbBranch) {
       branchSelect.value = spbBranch.id;
     }

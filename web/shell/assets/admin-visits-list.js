@@ -137,7 +137,6 @@ if (session) {
     const branch = branches.find((item) => item.id === branchFilterElement.value);
     const admin = admins.find((item) => item.id === adminFilterElement.value);
     if (client) parts.push(`клиент: ${client.fullName || client.email}`);
-    if (branch) parts.push(`филиал: ${branch.name}`);
     if (admin) parts.push(`администратор: ${admin.fullName || admin.email}`);
     if (dateFromElement.value) parts.push(`от: ${dateFromElement.value}`);
     if (dateToElement.value) parts.push(`до: ${dateToElement.value}`);
@@ -253,7 +252,7 @@ if (session) {
           <div class="workspace-muted">${escapeHtml(visit.order_number || visit.orderNumber || visit.id)} · ${escapeHtml(visit.status || "—")}</div>
         </td>
         <td>${escapeHtml(visit.client_name || visit.clientName || "—")}</td>
-        <td>${escapeHtml(visit.branch_name || visit.branchName || "—")}</td>
+        <td style="display:none;">${escapeHtml(visit.branch_name || visit.branchName || "—")}</td>
         <td>${escapeHtml(visit.admin_name || visit.adminName || "—")}</td>
         <td class="workspace-amount">${money(visit.total_amount ?? visit.totalAmount)}</td>
         <td class="workspace-amount">${money(visit.discount_amount ?? visit.discountAmount)}</td>

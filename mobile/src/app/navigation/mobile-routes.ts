@@ -34,8 +34,6 @@ const adminDrawerCore: NavItem[] = [
   { key: "create_visit", label: "Создать визит", path: "/admin/visits/create" },
   { key: "services", label: "Услуги", path: "/admin/services" },
   { key: "create_service", label: "Создать услугу", path: "/admin/services/create" },
-  { key: "branches", label: "Филиалы", path: "/admin/branches" },
-  { key: "create_branch", label: "Создать филиал", path: "/admin/branches/create" },
   { key: "templates", label: "Шаблоны", path: "/admin/templates" }
 ];
 

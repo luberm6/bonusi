@@ -31,9 +31,9 @@
     ],
     "ios": {
       "bundleIdentifier": "ru.radius47.service",
-      "buildNumber": "13",
+      "buildNumber": "14",
       "infoPlist": {
-        "CFBundleDisplayName": "Centr Radius Service",
+        "CFBundleDisplayName": "Autoservice",
         "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
         "NSCameraUsageDescription": "Приложению нужен доступ к камере, чтобы вы могли сделать фото и отправить его в чат.",
         "NSMicrophoneUsageDescription": "Приложению нужен доступ к микрофону для записи видео."
@@ -41,7 +41,7 @@
     },
     "android": {
       "package": "ru.radius47.service",
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#000000"
