@@ -56,12 +56,12 @@ function toMessageView(row: MessageRow) {
 }
 
 function canAccessConversation(actor: AuthenticatedUser, conv: ConversationRow): boolean {
-  if (actor.role === "super_admin") return true;
+  if (actor.role === "super_admin" || actor.role === "admin") return true;
   return actor.id === conv.client_id || actor.id === conv.admin_id;
 }
 
 function canSendInConversation(actor: AuthenticatedUser, conv: ConversationRow): boolean {
-  if (actor.role === "super_admin") return true;
+  if (actor.role === "super_admin" || actor.role === "admin") return true;
   return actor.id === conv.client_id || actor.id === conv.admin_id;
 }
 
@@ -80,17 +80,15 @@ async function getConversationRaw(conversationId: string): Promise<ConversationR
 function resolveReceiverId(actorId: string, conv: ConversationRow): string {
   if (actorId === conv.client_id) return conv.admin_id;
   if (actorId === conv.admin_id) return conv.client_id;
-  return conv.client_id; // super_admin отправляет как admin, получатель — клиент
+  return conv.client_id; // Любой админ/суперадмин отправляет клиенту
 }
 
 export async function listConversations(actor: AuthenticatedUser) {
-  const where =
-    actor.role === "super_admin"
-      ? ""
-      : actor.role === "admin"
-        ? "where c.admin_id = $1"
-        : "where c.client_id = $1";
-  const params = actor.role === "super_admin" ? [] : [actor.id];
+  const isStaff = actor.role === "super_admin" || actor.role === "admin";
+  const where = isStaff
+    ? ""
+    : "where c.client_id = $1";
+  const params = isStaff ? [] : [actor.id];
   const senderCondition = actor.role === "client" ? "!= c.client_id" : "= c.client_id";
   const result = await pool.query(
     `select c.id, c.client_id, c.admin_id, c.created_at, c.updated_at,
