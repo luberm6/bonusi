@@ -692,32 +692,52 @@ export async function verifyOtpCode(input: {
       [phone]
     );
 
-    if (userResult.rowCount === 0) {
-      await client.query("commit");
-      throw new HttpError(404, "User with this phone number is not registered. Please contact administrator.");
-    }
-
-    const user = userResult.rows[0] as {
+    let user: {
       id: string;
       email: string;
       role: UserRole;
       is_active: boolean;
     };
 
-    if (!user.is_active) {
-      await client.query("commit");
-      throw new HttpError(403, "User is deactivated");
-    }
+    if (userResult.rowCount === 0) {
+      // Auto-register new client user
+      const placeholderEmail = `${phone.replace(/\D/g, "")}@noemail.placeholder`;
+      const dummyPasswordHash = "$2b$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // dummy bcrypt hash
+      const newUserResult = await client.query(
+        `insert into public.users (email, password_hash, role, is_active, phone_number, phone_verified_at, last_sms_login_at)
+         values ($1, $2, 'client', true, $3, now(), now())
+         returning id, email, role, is_active`,
+        [placeholderEmail, dummyPasswordHash, phone]
+      );
+      user = newUserResult.rows[0] as {
+        id: string;
+        email: string;
+        role: UserRole;
+        is_active: boolean;
+      };
+    } else {
+      user = userResult.rows[0] as {
+        id: string;
+        email: string;
+        role: UserRole;
+        is_active: boolean;
+      };
 
-    // Save phone verification info & last login
-    await client.query(
-      `update public.users
-       set phone_verified_at = coalesce(phone_verified_at, now()),
-           last_sms_login_at = now(),
-           phone_number = $2
-       where id = $1`,
-      [user.id, phone]
-    );
+      if (!user.is_active) {
+        await client.query("commit");
+        throw new HttpError(403, "User is deactivated");
+      }
+
+      // Save phone verification info & last login
+      await client.query(
+        `update public.users
+         set phone_verified_at = coalesce(phone_verified_at, now()),
+             last_sms_login_at = now(),
+             phone_number = $2
+         where id = $1`,
+        [user.id, phone]
+      );
+    }
 
     const deviceId = await upsertDevice(user.id, input.device, client);
     const refreshToken = createRawRefreshToken();
