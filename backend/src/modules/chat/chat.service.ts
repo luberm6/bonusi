@@ -148,7 +148,7 @@ export async function ensureConversation(actor: AuthenticatedUser, input: { clie
     if (existing.rowCount) return { id: existing.rows[0].id as string, created: false };
 
     const adminRes = await pool.query(
-      `select id from public.users where role = 'admin' and is_active = true order by created_at asc limit 1`
+      `select id from public.users where role in ('admin', 'super_admin') and is_active = true order by created_at asc limit 1`
     );
     if (!adminRes.rowCount) throw new HttpError(503, "Нет доступных администраторов");
     const adminId = adminRes.rows[0].id as string;
@@ -170,7 +170,7 @@ export async function ensureConversation(actor: AuthenticatedUser, input: { clie
     let adminId: string;
     if (actor.role === "super_admin") {
       const adminRes = await pool.query(
-        `select id from public.users where role = 'admin' and is_active = true order by created_at asc limit 1`
+        `select id from public.users where role in ('admin', 'super_admin') and is_active = true order by created_at asc limit 1`
       );
       adminId = adminRes.rows[0]?.id ?? actor.id;
     } else {
