@@ -62,7 +62,15 @@ export async function authGuard(req: Request, _res: Response, next: NextFunction
     }
 
     return next();
-  } catch (error) {
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      (error.name === "TokenExpiredError" ||
+        error.name === "JsonWebTokenError" ||
+        error.name === "NotBeforeError")
+    ) {
+      return next(new HttpError(401, "Token expired or invalid"));
+    }
     return next(error);
   }
 }
