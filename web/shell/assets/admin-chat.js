@@ -74,7 +74,11 @@ if (session) {
           }
         }).join("");
       }
-      node.innerHTML = `${message.text || ""}${attachmentsHtml}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
+      let resolvedText = message.text || message.body || message.content || message.message || message.preview || "";
+      if (!resolvedText && (!message.attachments || message.attachments.length === 0)) {
+        resolvedText = "[Пустое сообщение]";
+      }
+      node.innerHTML = `${resolvedText}${attachmentsHtml}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
       msgs.appendChild(node);
     }
     prevMessageIds = new Set(messages.map((m) => m.id));

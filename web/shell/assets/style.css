@@ -1357,8 +1357,9 @@ a.link:active {
 
 .workspace-msg.mine {
   align-self: flex-end;
-  color: #fff;
-  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #070A0D !important;
+  background: #ffffff; /* Fallback for non-gradient browsers */
+  background: linear-gradient(135deg, var(--primary, #fdfcfe), var(--primary-2, #ffffff));
   border-bottom-right-radius: 8px;
 }
 
@@ -1574,4 +1575,18 @@ a.link:active {
   font-size: 11px;
   text-transform: uppercase;
   margin-left: 4px;
+}
+
+@media (forced-colors: active) {
+  .workspace-msg.mine,
+  .workspace-msg.other {
+    forced-color-adjust: none;
+    background: CanvasText !important;
+    color: Canvas !important;
+    border: 1px solid Canvas;
+  }
+  .workspace-msg.mine *,
+  .workspace-msg.other * {
+    color: Canvas !important;
+  }
 }
