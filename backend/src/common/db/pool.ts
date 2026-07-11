@@ -4,7 +4,9 @@ import { env } from "../config/env.js";
 const pool = new Pool({
   connectionString: env.databaseUrl,
   max: 20,
-  idleTimeoutMillis: 30000
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 3000, // 3s timeout for obtaining connection from pool
+  query_timeout: 5000           // 5s timeout for executing queries
 });
 
 export async function dbPing(): Promise<boolean> {
