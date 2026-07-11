@@ -4,14 +4,18 @@ initAdminCreateForm({
   formElementId: "client-form",
   submitPath: "/users",
   buildBody: () => {
+    const phone = document.getElementById("phone").value.trim();
+    const cleanPhone = phone.replace(/\D/g, "");
+    const email = cleanPhone ? `${cleanPhone}@noemail.placeholder` : `${Date.now()}@noemail.placeholder`;
+    const password = "dummy-" + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
     const carYear = document.getElementById("car-year").value.trim();
     const odometerKm = document.getElementById("odometer-km").value.trim();
     return {
-      email: document.getElementById("email").value.trim(),
-      password: document.getElementById("password").value,
+      email,
+      password,
       role: "client",
       fullName: document.getElementById("full-name").value.trim() || null,
-      phone: document.getElementById("phone").value.trim() || null,
+      phone: phone || null,
       notes: document.getElementById("notes").value.trim() || null,
       isActive: true,
       carBrand: document.getElementById("car-brand").value.trim() || null,
