@@ -1599,6 +1599,8 @@ html, body {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Allow text copy-pasting for utility fields */
@@ -1612,6 +1614,10 @@ td {
 }
 
 /* 2. Sleek Custom Scrollbars to avoid Windows default grey scrollbar UI */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.05);
+}
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
