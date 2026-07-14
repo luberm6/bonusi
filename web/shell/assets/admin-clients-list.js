@@ -137,7 +137,8 @@ function closeResetModal() {
 
 function openResetModal(client) {
   activeClient = client;
-  copyElement.textContent = `Обновите пароль для клиента ${client.fullName || client.email}. Старый пароль перестанет работать сразу после сохранения.`;
+  const displayName = client.fullName || (client.email && client.email.endsWith("@noemail.placeholder") ? client.phone : client.email);
+  copyElement.textContent = `Обновите пароль для клиента ${displayName || "Клиент"}. Старый пароль перестанет работать сразу после сохранения.`;
   errorElement.textContent = "";
   successElement.textContent = "";
   newPasswordElement.value = "";
@@ -212,8 +213,27 @@ function closeClientProfile() {
 function openClientProfile(client) {
   activeProfileClient = client;
   profileTitleElement.textContent = client.fullName || "Без имени";
-  profileSubtitleElement.textContent = `Карточка клиента ${client.email}. Ниже показываем историю визитов от новых к старым.`;
-  profileEmailElement.textContent = client.email || "—";
+  
+  const isPlaceholderEmail = client.email && client.email.endsWith("@noemail.placeholder");
+  profileSubtitleElement.textContent = isPlaceholderEmail
+    ? "Карточка клиента. Ниже показываем историю визитов от новых к старым."
+    : `Карточка клиента ${client.email}. Ниже показываем историю визитов от новых к старым.`;
+    
+  profileEmailElement.textContent = isPlaceholderEmail ? "—" : (client.email || "—");
+
+  const emailCard = document.getElementById("profile-email-card");
+  const emailField = document.getElementById("profile-email-field");
+  
+  if (isPlaceholderEmail) {
+    if (emailCard) emailCard.style.display = "none";
+    if (emailField) emailField.style.display = "none";
+    if (emailInput) emailInput.removeAttribute("required");
+  } else {
+    if (emailCard) emailCard.style.display = "block";
+    if (emailField) emailField.style.display = "block";
+    if (emailInput) emailInput.setAttribute("required", "required");
+  }
+
   profilePhoneElement.textContent = client.phone || "Не указан";
   profileStatusElement.textContent = client.isActive ? "Активен" : "Отключен";
   profileLastSeenElement.textContent = formatAdminDate(client.lastSeen);
@@ -407,10 +427,9 @@ profileModalElement?.addEventListener("click", (event) => {
 profileDeleteElement?.addEventListener("click", async () => {
   if (!activeProfileClient) return;
 
+  const displayName = activeProfileClient.fullName || (activeProfileClient.email && activeProfileClient.email.endsWith("@noemail.placeholder") ? activeProfileClient.phone : activeProfileClient.email);
   const confirmed = window.confirm(
-    `Вы уверены, что хотите полностью удалить клиента ${
-      activeProfileClient.fullName || activeProfileClient.email
-    }? Это действие удалит все его визиты, сообщения в чате и транзакции. Отменить удаление невозможно!`
+    `Вы уверены, что хотите полностью удалить клиента ${displayName || "Клиент"}? Это действие удалит все его визиты, сообщения в чате и транзакции. Отменить удаление невозможно!`
   );
   if (!confirmed) return;
 
@@ -488,9 +507,18 @@ basicFormElement?.addEventListener("submit", async (event) => {
   if (basicSuccessElement) basicSuccessElement.textContent = "";
   if (basicSubmitElement) basicSubmitElement.disabled = true;
 
-  const email = emailInput?.value.trim();
+  let email = emailInput?.value.trim();
   const phone = phoneInput?.value.trim() || null;
   const fullName = fullNameInput?.value.trim() || null;
+
+  const isPlaceholderEmail = activeProfileClient.email && activeProfileClient.email.endsWith("@noemail.placeholder");
+  if (isPlaceholderEmail && phone) {
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (cleanPhone) {
+      email = `${cleanPhone}@noemail.placeholder`;
+      if (emailInput) emailInput.value = email;
+    }
+  }
 
   if (!email) {
     if (basicErrorElement) basicErrorElement.textContent = "Email обязателен.";
@@ -511,7 +539,22 @@ basicFormElement?.addEventListener("submit", async (event) => {
     });
     // Обновляем spans/titles
     profileTitleElement.textContent = updated.fullName || "Без имени";
-    profileEmailElement.textContent = updated.email || "—";
+    
+    const isUpdatedPlaceholder = updated.email && updated.email.endsWith("@noemail.placeholder");
+    profileEmailElement.textContent = isUpdatedPlaceholder ? "—" : (updated.email || "—");
+
+    const emailCard = document.getElementById("profile-email-card");
+    const emailField = document.getElementById("profile-email-field");
+    if (isUpdatedPlaceholder) {
+      if (emailCard) emailCard.style.display = "none";
+      if (emailField) emailField.style.display = "none";
+      if (emailInput) emailInput.removeAttribute("required");
+    } else {
+      if (emailCard) emailCard.style.display = "block";
+      if (emailField) emailField.style.display = "block";
+      if (emailInput) emailInput.setAttribute("required", "required");
+    }
+
     profilePhoneElement.textContent = updated.phone || "Не указан";
     // Обновляем локальный объект клиента
     Object.assign(activeProfileClient, {
@@ -651,9 +694,10 @@ function renderFilteredClients() {
 
   for (const client of filtered) {
     const row = document.createElement("tr");
+    const isPlaceholder = client.email && client.email.endsWith("@noemail.placeholder");
     row.innerHTML = `
       <td><strong>${escapeHtml(client.fullName || "Без имени")}</strong></td>
-      <td>${escapeHtml(client.email)}</td>
+      <td>${isPlaceholder ? "—" : escapeHtml(client.email)}</td>
       <td>${escapeHtml(client.phone || "—")}</td>
       <td><span class="${client.isActive ? "badge-on" : "badge-off"}">${client.isActive ? "Активен" : "Отключен"}</span></td>
       <td>${escapeHtml(formatAdminDate(client.lastSeen))}</td>

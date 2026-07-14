@@ -185,7 +185,7 @@ if (session) {
       clientSelect,
       "— Выберите клиента —",
       users.filter((user) => user.role === "client"),
-      (user) => user.fullName || user.email
+      (user) => user.fullName || (user.email && user.email.endsWith("@noemail.placeholder") ? user.phone : user.email)
     );
 
     populateSelect(

@@ -136,7 +136,10 @@ if (session) {
     const client = clients.find((item) => item.id === clientFilterElement.value);
     const branch = branches.find((item) => item.id === branchFilterElement.value);
     const admin = admins.find((item) => item.id === adminFilterElement.value);
-    if (client) parts.push(`клиент: ${client.fullName || client.email}`);
+    if (client) {
+      const clientLabel = client.fullName || (client.email && client.email.endsWith("@noemail.placeholder") ? client.phone : client.email);
+      parts.push(`клиент: ${clientLabel}`);
+    }
     if (admin) parts.push(`администратор: ${admin.fullName || admin.email}`);
     if (dateFromElement.value) parts.push(`от: ${dateFromElement.value}`);
     if (dateToElement.value) parts.push(`до: ${dateToElement.value}`);
@@ -328,7 +331,7 @@ if (session) {
         : [];
     branches = branchesResult.status === "fulfilled" ? branchesResult.value : [];
 
-    populateSelect(clientFilterElement, "Все клиенты", clients, (item) => item.fullName || item.email);
+    populateSelect(clientFilterElement, "Все клиенты", clients, (item) => item.fullName || (item.email && item.email.endsWith("@noemail.placeholder") ? item.phone : item.email));
     populateSelect(branchFilterElement, "Все филиалы", branches, (item) => item.name);
     populateSelect(adminFilterElement, "Все администраторы", admins, (item) => item.fullName || item.email);
 
