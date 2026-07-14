@@ -682,14 +682,18 @@ export async function verifyOtpCode(input: {
       [otp.id]
     );
 
-    // Find user by phone_number or phone (supporting suffix match of last 10 digits to handle any formatting)
+    const cleanPhone = phone.replace(/\D/g, "");
+    const placeholderEmail = `${cleanPhone}@noemail.placeholder`;
+
+    // Find user by phone_number, phone, or placeholder email (supporting suffix match of last 10 digits to handle any formatting)
     const userResult = await client.query(
       `select id, email, role, is_active
        from public.users
        where right(regexp_replace(coalesce(phone_number, ''), '\D', '', 'g'), 10) = right($1, 10)
           or right(regexp_replace(coalesce(phone, ''), '\D', '', 'g'), 10) = right($1, 10)
+          or email = $2
        limit 1`,
-      [phone]
+      [phone, placeholderEmail]
     );
 
     let user: {
@@ -701,7 +705,6 @@ export async function verifyOtpCode(input: {
 
     if (userResult.rowCount === 0) {
       // Auto-register new client user
-      const placeholderEmail = `${phone.replace(/\D/g, "")}@noemail.placeholder`;
       const dummyPasswordHash = "$2b$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // dummy bcrypt hash
       const newUserResult = await client.query(
         `insert into public.users (email, password_hash, role, is_active, phone_number, phone_verified_at, last_sms_login_at)

@@ -8,6 +8,17 @@ const ALLOWED_CONTENT_TYPES = new Set([
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   "application/octet-stream",
+  "application/x-excel",
+  "application/excel",
+  "application/x-msexcel",
+  "application/xls",
+  "application/x-xls",
+  "application/zip",
+  "application/x-zip-compressed",
+  "text/plain",
+  "text/csv",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "document"
 ]);
 

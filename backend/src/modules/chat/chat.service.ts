@@ -94,7 +94,7 @@ export async function listConversations(actor: AuthenticatedUser) {
     `select c.id, c.client_id, c.admin_id, c.created_at, c.updated_at,
             m.id as last_message_id, m.text as last_message_text, m.created_at as last_message_at,
             coalesce(unread.unread_count, 0) as unread_count,
-            cu.email as client_email, cu.full_name as client_name
+            cu.email as client_email, cu.full_name as client_name, cu.phone as client_phone
      from public.conversations c
      left join public.users cu on cu.id = c.client_id
      left join lateral (
@@ -122,6 +122,7 @@ export async function listConversations(actor: AuthenticatedUser) {
     adminId: row.admin_id,
     clientEmail: row.client_email as string | null,
     clientName: row.client_name as string | null,
+    clientPhone: row.client_phone as string | null,
     updatedAt: row.updated_at,
     createdAt: row.created_at,
     unreadCount: Number(row.unread_count),

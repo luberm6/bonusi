@@ -2,6 +2,7 @@ import { HttpError } from "./error.js";
 
 const UNIQUE_VIOLATION_MESSAGES: Record<string, string> = {
   uq_users_phone: "Пользователь с таким телефоном уже существует",
+  uq_users_phone_number: "Пользователь с таким телефоном уже существует",
   uq_services_name: "Услуга с таким названием уже существует",
   uq_devices_push_token: "Устройство с таким push token уже зарегистрировано",
   messages_client_msg_dedupe: "Сообщение с таким client_message_id уже существует",

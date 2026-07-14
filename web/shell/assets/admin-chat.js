@@ -167,6 +167,39 @@ if (session) {
       return;
     }
 
+  const getClientDisplayName = (c) => {
+    if (!c) return "Переписка";
+    if (c.clientName && c.clientName.trim()) {
+      return c.clientName.trim();
+    }
+    if (c.clientPhone && c.clientPhone.trim()) {
+      return c.clientPhone.trim();
+    }
+    if (c.clientEmail) {
+      if (c.clientEmail.endsWith("@noemail.placeholder")) {
+        const phoneDigits = c.clientEmail.split("@")[0];
+        if (phoneDigits.length === 11 && (phoneDigits.startsWith("7") || phoneDigits.startsWith("8"))) {
+          return `+7 (${phoneDigits.substring(1, 4)}) ${phoneDigits.substring(4, 7)}-${phoneDigits.substring(7, 9)}-${phoneDigits.substring(9, 11)}`;
+        }
+        return "+" + phoneDigits;
+      }
+      return c.clientEmail;
+    }
+    return "Клиент";
+  };
+
+  const renderConversationList = (conversations) => {
+    conversationList.innerHTML = "";
+    if (conversations.length === 0) {
+      renderWorkspaceState(
+        chatState,
+        "default",
+        "Нет активных диалогов",
+        "Ожидаем обращений клиентов.",
+        "Чат пуст"
+      );
+      return;
+    }
     renderWorkspaceState(
       chatState,
       "success",
@@ -184,9 +217,9 @@ if (session) {
         conversation.unreadCount > 0
           ? `<span class="unread-badge">${conversation.unreadCount}</span>`
           : "";
-      const clientLabel = conversation.clientName || conversation.clientEmail || "Клиент";
+      const clientLabel = getClientDisplayName(conversation);
       item.innerHTML = `
-        <div class="workspace-chat-name">${clientLabel}${unreadBadge}</div>
+        <div class="workspace-chat-name">${escapeHtml(clientLabel)}${unreadBadge}</div>
         <div class="workspace-chat-preview">${renderConversationPreview(conversation)}</div>
       `;
       item.addEventListener("click", () => {
@@ -201,7 +234,7 @@ if (session) {
     lastMessageIds = ""; // сбрасываем кэш, чтобы renderMessagesOnly всегда отрисовал
     prevMessageIds = new Set(); // при смене диалога все сообщения — "старые", без анимации
     
-    const clientName = conversation ? (conversation.clientName || conversation.clientPhone || "Клиент") : "Переписка";
+    const clientName = getClientDisplayName(conversation);
     const clientPhone = conversation && conversation.clientPhone && conversation.clientName ? conversation.clientPhone : "";
 
     chatPanel.innerHTML = `
@@ -379,12 +412,28 @@ if (session) {
         const messageId = responseData?.message?.id;
         if (draftFile && messageId) {
           const contentBase64 = await readAsBase64(draftFile);
+          const allowedTypes = [
+            "image/jpeg", "image/png", "image/webp", "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/octet-stream",
+            "application/x-excel", "application/excel", "application/x-msexcel",
+            "application/xls", "application/x-xls", "application/zip",
+            "application/x-zip-compressed", "text/plain", "text/csv",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "document"
+          ];
+          const fileType = allowedTypes.includes(draftFile.type) ? draftFile.type : "application/octet-stream";
+
           await authFetchJson("/files/upload", {
             method: "POST",
             body: {
               messageId,
               fileName: draftFile.name,
-              fileType: draftFile.type || "application/octet-stream",
+              fileType,
               size: draftFile.size,
               contentBase64
             }
