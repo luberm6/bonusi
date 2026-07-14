@@ -169,8 +169,9 @@ if (session) {
 
   const getClientDisplayName = (c) => {
     if (!c) return "Переписка";
-    if (c.clientName && c.clientName.trim()) {
-      return c.clientName.trim();
+    const name = c.clientName || c.fullName || c.name;
+    if (name && name.trim()) {
+      return name.trim();
     }
     if (c.clientPhone && c.clientPhone.trim()) {
       return c.clientPhone.trim();

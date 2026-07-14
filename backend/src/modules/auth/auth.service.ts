@@ -503,6 +503,21 @@ export function normalizePhoneNumber(phone: string): string {
   return digits ? "+" + digits : "";
 }
 
+export function formatPhoneNumber(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  let val = digits;
+  if (digits.startsWith("8") || digits.startsWith("7")) {
+    val = "7" + digits.substring(1);
+  } else if (digits.length === 10) {
+    val = "7" + digits;
+  }
+  
+  if (val.length === 11 && val.startsWith("7")) {
+    return `+7 (${val.substring(1, 4)}) ${val.substring(4, 7)}-${val.substring(7, 9)}-${val.substring(9, 11)}`;
+  }
+  return phone.trim().startsWith("+") ? `+${digits}` : digits;
+}
+
 export async function requestOtpCode(input: { phone: string; ip: string; userAgent?: string }) {
   if (!env.smsOtpEnabled) {
     throw new HttpError(400, "SMS login is disabled");
@@ -703,14 +718,16 @@ export async function verifyOtpCode(input: {
       is_active: boolean;
     };
 
+    const formattedPhone = formatPhoneNumber(phone);
+
     if (userResult.rowCount === 0) {
       // Auto-register new client user
       const dummyPasswordHash = "$2b$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // dummy bcrypt hash
       const newUserResult = await client.query(
-        `insert into public.users (email, password_hash, role, is_active, phone_number, phone_verified_at, last_sms_login_at)
-         values ($1, $2, 'client', true, $3, now(), now())
+        `insert into public.users (email, password_hash, role, is_active, phone_number, phone, phone_verified_at, last_sms_login_at)
+         values ($1, $2, 'client', true, $3, $4, now(), now())
          returning id, email, role, is_active`,
-        [placeholderEmail, dummyPasswordHash, phone]
+        [placeholderEmail, dummyPasswordHash, phone, formattedPhone]
       );
       user = newUserResult.rows[0] as {
         id: string;
@@ -731,14 +748,15 @@ export async function verifyOtpCode(input: {
         throw new HttpError(403, "User is deactivated");
       }
 
-      // Save phone verification info & last login
+      // Save phone verification info & last login, ensuring we also populate the phone field if it is currently null/empty
       await client.query(
         `update public.users
          set phone_verified_at = coalesce(phone_verified_at, now()),
              last_sms_login_at = now(),
-             phone_number = $2
+             phone_number = $2,
+             phone = coalesce(phone, $3)
          where id = $1`,
-        [user.id, phone]
+        [user.id, phone, formattedPhone]
       );
     }
 
