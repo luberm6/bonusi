@@ -172,11 +172,27 @@ export async function createUser(actor: AuthenticatedUser, dto: CreateUserDto) {
     await client.query("begin");
     const created = await client.query(
       `insert into public.users
-       (email, password_hash, role, created_by, is_active, full_name, phone, notes, car_brand, car_model, car_plate, car_year, odometer_km, car_vin)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       (email, password_hash, role, created_by, is_active, full_name, phone, phone_number, notes, car_brand, car_model, car_plate, car_year, odometer_km, car_vin)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        on conflict (email) do nothing
        returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at, car_brand, car_model, car_plate, car_year, odometer_km, car_vin`,
-      [dto.email, passwordHash, dto.role, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes, dto.carBrand, dto.carModel, dto.carPlate, dto.carYear, dto.odometerKm, dto.carVin]
+      [
+        dto.email,
+        passwordHash,
+        dto.role,
+        actor.id,
+        dto.isActive,
+        dto.fullName,
+        dto.phone,
+        dto.phone ? normalizePhone(dto.phone) : null,
+        dto.notes,
+        dto.carBrand,
+        dto.carModel,
+        dto.carPlate,
+        dto.carYear,
+        dto.odometerKm,
+        dto.carVin
+      ]
     );
     if (created.rowCount === 0) {
       throw new HttpError(409, "User with this email already exists");
