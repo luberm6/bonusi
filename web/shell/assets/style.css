@@ -1590,3 +1590,39 @@ a.link:active {
     color: Canvas !important;
   }
 }
+
+/* --- Windows OS & Hybrid Mobile WebView Optimizations --- */
+
+/* 1. Prevent native overscroll bounces and pulling-to-refresh artifacts */
+html, body {
+  overscroll-behavior-y: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Allow text copy-pasting for utility fields */
+input,
+textarea,
+.workspace-msg,
+.workspace-client-summary-card,
+td {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* 2. Sleek Custom Scrollbars to avoid Windows default grey scrollbar UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
