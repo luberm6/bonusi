@@ -53,14 +53,8 @@ function deriveRenderApiBase() {
 }
 
 function resolveApiBase() {
-  if (typeof window !== "undefined") {
-    if (window.__AUTOSERVICE_API_BASE__) {
-      return window.__AUTOSERVICE_API_BASE__;
-    }
-    const host = window.location.hostname;
-    if (host === "localhost" || host === "127.0.0.1" || host === "") {
-      return "http://localhost:4000/api/v1";
-    }
+  if (typeof window !== "undefined" && window.__AUTOSERVICE_API_BASE__) {
+    return window.__AUTOSERVICE_API_BASE__;
   }
   return RENDER_BACKEND_API_BASE;
 }
