@@ -688,16 +688,14 @@ function renderFilteredClients() {
   });
 
   if (filtered.length === 0) {
-    activeTableBody.innerHTML = '<tr><td colspan="6"><p class="workspace-empty">Клиентов с таким номером телефона не найдено.</p></td></tr>';
+    activeTableBody.innerHTML = '<tr><td colspan="5"><p class="workspace-empty">Клиентов с таким номером телефона не найдено.</p></td></tr>';
     return;
   }
 
   for (const client of filtered) {
     const row = document.createElement("tr");
-    const isPlaceholder = client.email && client.email.endsWith("@noemail.placeholder");
     row.innerHTML = `
       <td><strong>${escapeHtml(client.fullName || "Без имени")}</strong></td>
-      <td>${isPlaceholder ? "—" : escapeHtml(client.email)}</td>
       <td>${escapeHtml(client.phone || "—")}</td>
       <td><span class="${client.isActive ? "badge-on" : "badge-off"}">${client.isActive ? "Активен" : "Отключен"}</span></td>
       <td>${escapeHtml(formatAdminDate(client.lastSeen))}</td>
