@@ -1,5 +1,23 @@
 import { initAdminCreateForm } from "/assets/admin-form-page.js";
 
+const phoneInput = document.getElementById("phone");
+if (phoneInput) {
+  phoneInput.addEventListener('input', function(e) {
+    let val = e.target.value.replace(/\D/g, '');
+    if (!val) { e.target.value = ''; return; }
+    if (val[0] === '8' || val[0] === '7') val = '7' + val.substring(1);
+    else if (val[0] === '9') val = '7' + val;
+    else val = '7' + val;
+    
+    let res = '+7';
+    if (val.length > 1) res += ' (' + val.substring(1, 4);
+    if (val.length >= 5) res += ') ' + val.substring(4, 7);
+    if (val.length >= 8) res += '-' + val.substring(7, 9);
+    if (val.length >= 10) res += '-' + val.substring(9, 11);
+    e.target.value = res;
+  });
+}
+
 initAdminCreateForm({
   formElementId: "client-form",
   submitPath: "/users",

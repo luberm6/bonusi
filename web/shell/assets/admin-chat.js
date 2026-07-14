@@ -197,11 +197,19 @@ if (session) {
   };
 
   // Полный рендер панели — при первом открытии диалога
-  const renderMessages = (messages) => {
+  const renderMessages = (messages, conversation) => {
     lastMessageIds = ""; // сбрасываем кэш, чтобы renderMessagesOnly всегда отрисовал
     prevMessageIds = new Set(); // при смене диалога все сообщения — "старые", без анимации
+    
+    const clientName = conversation ? (conversation.clientName || conversation.clientPhone || "Клиент") : "Переписка";
+    const clientPhone = conversation && conversation.clientPhone && conversation.clientName ? conversation.clientPhone : "";
+
     chatPanel.innerHTML = `
       <div class="workspace-chat-board">
+        <div class="workspace-chat-header" style="padding: 10px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <span style="font-weight: 700; color: #fff; font-size: 15px;">👤 ${escapeHtml(clientName)}</span>
+          ${clientPhone ? `<span style="font-size: 13px; color: var(--muted); font-family: monospace;">${escapeHtml(clientPhone)}</span>` : ""}
+        </div>
         <div class="workspace-chat-messages" id="msgs"></div>
         <div class="workspace-chat-compose" style="flex-direction: column; align-items: stretch;">
           <div id="file-preview-bar" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:4px;margin-bottom:8px;">
@@ -427,7 +435,8 @@ if (session) {
 
     try {
       const messages = await authFetchJson(`/chat/conversations/${conversationId}/messages`);
-      renderMessages(messages);
+      const conversation = typeof conversationOrId === "object" ? conversationOrId : (currentList ? currentList.find(c => c.id === conversationId) : null);
+      renderMessages(messages, conversation);
       bindMessageComposer(conversationId);
       startPolling(conversationId);
     } catch (error) {
