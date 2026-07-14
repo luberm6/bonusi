@@ -149,24 +149,6 @@ if (session) {
     return `${lastMessage}${lastAt}`;
   };
 
-  const renderConversationList = (conversations) => {
-    conversationList.innerHTML = "";
-
-    if (!conversations.length) {
-      renderWorkspaceState(
-        chatState,
-        "default",
-        "Диалогов пока нет",
-        "Когда клиент напишет первым, диалог появится здесь автоматически.",
-        "Чат"
-      );
-      conversationList.innerHTML =
-        '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Диалогов пока нет.</p></div>';
-      chatPanel.innerHTML =
-        '<div id="no-conv" class="workspace-panel workspace-panel-compact" style="color:#94a3b8;padding:32px;text-align:center;">Ожидаем первого обращения от клиента.</div>';
-      return;
-    }
-
   const getClientDisplayName = (c) => {
     if (!c) return "Переписка";
     const name = c.clientName || c.fullName || c.name;
@@ -195,10 +177,14 @@ if (session) {
       renderWorkspaceState(
         chatState,
         "default",
-        "Нет активных диалогов",
-        "Ожидаем обращений клиентов.",
-        "Чат пуст"
+        "Диалогов пока нет",
+        "Когда клиент напишет первым, диалог появится здесь автоматически.",
+        "Чат"
       );
+      conversationList.innerHTML =
+        '<div class="workspace-panel workspace-panel-compact"><p class="workspace-empty">Диалогов пока нет.</p></div>';
+      chatPanel.innerHTML =
+        '<div id="no-conv" class="workspace-panel workspace-panel-compact" style="color:#94a3b8;padding:32px;text-align:center;">Ожидаем первого обращения от клиента.</div>';
       return;
     }
     renderWorkspaceState(
