@@ -316,8 +316,8 @@ if (session) {
         const file = dt.files[0];
         if (!file) return;
 
-        if (file.size > 10 * 1024 * 1024) {
-          showToast("Файл слишком большой. Максимальный размер 10 МБ", "error");
+        if (file.size > 30 * 1024 * 1024) {
+          showToast("Файл слишком большой. Максимальный размер 30 МБ", "error");
           return;
         }
 
@@ -358,8 +358,8 @@ if (session) {
     fileInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      if (file.size > 10 * 1024 * 1024) {
-        showToast("Файл слишком большой. Максимальный размер 10 МБ", "error");
+      if (file.size > 30 * 1024 * 1024) {
+        showToast("Файл слишком большой. Максимальный размер 30 МБ", "error");
         fileInput.value = "";
         return;
       }

@@ -50,8 +50,8 @@ export function parseUploadFileDto(body: unknown): UploadFileDto {
     throw new HttpError(400, "fileType must be an allowed format (image, pdf, word, excel, octet-stream)");
   }
   if (!contentBase64) throw new HttpError(400, "contentBase64 is required");
-  if (!Number.isFinite(size) || size <= 0 || size > 20 * 1024 * 1024) {
-    throw new HttpError(400, "size must be between 1 and 20971520");
+  if (!Number.isFinite(size) || size <= 0 || size > 30 * 1024 * 1024) {
+    throw new HttpError(400, "size must be between 1 and 31457280");
   }
 
   return {
