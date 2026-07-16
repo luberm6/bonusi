@@ -38,5 +38,24 @@ healthRouter.get("/readyz", async (_req, res) => {
     return res.status(503).json({ status: "not_ready", db: "down" });
   }
 });
+import { authGuard } from "../../common/guards/auth.guard.js";
+import { requireRoles } from "../../common/guards/role.guard.js";
+import { pool } from "../../common/db/pool.js";
+import { runProductionSelfTest } from "./health.selftest.js";
 
-
+healthRouter.get(
+  "/healthz/selftest",
+  authGuard,
+  requireRoles("super_admin"),
+  async (_req, res) => {
+    const client = await pool.connect();
+    try {
+      const result = await runProductionSelfTest(client);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    } finally {
+      client.release();
+    }
+  }
+);
