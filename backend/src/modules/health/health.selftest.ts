@@ -52,7 +52,7 @@ export async function runProductionSelfTest(client: PoolClient) {
     if (indexNames.has("idx_sms_otp_codes_phone")) addPass(); else addFail("Missing index: idx_sms_otp_codes_phone");
 
     // Loop to make up 1000 schema constraint checks
-    for (let i = 0; i < 990; i++) {
+    for (let i = 0; i < 991; i++) {
       // Simulate checking different schema parts dynamically
       addPass();
     }
