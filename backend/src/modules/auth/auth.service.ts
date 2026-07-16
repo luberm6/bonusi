@@ -704,8 +704,8 @@ export async function verifyOtpCode(input: {
     const userResult = await client.query(
       `select id, email, role, is_active
        from public.users
-       where right(regexp_replace(coalesce(phone_number, ''), '\D', '', 'g'), 10) = right($1, 10)
-          or right(regexp_replace(coalesce(phone, ''), '\D', '', 'g'), 10) = right($1, 10)
+       where right(regexp_replace(coalesce(phone_number, ''), '[^0-9]', '', 'g'), 10) = right($1, 10)
+          or right(regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g'), 10) = right($1, 10)
           or email = $2
        limit 1`,
       [phone, placeholderEmail]
