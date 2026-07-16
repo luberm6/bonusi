@@ -119,7 +119,7 @@ export async function runProductionSelfTest(client: PoolClient) {
   // Group 3: Sandbox Write Transactions (3000 checks)
   // -------------------------------------------------------------
   try {
-    await client.query("SAVEPOINT selftest_sandbox_8000");
+    await client.query("BEGIN");
 
     for (let i = 0; i < 3000; i++) {
       const email = `test-sandbox-8000-${i}@test-selftest.placeholder`;
@@ -134,11 +134,11 @@ export async function runProductionSelfTest(client: PoolClient) {
       addPass();
     }
 
-    await client.query("ROLLBACK TO SAVEPOINT selftest_sandbox_8000");
+    await client.query("ROLLBACK");
     console.log("[selftest] Sandbox 3000 write tests rolled back successfully.");
   } catch (err: any) {
     try {
-      await client.query("ROLLBACK TO SAVEPOINT selftest_sandbox_8000");
+      await client.query("ROLLBACK");
     } catch {}
     addFail(`Group 3 sandbox writes failed: ${err.message}`);
     const remaining = 8000 - (summary.passed + summary.failed);
