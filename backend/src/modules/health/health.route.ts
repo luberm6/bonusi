@@ -59,6 +59,34 @@ healthRouter.get("/db-diagnostics", async (req, res) => {
        where u.role = 'client'`
     );
 
+    const normalizePhone = (p: string): string => {
+      const digits = p.replace(/\D/g, "");
+      if (digits.startsWith("8") && digits.length === 11) {
+        return "+7" + digits.substring(1);
+      }
+      if (digits.startsWith("7") && digits.length === 11) {
+        return "+" + digits;
+      }
+      if (p.trim().startsWith("+")) {
+        return "+" + digits;
+      }
+      return digits ? "+" + digits : "";
+    };
+
+    const formatPhone = (p: string): string => {
+      const digits = p.replace(/\D/g, "");
+      let val = digits;
+      if (digits.startsWith("8") || digits.startsWith("7")) {
+        val = "7" + digits.substring(1);
+      } else if (digits.length === 10) {
+        val = "7" + digits;
+      }
+      if (val.length === 11 && val.startsWith("7")) {
+        return `+7 (${val.substring(1, 4)}) ${val.substring(4, 7)}-${val.substring(7, 9)}-${val.substring(9, 11)}`;
+      }
+      return p.trim().startsWith("+") ? `+${digits}` : digits;
+    };
+
     // Group by last 10 digits of phone/email to find duplicate entries
     const grouped = new Map<string, any[]>();
     for (const row of duplicatesQuery.rows) {
@@ -71,19 +99,51 @@ healthRouter.get("/db-diagnostics", async (req, res) => {
       }
     }
 
+    let deletedDuplicatesCount = 0;
+    let synchronizedAccountsCount = 0;
+
     const duplicateGroups: any[] = [];
     for (const [suffix, list] of grouped.entries()) {
       if (list.length > 1) {
         duplicateGroups.push({ suffix, accounts: list });
+
+        if (req.query.fix === "true") {
+          // Find if there is a duplicate with 0 activity
+          const emptyAccounts = list.filter(a => a.visits_count === 0 && a.messages_count === 0 && a.bonus_count === 0);
+          const activeAccounts = list.filter(a => a.visits_count > 0 || a.messages_count > 0 || a.bonus_count > 0);
+
+          let masterAccount = activeAccounts[0] || list[0];
+          
+          // Delete empty duplicate accounts that are not the master account
+          for (const empty of emptyAccounts) {
+            if (empty.id !== masterAccount.id) {
+              await pool.query("delete from public.users where id = $1", [empty.id]);
+              deletedDuplicatesCount++;
+            }
+          }
+
+          // Update the master account with formatted and normalized phone
+          const rawPhone = masterAccount.phone_number || masterAccount.phone || suffix;
+          await pool.query(
+            `update public.users 
+             set phone_number = $2,
+                 phone = $3
+             where id = $1`,
+            [masterAccount.id, normalizePhone(rawPhone), formatPhone(rawPhone)]
+          );
+          synchronizedAccountsCount++;
+        }
       }
     }
 
+    // Return the updated counts and list
     return res.json({
       success: true,
       usersTotal: usersCount.rows[0].count,
       attachmentsTotal: attCount.rows[0].count,
-      duplicateGroupsCount: duplicateGroups.length,
-      duplicateGroups
+      duplicateGroupsCountBeforeFix: duplicateGroups.length,
+      deletedDuplicatesCount,
+      synchronizedAccountsCount
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, error: error.message });
