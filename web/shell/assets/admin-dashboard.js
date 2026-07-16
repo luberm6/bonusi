@@ -23,7 +23,7 @@ if (session) {
       if (btn) {
         btn.addEventListener("click", async (e) => {
           e.preventDefault();
-          if (!confirm("Запустить 3000 тестов СУБД и отправить тестовые SMS и Email алерты?")) return;
+          if (!confirm("Запустить 8000 тестов СУБД и отправить тестовые SMS и Email алерты?")) return;
           
           btn.style.opacity = "0.5";
           btn.style.pointerEvents = "none";
