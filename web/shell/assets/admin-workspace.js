@@ -48,6 +48,10 @@ export function appendSuperAdminActions(container) {
         <span class="workspace-action-title">Создать администратора</span>
         <span class="workspace-action-meta">Добавить нового администратора и выдать доступ в систему.</span>
       </a>
+      <a class="workspace-action-card" href="#" id="run-selftest-btn">
+        <span class="workspace-action-title">Диагностика системы</span>
+        <span class="workspace-action-meta">Запустить 3000 тестов СУБД и отправить тестовые SMS и Email алерты.</span>
+      </a>
     `
   );
 }

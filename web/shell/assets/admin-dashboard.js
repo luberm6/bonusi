@@ -18,6 +18,34 @@ if (session) {
 
   if (session.role === "super_admin") {
     appendSuperAdminActions(actions);
+    setTimeout(() => {
+      const btn = document.getElementById("run-selftest-btn");
+      if (btn) {
+        btn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          if (!confirm("Запустить 3000 тестов СУБД и отправить тестовые SMS и Email алерты?")) return;
+          
+          btn.style.opacity = "0.5";
+          btn.style.pointerEvents = "none";
+          const titleSpan = btn.querySelector(".workspace-action-title");
+          const originalTitle = titleSpan ? titleSpan.textContent : "Диагностика системы";
+          if (titleSpan) titleSpan.textContent = "Выполняется диагностика...";
+
+          try {
+            const testResult = await authFetchJson("/healthz/selftest");
+            const alertResult = await authFetchJson("/healthz/trigger-failure-alert", { method: "POST" });
+            
+            alert(`Успех!\n\nВыполнено проверок: ${testResult.total}\nУспешно: ${testResult.passed}\nОшибок: ${testResult.failed}\n\nТестовые SMS и Email уведомления успешно отправлены!`);
+          } catch (err) {
+            alert(`Ошибка: ${err.message}`);
+          } finally {
+            btn.style.opacity = "1";
+            btn.style.pointerEvents = "auto";
+            if (titleSpan) titleSpan.textContent = originalTitle;
+          }
+        });
+      }
+    }, 100);
   }
 
   const kpiElements = {

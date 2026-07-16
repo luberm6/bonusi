@@ -59,3 +59,24 @@ healthRouter.get(
     }
   }
 );
+
+import { sendDiagnosticsNotification } from "../../common/services/notification.service.js";
+
+healthRouter.post(
+  "/healthz/trigger-failure-alert",
+  authGuard,
+  requireRoles("super_admin"),
+  async (_req, res) => {
+    try {
+      await sendDiagnosticsNotification(
+        "89263358010",
+        "luberm6@gmail.com",
+        1,
+        ["[ТЕСТ] Имитация сбоя диагностики Centr Radius Service"]
+      );
+      res.json({ success: true, message: "Test notifications dispatched!" });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+);
