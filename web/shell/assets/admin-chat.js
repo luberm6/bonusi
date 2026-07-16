@@ -8,6 +8,14 @@ import {
 const session = initAdminWorkspace();
 
 if (session) {
+  const escapeHtml = (value) =>
+    String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+
   // CSS для fade-in новых сообщений и word-wrap длинных
   const styleEl = document.createElement("style");
   styleEl.textContent = `
