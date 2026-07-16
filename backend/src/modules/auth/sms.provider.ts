@@ -8,6 +8,7 @@ export interface SmsSendResult {
 
 export interface SmsProvider {
   sendOtp(phone: string, code: string): Promise<SmsSendResult>;
+  sendCustomSms(phone: string, text: string): Promise<SmsSendResult>;
 }
 
 export class MockSmsProvider implements SmsProvider {
@@ -18,15 +19,27 @@ export class MockSmsProvider implements SmsProvider {
       providerMessageId: `mock-msg-${Date.now()}`
     };
   }
+
+  async sendCustomSms(phone: string, text: string): Promise<SmsSendResult> {
+    console.log(`[MockSmsProvider] Custom SMS requested. Phone: ${phone}, Text: ${text}`);
+    return {
+      success: true,
+      providerMessageId: `mock-msg-custom-${Date.now()}`
+    };
+  }
 }
 
 export class SmscProvider implements SmsProvider {
   async sendOtp(phone: string, code: string): Promise<SmsSendResult> {
+    const text = `Код входа Centr Radius Service: ${code}. Никому его не сообщайте.`;
+    return this.sendCustomSms(phone, text);
+  }
+
+  async sendCustomSms(phone: string, text: string): Promise<SmsSendResult> {
     const login = env.smscLogin;
     const password = env.smscPassword;
     const sender = env.smscSender;
     const endpoint = env.smscEndpoint || "https://smsc.ru/sys/send.php";
-    const text = `Код входа Centr Radius Service: ${code}. Никому его не сообщайте.`;
 
     if (!login || !password) {
       console.error("[SmscProvider] SMSC_LOGIN or SMSC_PASSWORD is not configured.");
@@ -47,17 +60,12 @@ export class SmscProvider implements SmsProvider {
         params.append("sender", sender);
       }
 
-      if (env.smscDebug) {
-        console.log(`[SmscProvider] Sending SMS to ${phone} via SMSC.ru...`);
-      }
-
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s timeout
 
       const response = await fetch(endpoint, {
         method: env.smscUsePost ? "POST" : "GET",
-        headers: env.smscUsePost ? { "Content-Type": "application/x-www-form-urlencoded" } : undefined,
-        body: env.smscUsePost ? params.toString() : undefined,
+        body: env.smscUsePost ? params : undefined,
         signal: controller.signal
       });
 
@@ -102,11 +110,15 @@ export class SmscProvider implements SmsProvider {
 
 export class SmsAeroProvider implements SmsProvider {
   async sendOtp(phone: string, code: string): Promise<SmsSendResult> {
+    const text = `Код входа Centr Radius Service: ${code}. Никому его не сообщайте.`;
+    return this.sendCustomSms(phone, text);
+  }
+
+  async sendCustomSms(phone: string, text: string): Promise<SmsSendResult> {
     const email = env.smsaeroEmail;
     const apiKey = env.smsaeroApiKey;
     const sender = env.smsaeroSender || "SMS Aero";
     const endpoint = env.smsaeroEndpoint || "https://gate.smsaero.ru/v2/sms/send";
-    const text = `Код входа Centr Radius Service: ${code}. Никому его не сообщайте.`;
 
     if (!email || !apiKey) {
       console.error("[SmsAeroProvider] SMSAERO_EMAIL or SMSAERO_API_KEY is not configured.");
@@ -117,9 +129,7 @@ export class SmsAeroProvider implements SmsProvider {
     }
 
     try {
-      // SmsAero expects numbers to start with country code without plus sign
       const cleanPhone = phone.replace(/\D/g, "");
-
       const authHeader = "Basic " + Buffer.from(`${email}:${apiKey}`).toString("base64");
 
       if (env.smsaeroDebug) {
