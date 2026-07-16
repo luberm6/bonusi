@@ -45,14 +45,8 @@ import { runProductionSelfTest } from "./health.selftest.js";
 
 healthRouter.get(
   "/healthz/selftest",
-  async (req, res, next) => {
-    if (req.query.secret === "antigravity-diag") {
-      return next();
-    }
-    return authGuard(req, res, () => {
-      requireRoles("super_admin")(req, res, next);
-    });
-  },
+  authGuard,
+  requireRoles("super_admin"),
   async (_req, res) => {
     const client = await pool.connect();
     try {
