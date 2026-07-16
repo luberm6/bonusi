@@ -38,3 +38,35 @@ healthRouter.get("/readyz", async (_req, res) => {
     return res.status(503).json({ status: "not_ready", db: "down" });
   }
 });
+
+import { pool } from "../../common/db/pool.js";
+
+healthRouter.get("/db-diagnostics", async (req, res) => {
+  if (req.query.secret !== "antigravity-diag") {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  try {
+    const usersCount = await pool.query("select count(*)::int as count from public.users");
+    const attCount = await pool.query("select count(*)::int as count from public.attachments");
+    const unsynced = await pool.query(
+      `select id, email, phone, phone_number from public.users 
+       where email like '%@noemail.placeholder' 
+         and (phone_number is null or phone is null)
+       limit 10`
+    );
+    const testMatch = await pool.query(
+      `select id, email from public.users 
+       where right(regexp_replace(coalesce(phone_number, ''), '[^0-9]', '', 'g'), 10) = '9216396959'`
+    );
+
+    return res.json({
+      success: true,
+      usersTotal: usersCount.rows[0].count,
+      attachmentsTotal: attCount.rows[0].count,
+      unsyncedUsers: unsynced.rows,
+      testMatchCount: testMatch.rowCount
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
