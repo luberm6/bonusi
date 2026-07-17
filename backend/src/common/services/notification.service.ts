@@ -21,7 +21,26 @@ export async function sendDiagnosticsNotification(
     console.error("[notification] Failed to send SMS alert:", smsErr);
   }
 
-  // 2. Send Email
+  // 2. Send Email via Google Apps Script (if URL is set)
+  if (env.googleAppScriptUrl) {
+    try {
+      const response = await fetch(env.googleAppScriptUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          subject: "🚨 Ошибка автодиагностики Centr Radius Service",
+          text: `${text}\n\nПожалуйста, проверьте состояние логов бэкенда на Render.`
+        })
+      });
+      console.log(`[notification] Google Apps Script email sent: status=${response.status}`);
+      return;
+    } catch (gasErr) {
+      console.error("[notification] Failed to send email via Google Apps Script:", gasErr);
+    }
+  }
+
+  // 3. Fallback to standard SMTP
   if (!env.smtpEnabled) {
     console.log("[notification] SMTP is disabled. Skipping email alert.");
     return;

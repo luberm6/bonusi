@@ -69,6 +69,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER ?? "",
   smtpPassword: process.env.SMTP_PASSWORD ?? "",
   smtpFrom: process.env.SMTP_FROM ?? "Centr Radius Service <no-reply@centr-radius.ru>",
+  googleAppScriptUrl: process.env.GOOGLE_APP_SCRIPT_URL ?? "",
   s3Endpoint: process.env.S3_ENDPOINT ?? "",
   s3Region: process.env.S3_REGION ?? "us-east-1",
   s3Bucket: process.env.S3_BUCKET ?? "autoservice-chat",
