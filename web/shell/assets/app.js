@@ -268,12 +268,22 @@ export async function apiLogout({ accessToken, refreshToken }) {
 
 export function guard(roles) {
   const session = readSession();
-  if (!session) {
-    window.location.href = "/login/";
+  if (!session || !session.accessToken || !session.role) {
+    clearSession();
+    if (!window.location.pathname.startsWith("/login")) {
+      window.location.href = "/login/";
+    }
     return null;
   }
   if (roles && roles.length && !roles.includes(session.role)) {
-    window.location.href = session.role === "client" ? "/home/" : "/admin/dashboard/";
+    if (session.role === "client" && !window.location.pathname.startsWith("/home")) {
+      window.location.href = "/home/";
+    } else if ((session.role === "admin" || session.role === "super_admin") && !window.location.pathname.startsWith("/admin")) {
+      window.location.href = "/admin/dashboard/";
+    } else if (!roles.includes(session.role)) {
+      clearSession();
+      window.location.href = "/login/";
+    }
     return null;
   }
   return session;
