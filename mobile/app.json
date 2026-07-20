@@ -2,7 +2,7 @@
   "expo": {
     "name": "Centr Radius Service",
     "slug": "autoservice",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
@@ -31,7 +31,7 @@
     ],
     "ios": {
       "bundleIdentifier": "ru.radius47.service",
-      "buildNumber": "15",
+      "buildNumber": "16",
       "infoPlist": {
         "CFBundleDisplayName": "Autoservice",
         "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
