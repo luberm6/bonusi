@@ -67,22 +67,55 @@ export const featureFlags = {
   smtpEnabled: Boolean(globalThis.__AUTOSERVICE_SMTP_ENABLED__)
 };
 
+const APP_VERSION_KEY = "autoservice_app_version";
+const CURRENT_APP_VERSION = "1.1.0";
+
+function checkAppVersionMigration() {
+  try {
+    const saved = localStorage.getItem(APP_VERSION_KEY);
+    if (saved !== CURRENT_APP_VERSION) {
+      localStorage.setItem(APP_VERSION_KEY, CURRENT_APP_VERSION);
+      const legacyKeys = ["autoservice_session_v1", "autoservice_legacy_cache"];
+      legacyKeys.forEach((key) => {
+        try { localStorage.removeItem(key); } catch {}
+      });
+    }
+  } catch {}
+}
+
 export function readSession() {
   try {
+    checkAppVersionMigration();
     const raw = localStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const session = JSON.parse(raw);
+    if (!session || typeof session !== "object") {
+      clearSession();
+      return null;
+    }
+    if (!session.accessToken || !session.role) {
+      clearSession();
+      return null;
+    }
+    return session;
   } catch {
+    clearSession();
     return null;
   }
 }
 
 export function writeSession(session) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  try {
+    if (!session || typeof session !== "object") return;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    localStorage.setItem(APP_VERSION_KEY, CURRENT_APP_VERSION);
+  } catch {}
 }
 
 export function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch {}
 }
 
 export function getApiBase() {
