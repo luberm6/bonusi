@@ -342,3 +342,17 @@ export function bindLogout(buttonId) {
     }
   });
 }
+
+// Global Mobile Keyboard Focus Helper: Ensures input fields and textareas scroll into view above soft keyboard
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+  document.addEventListener("focusin", (event) => {
+    const el = event.target;
+    if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
+      setTimeout(() => {
+        try {
+          el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } catch {}
+      }, 250);
+    }
+  }, { passive: true });
+}

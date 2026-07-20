@@ -1431,8 +1431,12 @@ a.link:active {
     grid-template-columns: 1fr;
   }
 
-  .workspace-chat-messages {
-    max-height: none;
+  .workspace-chat-messages,
+  .client-messages {
+    min-height: 140px;
+    max-height: 48vh;
+    max-height: 48dvh;
+    overflow-y: auto;
   }
 
   .client-contact-row,
@@ -1455,8 +1459,13 @@ a.link:active {
     justify-content: flex-start;
   }
 
-  .client-chat-composer {
-    flex-direction: column;
+  .client-chat-composer,
+  .workspace-chat-compose {
+    flex-direction: row;
+    gap: 8px;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
   }
 
   .client-message {
