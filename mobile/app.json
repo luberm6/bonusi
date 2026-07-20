@@ -41,7 +41,7 @@
     },
     "android": {
       "package": "ru.radius47.service",
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#000000"
