@@ -31,7 +31,7 @@
     ],
     "ios": {
       "bundleIdentifier": "ru.radius47.service",
-      "buildNumber": "16",
+      "buildNumber": "17",
       "infoPlist": {
         "CFBundleDisplayName": "Autoservice",
         "NSPhotoLibraryUsageDescription": "Приложению нужен доступ к фото, чтобы вы могли прикрепить изображение к сообщению.",
