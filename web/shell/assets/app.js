@@ -355,4 +355,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       }, 250);
     }
   }, { passive: true });
+
+  if (window.visualViewport) {
+    const adjustLayout = () => {
+      const container = document.querySelector(".client-chat-panel, .workspace-chat");
+      if (!container) return;
+      const keyboardHeight = window.innerHeight - window.visualViewport.height;
+      if (keyboardHeight > 80) {
+        container.style.paddingBottom = `${keyboardHeight}px`;
+      } else {
+        container.style.paddingBottom = "";
+      }
+    };
+    window.visualViewport.addEventListener("resize", adjustLayout);
+    window.visualViewport.addEventListener("scroll", adjustLayout);
+  }
 }

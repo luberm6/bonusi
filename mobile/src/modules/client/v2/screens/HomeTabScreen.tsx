@@ -107,7 +107,7 @@ export function HomeTabScreen({ navigation }: any) {
   // Проверка полноты профиля для показа всплывающего баннера
   const [dismissed, setDismissed] = useState(false);
   const bannerAnim = useRef(new Animated.Value(0)).current;
-  const isProfileIncomplete = !!(me && (!me.fullName?.trim() || !me.carBrand?.trim() || !me.carVin?.trim()));
+  const isProfileIncomplete = !!(me && (!me.fullName?.trim() || !(me.carBrand?.trim() || me.carModel?.trim())));
 
   // Погода — загружается один раз при монтировании
   const [weather, setWeather] = useState<WeatherData | null>(null);
