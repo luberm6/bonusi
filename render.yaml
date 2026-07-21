@@ -83,11 +83,11 @@ services:
       - key: SMS_OTP_MAX_ATTEMPTS
         value: 5
       - key: SMSAERO_EMAIL
-        value: ""
+        sync: false
       - key: SMSAERO_API_KEY
-        value: ""
+        sync: false
       - key: SMSAERO_SENDER
-        value: "SMS Aero"
+        sync: false
       - key: SMSAERO_ENDPOINT
         value: https://gate.smsaero.ru/v2/sms/send
       - key: SMSAERO_DEBUG
