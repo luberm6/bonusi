@@ -97,7 +97,7 @@ services:
       - key: SMSC_DEBUG
         value: false
       - key: TEST_SMS_ENABLED
-        value: false
+        value: true
       - key: TEST_SMS_PHONE
         value: "+79990000000"
       - key: TEST_SMS_CODE
