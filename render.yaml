@@ -128,6 +128,6 @@ services:
 
 databases:
   - name: autoservice-postgres
-    plan: free
+    plan: basic
     databaseName: autoservice
     user: autoservice
