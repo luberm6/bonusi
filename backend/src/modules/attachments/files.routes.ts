@@ -68,11 +68,28 @@ filesRouter.get(
     if (!result.rowCount) {
       throw new HttpError(404, "File not found");
     }
-    const { file_data, file_type, file_name } = result.rows[0] as {
-      file_data: Buffer;
+    let { file_data, file_type, file_name } = result.rows[0] as {
+      file_data: Buffer | string;
       file_type: string;
       file_name: string;
     };
+
+    let buffer: Buffer;
+    if (Buffer.isBuffer(file_data)) {
+      const headerSnippet = file_data.toString("utf8", 0, 100);
+      if (headerSnippet.startsWith("data:") || headerSnippet.includes(";base64,")) {
+        const fullStr = file_data.toString("utf8");
+        const clean = fullStr.replace(/^data:[^;]+;base64,/, "").trim();
+        buffer = Buffer.from(clean, "base64");
+      } else {
+        buffer = file_data;
+      }
+    } else if (typeof file_data === "string") {
+      const clean = (file_data as string).replace(/^data:[^;]+;base64,/, "").trim();
+      buffer = Buffer.from(clean, "base64");
+    } else {
+      buffer = Buffer.from(file_data as unknown as Uint8Array);
+    }
 
     const mimeType = getResponseMimeType(file_type, file_name);
     const isInlineType = mimeType.startsWith("image/") || mimeType === "application/pdf";
@@ -82,12 +99,14 @@ filesRouter.get(
     const safeFileName = file_name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const encodedFileName = encodeURIComponent(file_name);
 
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     res.setHeader("Content-Type", mimeType);
     res.setHeader(
       "Content-Disposition",
       `${disposition}; filename="${safeFileName}"; filename*=UTF-8''${encodedFileName}`
     );
-    res.send(file_data);
+    res.send(buffer);
   })
 );
 

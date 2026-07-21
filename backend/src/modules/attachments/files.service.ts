@@ -25,7 +25,8 @@ function mapFileTypeToChat(fileType: string, fileName?: string): "image" | "pdf"
 
 function decodeBase64(contentBase64: string): Buffer {
   try {
-    return Buffer.from(contentBase64, "base64");
+    const cleanBase64 = contentBase64.replace(/^data:[^;]+;base64,/, "").trim();
+    return Buffer.from(cleanBase64, "base64");
   } catch {
     throw new HttpError(400, "Invalid contentBase64");
   }
