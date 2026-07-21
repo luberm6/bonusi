@@ -217,9 +217,19 @@ export async function listMessages(actor: AuthenticatedUser, conversationId: str
   );
   const rows = attachments.rows as AttachmentRow[];
   for (const msg of messages) {
-    const matched = rows.filter(
-      (a) => a.message_id === msg.id || (msg.clientMessageId && a.message_id === msg.clientMessageId) || (msg.text && a.file_name === msg.text)
-    );
+    const seenIds = new Set<string>();
+    const matched: AttachmentRow[] = [];
+    for (const a of rows) {
+      if (seenIds.has(a.id)) continue;
+      if (
+        a.message_id === msg.id ||
+        (msg.clientMessageId && a.message_id === msg.clientMessageId) ||
+        (msg.text && a.file_name === msg.text)
+      ) {
+        seenIds.add(a.id);
+        matched.push(a);
+      }
+    }
     msg.attachments = matched.map((a) => ({
       id: a.id,
       fileUrl: a.file_url,
