@@ -6,25 +6,21 @@ import { getFileStorageService } from "./file-storage.provider.js";
 import type { UploadFileDto } from "./files.dto.js";
 
 function mapFileTypeToChat(fileType: string, fileName?: string): "image" | "pdf" | "document" {
-  if (fileType === "application/pdf") return "pdf";
-  const docTypes = [
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-  ];
-  if (docTypes.includes(fileType)) return "document";
   if (fileName) {
     const lower = fileName.toLowerCase();
+    if (/\.(jpe?g|png|gif|webp|bmp|heic|heif)$/i.test(lower)) return "image";
     if (lower.endsWith(".pdf")) return "pdf";
-    if (lower.endsWith(".doc") || lower.endsWith(".docx") || lower.endsWith(".xls") || lower.endsWith(".xlsx")) {
+    if (/\.(doc|docx|xls|xlsx|ppt|pptx|txt|csv|zip|rar)$/i.test(lower)) return "document";
+  }
+  if (fileType) {
+    const lowerType = fileType.toLowerCase();
+    if (lowerType.startsWith("image/")) return "image";
+    if (lowerType === "application/pdf") return "pdf";
+    if (lowerType.includes("word") || lowerType.includes("excel") || lowerType.includes("officedocument") || lowerType.includes("sheet")) {
       return "document";
     }
   }
-  if (fileType && (fileType.includes("word") || fileType.includes("excel") || fileType.includes("officedocument") || fileType.includes("sheet"))) {
-    return "document";
-  }
-  return "image";
+  return "document";
 }
 
 function decodeBase64(contentBase64: string): Buffer {

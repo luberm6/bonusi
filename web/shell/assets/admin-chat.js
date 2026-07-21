@@ -75,10 +75,13 @@ if (session) {
         };
         attachmentsHtml = message.attachments.map(att => {
           const fullUrl = getFullUrl(att.fileUrl);
-          if (att.fileType === "image" || (att.fileType && att.fileType.startsWith("image/"))) {
-            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${fullUrl}" target="_blank"><img src="${fullUrl}" style="max-width:200px;max-height:150px;border-radius:6px;display:block;"></a></div>`;
+          const isImg = att.fileType === "image" ||
+                        (att.fileType && att.fileType.startsWith("image/")) ||
+                        (att.fileName && /\.(jpe?g|png|gif|webp|bmp|heic|heif)$/i.test(att.fileName));
+          if (isImg) {
+            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${fullUrl}" target="_blank" style="display:inline-block;text-decoration:none;"><img src="${fullUrl}" alt="${escapeHtml(att.fileName || 'Изображение')}" style="max-width:260px;max-height:200px;border-radius:8px;display:block;object-fit:cover;background:rgba(255,255,255,0.05);" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='inline-flex';"><span style="display:none;color:#00bcd4;font-size:12px;align-items:center;gap:4px;">🖼️ ${escapeHtml(att.fileName || 'Изображение')} (открыть)</span></a></div>`;
           } else {
-            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${fullUrl}" target="_blank" style="color:#00bcd4;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;">📄 ${att.fileName || 'Документ'}</a></div>`;
+            return `<div class="msg-attachment" style="margin-top:6px;"><a href="${fullUrl}" target="_blank" style="color:#00bcd4;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px;">📄 ${escapeHtml(att.fileName || 'Документ')}</a></div>`;
           }
         }).join("");
       }
