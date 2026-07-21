@@ -203,21 +203,24 @@ export async function listMessages(actor: AuthenticatedUser, conversationId: str
   const messages = (result.rows as MessageRow[]).map(toMessageView);
   if (!messages.length) return messages;
   const ids = messages.map((m) => m.id);
+  const clientMsgIds = messages.map((m) => m.clientMessageId).filter((id): id is string => Boolean(id));
+  const fileNames = messages.map((m) => m.text).filter((t): t is string => Boolean(t && t.length > 3));
+
   const attachments = await pool.query(
     `select id, message_id, file_url, file_type, file_name, size, created_at
      from public.attachments
      where message_id = any($1::uuid[])
+        or message_id = any($2::uuid[])
+        or file_name = any($3::text[])
      order by created_at asc`,
-    [ids]
+    [ids, clientMsgIds, fileNames]
   );
-  const byMessage = new Map<string, AttachmentRow[]>();
-  for (const row of attachments.rows as AttachmentRow[]) {
-    const list = byMessage.get(row.message_id) ?? [];
-    list.push(row);
-    byMessage.set(row.message_id, list);
-  }
+  const rows = attachments.rows as AttachmentRow[];
   for (const msg of messages) {
-    msg.attachments = (byMessage.get(msg.id) ?? []).map((a) => ({
+    const matched = rows.filter(
+      (a) => a.message_id === msg.id || (msg.clientMessageId && a.message_id === msg.clientMessageId) || (msg.text && a.file_name === msg.text)
+    );
+    msg.attachments = matched.map((a) => ({
       id: a.id,
       fileUrl: a.file_url,
       fileType: a.file_type,

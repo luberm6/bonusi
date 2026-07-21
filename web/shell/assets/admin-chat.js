@@ -86,10 +86,17 @@ if (session) {
         }).join("");
       }
       let resolvedText = message.text || message.body || message.content || message.message || message.preview || "";
+      if (message.attachments && message.attachments.length > 0) {
+        const attNames = message.attachments.map(a => (a.fileName || "").trim().toLowerCase());
+        if (attNames.includes(resolvedText.trim().toLowerCase())) {
+          resolvedText = "";
+        }
+      }
       if (!resolvedText && (!message.attachments || message.attachments.length === 0)) {
         resolvedText = "[Пустое сообщение]";
       }
-      node.innerHTML = `${resolvedText}${attachmentsHtml}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
+      const safeText = resolvedText ? escapeHtml(resolvedText) : "";
+      node.innerHTML = `${safeText}${attachmentsHtml}<div class="workspace-msg-meta">${formatTime(message.createdAt)}</div>`;
       msgs.appendChild(node);
     }
     prevMessageIds = new Set(messages.map((m) => m.id));
