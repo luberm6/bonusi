@@ -20,8 +20,13 @@ export function initAdminCreateForm({
   const successElement = document.getElementById(successElementId);
   const submitButton = document.getElementById(submitButtonId);
 
+  let isSubmitting = false;
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (isSubmitting || (submitButton && submitButton.disabled)) return;
+    isSubmitting = true;
+
     errorElement.textContent = "";
     successElement.textContent = "";
 
@@ -29,11 +34,12 @@ export function initAdminCreateForm({
       const message = beforeSubmit();
       if (message) {
         errorElement.textContent = message;
+        isSubmitting = false;
         return;
       }
     }
 
-    submitButton.disabled = true;
+    if (submitButton) submitButton.disabled = true;
     try {
       const created = await authFetchJson(submitPath, {
         method: "POST",
@@ -44,7 +50,8 @@ export function initAdminCreateForm({
     } catch (error) {
       errorElement.textContent = formatWorkspaceError(error, "Не удалось сохранить запись");
     } finally {
-      submitButton.disabled = false;
+      if (submitButton) submitButton.disabled = false;
+      isSubmitting = false;
     }
   });
 

@@ -59,8 +59,9 @@ export function appendSuperAdminActions(container) {
 export function formatWorkspaceError(error, fallbackText) {
   if (!(error instanceof Error)) return fallbackText;
   const message = String(error.message || "").trim();
-  if (!message) return fallbackText;
-  if (/request failed/i.test(message) || /network request failed/i.test(message)) return fallbackText;
+  if (/already exists/i.test(message) || /уже существует/i.test(message)) {
+    return "Пользователь с таким телефоном или e-mail уже зарегистрирован.";
+  }
   if (/fetch/i.test(message) || /network/i.test(message)) {
     return "Соединение нестабильно. Попробуйте ещё раз.";
   }
