@@ -40,6 +40,23 @@ filesRouter.post(
   })
 );
 
+function getResponseMimeType(fileType: string, fileName: string): string {
+  if (fileType && fileType.includes("/")) return fileType;
+  const name = (fileName || "").toLowerCase();
+  if (name.endsWith(".png")) return "image/png";
+  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+  if (name.endsWith(".webp")) return "image/webp";
+  if (name.endsWith(".gif")) return "image/gif";
+  if (name.endsWith(".pdf")) return "application/pdf";
+  if (name.endsWith(".xls")) return "application/vnd.ms-excel";
+  if (name.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  if (name.endsWith(".doc")) return "application/msword";
+  if (name.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (fileType === "image") return "image/jpeg";
+  if (fileType === "pdf") return "application/pdf";
+  return "application/octet-stream";
+}
+
 filesRouter.get(
   "/files/download/:id",
   asyncHandler(async (req, res) => {
@@ -56,20 +73,16 @@ filesRouter.get(
       file_type: string;
       file_name: string;
     };
-    
-    const isInlineType = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/pdf"
-    ].includes(file_type);
+
+    const mimeType = getResponseMimeType(file_type, file_name);
+    const isInlineType = mimeType.startsWith("image/") || mimeType === "application/pdf";
     const disposition = isInlineType ? "inline" : "attachment";
 
     // Support ASCII fallback and UTF-8 filename in Content-Disposition
     const safeFileName = file_name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const encodedFileName = encodeURIComponent(file_name);
 
-    res.setHeader("Content-Type", file_type);
+    res.setHeader("Content-Type", mimeType);
     res.setHeader(
       "Content-Disposition",
       `${disposition}; filename="${safeFileName}"; filename*=UTF-8''${encodedFileName}`
