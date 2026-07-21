@@ -2,7 +2,7 @@
   "expo": {
     "name": "Centr Radius Service",
     "slug": "autoservice",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "entryPoint": "./index.js",
     "icon": "./assets/icon.png",
@@ -41,7 +41,7 @@
     },
     "android": {
       "package": "ru.radius47.service",
-      "versionCode": 10,
+      "versionCode": 11,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#000000"
