@@ -94,6 +94,20 @@ export function ChatTabScreen({ navigation }: any) {
 
   // ── Загрузка файла на сервер ──────────────────────────────────────────────
   const uploadFile = async (convId: string, messageId: string, file: PendingFile) => {
+    let b64 = file.base64;
+    if (!b64 && file.uri) {
+      try {
+        const FileSystem = require('expo-file-system');
+        b64 = await FileSystem.readAsStringAsync(file.uri, { encoding: 'base64' });
+      } catch (e) {
+        console.error('[ChatTabScreen] failed to read URI base64', e);
+      }
+    }
+    if (!b64) {
+      throw new Error('Не удалось прочитать содержимое файла');
+    }
+    const fileSize = file.size || Math.floor((b64.length * 3) / 4);
+
     const res = await fetch(`${mobileEnv.apiBaseUrl}/files/upload`, {
       method: 'POST',
       headers: {
@@ -104,8 +118,8 @@ export function ChatTabScreen({ navigation }: any) {
         messageId,
         fileName: file.fileName,
         fileType: file.mimeType,
-        size: file.size,
-        contentBase64: file.base64,
+        size: fileSize,
+        contentBase64: b64,
       }),
     });
     if (!res.ok) {
@@ -206,7 +220,15 @@ export function ChatTabScreen({ navigation }: any) {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       const name = asset.fileName || `photo_${Date.now()}.jpg`;
-      const base64Str = asset.base64 ?? '';
+      let base64Str = asset.base64 || '';
+      if (!base64Str && asset.uri) {
+        try {
+          const FileSystem = require('expo-file-system');
+          base64Str = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'base64' });
+        } catch {
+          base64Str = '';
+        }
+      }
       const calcSize = asset.fileSize || (base64Str ? Math.floor((base64Str.length * 3) / 4) : 0);
       setPendingFile({
         uri: asset.uri,
@@ -231,7 +253,15 @@ export function ChatTabScreen({ navigation }: any) {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       const name = `camphoto_${Date.now()}.jpg`;
-      const base64Str = asset.base64 ?? '';
+      let base64Str = asset.base64 || '';
+      if (!base64Str && asset.uri) {
+        try {
+          const FileSystem = require('expo-file-system');
+          base64Str = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'base64' });
+        } catch {
+          base64Str = '';
+        }
+      }
       const calcSize = asset.fileSize || (base64Str ? Math.floor((base64Str.length * 3) / 4) : 0);
       setPendingFile({
         uri: asset.uri,
