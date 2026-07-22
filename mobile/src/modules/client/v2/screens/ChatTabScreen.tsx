@@ -206,12 +206,14 @@ export function ChatTabScreen({ navigation }: any) {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       const name = asset.fileName || `photo_${Date.now()}.jpg`;
+      const base64Str = asset.base64 ?? '';
+      const calcSize = asset.fileSize || (base64Str ? Math.floor((base64Str.length * 3) / 4) : 0);
       setPendingFile({
         uri: asset.uri,
-        base64: asset.base64 ?? '',
+        base64: base64Str,
         fileName: name,
         mimeType: asset.mimeType || 'image/jpeg',
-        size: asset.fileSize || (asset.base64 ? Math.round(asset.base64.length * 0.75) : 0),
+        size: calcSize,
       });
     }
   };
@@ -228,13 +230,15 @@ export function ChatTabScreen({ navigation }: any) {
     });
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
-      const name = `photo_${Date.now()}.jpg`;
+      const name = `camphoto_${Date.now()}.jpg`;
+      const base64Str = asset.base64 ?? '';
+      const calcSize = asset.fileSize || (base64Str ? Math.floor((base64Str.length * 3) / 4) : 0);
       setPendingFile({
         uri: asset.uri,
-        base64: asset.base64 ?? '',
+        base64: base64Str,
         fileName: name,
         mimeType: 'image/jpeg',
-        size: asset.fileSize || (asset.base64 ? Math.round(asset.base64.length * 0.75) : 0),
+        size: calcSize,
       });
     }
   };

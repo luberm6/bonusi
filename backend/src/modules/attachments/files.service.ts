@@ -46,15 +46,13 @@ export async function uploadFileForMessage(actor: AuthenticatedUser, input: Uplo
   await assertConversationAccess(actor, message.conversation_id);
 
   const content = decodeBase64(input.contentBase64);
-  if (content.byteLength !== input.size) {
-    throw new HttpError(400, "size mismatch for contentBase64");
-  }
+  const actualSize = content.byteLength > 0 ? content.byteLength : (input.size || 0);
 
   const storage = getFileStorageService();
   const uploaded = await storage.upload({
     fileName: input.fileName,
     fileType: input.fileType,
-    size: input.size,
+    size: actualSize,
     content
   });
 
@@ -63,7 +61,7 @@ export async function uploadFileForMessage(actor: AuthenticatedUser, input: Uplo
       `insert into public.attachments (message_id, file_url, file_type, file_name, size)
        values ($1, $2, $3, $4, $5)
        returning id, message_id, file_url, file_type, file_name, size, created_at`,
-      [input.messageId, uploaded.url, mapFileTypeToChat(input.fileType, input.fileName), input.fileName, input.size]
+      [input.messageId, uploaded.url, mapFileTypeToChat(input.fileType, input.fileName), input.fileName, actualSize]
     );
     const row = inserted.rows[0] as {
       id: string;
