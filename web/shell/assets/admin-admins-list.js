@@ -1,6 +1,6 @@
-import { authFetchJson } from "/assets/app.js";
-import { formatWorkspaceError, renderWorkspaceState } from "/assets/admin-workspace.js";
-import { formatAdminDate, initAdminListPage } from "/assets/admin-list-page.js";
+import { authFetchJson } from "/assets/app.js?v=12";
+import { formatWorkspaceError, renderWorkspaceState } from "/assets/admin-workspace.js?v=12";
+import { formatAdminDate, initAdminListPage } from "/assets/admin-list-page.js?v=12";
 
 const modalElement = document.getElementById("change-password-modal");
 const copyElement = document.getElementById("change-password-copy");
