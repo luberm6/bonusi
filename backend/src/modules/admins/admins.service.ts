@@ -71,16 +71,17 @@ export async function listAdmins(actor: AuthenticatedUser) {
 export async function createAdmin(actor: AuthenticatedUser, dto: CreateAdminDto) {
   assertSuperAdmin(actor);
   const passwordHash = await hashPassword(dto.password);
+  const role = dto.role || "admin";
   const client = await pool.connect();
   try {
     await client.query("begin");
     const created = await client.query(
       `insert into public.users
        (email, password_hash, role, created_by, is_active, full_name, phone, notes)
-       values ($1, $2, 'admin', $3, $4, $5, $6, $7)
+       values ($1, $2, $3, $4, $5, $6, $7, $8)
        on conflict (email) do nothing
        returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at`,
-      [dto.email, passwordHash, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes]
+      [dto.email, passwordHash, role, actor.id, dto.isActive, dto.fullName, dto.phone, dto.notes]
     );
     if (created.rowCount === 0) {
       throw new HttpError(409, "User with this email already exists");
@@ -127,6 +128,7 @@ export async function updateAdmin(actor: AuthenticatedUser, adminId: string, dto
     };
 
     if (dto.email !== undefined) push("email", dto.email);
+    if (dto.role !== undefined) push("role", dto.role);
     if (dto.fullName !== undefined) push("full_name", dto.fullName);
     if (dto.phone !== undefined) push("phone", dto.phone);
     if (dto.notes !== undefined) push("notes", dto.notes);

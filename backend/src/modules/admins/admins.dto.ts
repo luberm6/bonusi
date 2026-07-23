@@ -7,6 +7,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 export type CreateAdminDto = {
   email: string;
   password: string;
+  role?: "admin" | "super_admin";
   isActive: boolean;
   fullName: string | null;
   phone: string | null;
@@ -16,6 +17,7 @@ export type CreateAdminDto = {
 export type UpdateAdminDto = {
   email?: string;
   password?: string;
+  role?: "admin" | "super_admin";
   isActive?: boolean;
   fullName?: string | null;
   phone?: string | null;
@@ -76,6 +78,14 @@ export function parseCreateAdminDto(body: unknown): CreateAdminDto {
     throw new HttpError(400, "password length must be between 8 and 128");
   }
 
+  let role: "admin" | "super_admin" = "admin";
+  if (input.role !== undefined) {
+    if (input.role !== "admin" && input.role !== "super_admin") {
+      throw new HttpError(400, "Invalid role");
+    }
+    role = input.role;
+  }
+
   const isActive = input.isActive === undefined ? true : Boolean(input.isActive);
   const fullName = parseOptionalString(input.fullName, "fullName", 120) ?? null;
   const phone = parseOptionalString(input.phone, "phone", 24) ?? null;
@@ -84,7 +94,7 @@ export function parseCreateAdminDto(body: unknown): CreateAdminDto {
     throw new HttpError(400, "Invalid phone");
   }
 
-  return { email, password, isActive, fullName, phone, notes };
+  return { email, password, role, isActive, fullName, phone, notes };
 }
 
 export function parseUpdateAdminDto(body: unknown): UpdateAdminDto {
@@ -108,6 +118,13 @@ export function parseUpdateAdminDto(body: unknown): UpdateAdminDto {
       throw new HttpError(400, "password length must be between 8 and 128");
     }
     dto.password = password;
+  }
+
+  if (input.role !== undefined) {
+    if (input.role !== "admin" && input.role !== "super_admin") {
+      throw new HttpError(400, "Invalid role");
+    }
+    dto.role = input.role;
   }
 
   if (input.isActive !== undefined) {

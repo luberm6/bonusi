@@ -12,6 +12,7 @@ initAdminCreateForm({
   buildBody: () => ({
     email: document.getElementById("email").value.trim(),
     password: document.getElementById("password").value,
+    role: document.getElementById("role") ? document.getElementById("role").value : "admin",
     fullName: document.getElementById("full-name").value.trim() || null,
     isActive: true
   }),

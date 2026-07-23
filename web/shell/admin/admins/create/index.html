@@ -59,6 +59,13 @@
                 <input class="input" id="email" type="email" placeholder="example@mail.ru" required />
               </div>
               <div class="workspace-field">
+                <label for="role">Роль учетной записи</label>
+                <select class="input" id="role">
+                  <option value="admin">Обычный администратор</option>
+                  <option value="super_admin">Суперадминистратор (Владелец)</option>
+                </select>
+              </div>
+              <div class="workspace-field">
                 <label for="password">Пароль</label>
                 <input class="input" id="password" type="password" placeholder="Минимум 8 символов" required />
               </div>
@@ -71,12 +78,12 @@
             <div class="spacer-16"></div>
             <p id="error-msg"></p>
             <p id="success-msg"></p>
-            <button type="submit" class="btn btn-primary" id="submit-btn">Создать администратора</button>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Создать учетную запись</button>
           </form>
         </section>
       </section>
     </main>
 
-    <script type="module" src="/assets/admin-admins-create.js"></script>
+    <script type="module" src="/assets/admin-admins-create.js?v=12"></script>
   </body>
 </html>
