@@ -10,7 +10,7 @@ import type { CreateAdminDto, UpdateAdminDto } from "./admins.dto.js";
 type AdminRow = {
   id: string;
   email: string;
-  role: "admin";
+  role: "admin" | "super_admin";
   is_active: boolean;
   created_by: string | null;
   full_name: string | null;
@@ -47,7 +47,7 @@ async function getAdminRowById(adminId: string, queryable: Pool | PoolClient = p
   const result = await queryable.query(
     `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at
      from public.users
-     where id = $1 and role = 'admin'
+     where id = $1 and role in ('admin', 'super_admin')
      limit 1`,
     [adminId]
   );
@@ -62,7 +62,7 @@ export async function listAdmins(actor: AuthenticatedUser) {
   const result = await pool.query(
     `select id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at
      from public.users
-     where role = 'admin'
+     where role in ('admin', 'super_admin')
      order by created_at desc`
   );
   return (result.rows as AdminRow[]).map(toAdminView);
@@ -139,7 +139,7 @@ export async function updateAdmin(actor: AuthenticatedUser, adminId: string, dto
     const updated = await client.query(
       `update public.users
        set ${sets.join(", ")}
-       where id = $${values.length} and role = 'admin'
+       where id = $${values.length} and role in ('admin', 'super_admin')
        returning id, email, role, is_active, created_by, full_name, phone, notes, last_seen, created_at, updated_at`,
       values
     );
