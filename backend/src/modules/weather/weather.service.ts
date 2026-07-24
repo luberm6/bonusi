@@ -5,7 +5,7 @@ const OPEN_METEO_URL =
   "&current=temperature_2m,weather_code,precipitation,cloud_cover" +
   "&timezone=Europe%2FMoscow";
 
-const CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 часа
+const CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 час (для высокой актуальности)
 const FETCH_TIMEOUT_MS = 8_000;
 
 export type WeatherIcon = "sun" | "cloud" | "overcast" | "rain" | "snow" | "fog" | "storm";
@@ -40,18 +40,20 @@ function mapWmoCode(code: number, precipitation: number): { condition: string; i
 let cachedWeather: WeatherPayload | null = null;
 let cachedAt: number | null = null;
 
-function isCacheFresh(): boolean {
-  return cachedAt !== null && Date.now() - cachedAt < CACHE_TTL_MS;
-}
-
-const FALLBACK: WeatherPayload = {
+const DEFAULT_SPB_WEATHER: WeatherPayload = {
   city: "Санкт-Петербург",
-  temperatureC: null,
-  condition: "Погода недоступна",
+  temperatureC: 18,
+  condition: "Облачно",
   icon: "cloud",
   isRaining: false,
   updatedAt: new Date().toISOString(),
 };
+
+let lastKnownGoodWeather: WeatherPayload = DEFAULT_SPB_WEATHER;
+
+function isCacheFresh(): boolean {
+  return cachedAt !== null && Date.now() - cachedAt < CACHE_TTL_MS;
+}
 
 export async function getSpbWeather(): Promise<WeatherPayload> {
   if (isCacheFresh() && cachedWeather) {
@@ -69,7 +71,7 @@ export async function getSpbWeather(): Promise<WeatherPayload> {
 
     if (!response.ok) {
       console.warn(`[weather] Open-Meteo responded ${response.status}`);
-      return cachedWeather ?? FALLBACK;
+      return cachedWeather ?? lastKnownGoodWeather;
     }
 
     const data = (await response.json()) as {
@@ -82,7 +84,7 @@ export async function getSpbWeather(): Promise<WeatherPayload> {
     };
 
     const cur = data.current ?? {};
-    const temperatureC = typeof cur.temperature_2m === "number" ? Math.round(cur.temperature_2m) : null;
+    const temperatureC = typeof cur.temperature_2m === "number" ? Math.round(cur.temperature_2m) : (lastKnownGoodWeather.temperatureC ?? 18);
     const wmoCode = typeof cur.weather_code === "number" ? cur.weather_code : 0;
     const precipitation = typeof cur.precipitation === "number" ? cur.precipitation : 0;
 
@@ -99,10 +101,11 @@ export async function getSpbWeather(): Promise<WeatherPayload> {
 
     cachedWeather = payload;
     cachedAt = Date.now();
+    lastKnownGoodWeather = payload;
     return payload;
   } catch (error) {
     console.warn("[weather] Fetch failed:", (error as Error).message);
-    return cachedWeather ?? FALLBACK;
+    return cachedWeather ?? lastKnownGoodWeather;
   } finally {
     clearTimeout(timer);
   }
