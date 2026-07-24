@@ -5,7 +5,8 @@ const OPEN_METEO_URL =
   "&current=temperature_2m,weather_code,precipitation,cloud_cover" +
   "&timezone=Europe%2FMoscow";
 
-const CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 час (для высокой актуальности)
+const SUCCESS_CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 час при успешном ответе
+const FAILED_RETRY_INTERVAL_MS = 2 * 60 * 1000; // 2 минуты при сбое, чтобы быстрее получить актуальную погоду
 const FETCH_TIMEOUT_MS = 8_000;
 
 export type WeatherIcon = "sun" | "cloud" | "overcast" | "rain" | "snow" | "fog" | "storm";
@@ -36,9 +37,10 @@ function mapWmoCode(code: number, precipitation: number): { condition: string; i
   return { condition: "Переменная облачность", icon: "cloud", isRaining };
 }
 
-// --- In-memory cache ---
+// --- In-memory cache & adaptive retry state ---
 let cachedWeather: WeatherPayload | null = null;
 let cachedAt: number | null = null;
+let activeCacheTtlMs: number = SUCCESS_CACHE_TTL_MS;
 
 const DEFAULT_SPB_WEATHER: WeatherPayload = {
   city: "Санкт-Петербург",
@@ -52,7 +54,7 @@ const DEFAULT_SPB_WEATHER: WeatherPayload = {
 let lastKnownGoodWeather: WeatherPayload = DEFAULT_SPB_WEATHER;
 
 function isCacheFresh(): boolean {
-  return cachedAt !== null && Date.now() - cachedAt < CACHE_TTL_MS;
+  return cachedAt !== null && Date.now() - cachedAt < activeCacheTtlMs;
 }
 
 export async function getSpbWeather(): Promise<WeatherPayload> {
@@ -70,8 +72,11 @@ export async function getSpbWeather(): Promise<WeatherPayload> {
     });
 
     if (!response.ok) {
-      console.warn(`[weather] Open-Meteo responded ${response.status}`);
-      return cachedWeather ?? lastKnownGoodWeather;
+      console.warn(`[weather] Open-Meteo responded ${response.status}. Retrying in 2 minutes.`);
+      activeCacheTtlMs = FAILED_RETRY_INTERVAL_MS;
+      cachedAt = Date.now();
+      cachedWeather = lastKnownGoodWeather;
+      return lastKnownGoodWeather;
     }
 
     const data = (await response.json()) as {
@@ -99,13 +104,17 @@ export async function getSpbWeather(): Promise<WeatherPayload> {
       updatedAt: new Date().toISOString(),
     };
 
+    activeCacheTtlMs = SUCCESS_CACHE_TTL_MS; // Успешно получили — заносим в кэш на 1 час
     cachedWeather = payload;
     cachedAt = Date.now();
     lastKnownGoodWeather = payload;
     return payload;
   } catch (error) {
-    console.warn("[weather] Fetch failed:", (error as Error).message);
-    return cachedWeather ?? lastKnownGoodWeather;
+    console.warn("[weather] Fetch failed:", (error as Error).message, ". Retrying in 2 minutes.");
+    activeCacheTtlMs = FAILED_RETRY_INTERVAL_MS;
+    cachedAt = Date.now();
+    cachedWeather = lastKnownGoodWeather;
+    return lastKnownGoodWeather;
   } finally {
     clearTimeout(timer);
   }
