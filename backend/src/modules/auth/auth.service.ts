@@ -306,6 +306,44 @@ export async function rotateRefreshToken(refreshToken: string) {
     };
 
     if (row.revoked_at) {
+      const revokedAgeMs = Date.now() - new Date(row.revoked_at).getTime();
+      const GRACE_PERIOD_MS = 60_000; // 60-second grace period for VPN/network retries
+
+      if (revokedAgeMs <= GRACE_PERIOD_MS) {
+        // Token was rotated very recently. Look up the active family token to gracefully issue a new access token
+        const activeTokenRes = await client.query(
+          `select id from public.refresh_tokens
+           where family_id = $1 and revoked_at is null and expires_at > now()
+           order by created_at desc limit 1`,
+          [row.family_id]
+        );
+
+        if (activeTokenRes.rowCount && activeTokenRes.rowCount > 0) {
+          const activeSessionId = activeTokenRes.rows[0].id as string;
+          const newRefreshToken = createRawRefreshToken();
+          const newHash = hashRefreshToken(newRefreshToken);
+
+          const inserted = await client.query(
+            `insert into public.refresh_tokens
+             (user_id, device_id, token_hash, family_id, rotated_from_token_id, expires_at)
+             values ($1, $2, $3, $4, $5, ${refreshExpirySql(env.refreshTokenTtlDays)})
+             returning id`,
+            [row.user_id, row.device_id, newHash, row.family_id, activeSessionId]
+          );
+
+          const newSessionId = inserted.rows[0].id as string;
+          const accessToken = signAccessToken({
+            sub: row.user_id,
+            sid: newSessionId,
+            did: row.device_id,
+            typ: "access"
+          });
+
+          await client.query("commit");
+          return { accessToken, refreshToken: newRefreshToken };
+        }
+      }
+
       await client.query(
         "update public.refresh_tokens set revoked_at = now() where family_id = $1 and revoked_at is null",
         [row.family_id]
@@ -315,7 +353,7 @@ export async function rotateRefreshToken(refreshToken: string) {
         action: "auth.refresh_reuse_detected",
         entityType: "refresh_tokens",
         entityId: row.id,
-        payload: { familyId: row.family_id }
+        payload: { familyId: row.family_id, revokedAgeMs }
       });
       throw new HttpError(401, "Refresh token reuse detected");
     }

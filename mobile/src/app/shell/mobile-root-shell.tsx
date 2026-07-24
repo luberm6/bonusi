@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Platform, View } from "react-native";
+import { StyleSheet, Platform, View, AppState } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ClientHomeV2 as ClientHomeScreen } from "../../modules/client/v2";
 import type { AuthSession } from "../navigation/role-navigation-resolver";
@@ -283,13 +283,17 @@ export function MobileRootShell() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ refreshToken })
       });
-      if (!response.ok) {
+      if (response.status === 401) {
+        // Only log out if backend explicitly rejects the token as revoked/invalid
         await handleLogout();
+        return;
+      }
+      if (!response.ok) {
+        // Temporary server error or network disruption — NEVER log out!
         return;
       }
       const data = (await response.json()) as { accessToken: string; refreshToken: string };
       if (!data.accessToken || !data.refreshToken) {
-        await handleLogout();
         return;
       }
       await persistSession({ session, accessToken: data.accessToken }, data.refreshToken);
@@ -348,7 +352,16 @@ export function MobileRootShell() {
 
     void tick();
     const interval = setInterval(() => { void tick(); }, 60_000);
-    return () => clearInterval(interval);
+    const appStateSub = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        void tick();
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      appStateSub.remove();
+    };
   }, [session, accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // WEB PREVIEW: bypass auth — renders HomeTabScreen without a real session.

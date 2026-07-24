@@ -183,8 +183,15 @@ async function apiRefreshToken(refreshToken) {
     body: JSON.stringify({ refreshToken })
   });
   const data = await parseJson(response);
+  if (response.status === 401) {
+    const err = new Error(data.message || "Сессия завершилась. Войдите снова.");
+    err.isAuthError = true;
+    throw err;
+  }
   if (!response.ok) {
-    throw new Error(data.message || "Сессия завершилась. Войдите снова.");
+    const err = new Error(data.message || "Временная ошибка связи с сервером.");
+    err.isAuthError = false;
+    throw err;
   }
   return data;
 }
@@ -206,7 +213,9 @@ async function refreshSessionIfNeeded({ force = false } = {}) {
         writeSession(next);
         return next;
       } catch (error) {
-        clearSession();
+        if (error && error.isAuthError) {
+          clearSession();
+        }
         throw error;
       } finally {
         refreshInFlight = null;
